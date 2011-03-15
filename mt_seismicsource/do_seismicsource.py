@@ -24,16 +24,16 @@ Author: Fabian Euchner, fabian@sed.ethz.ch
 #    59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ############################################################################
 
+import numpy
 import os
+import shapely.geometry
+import shapely.ops
 import sys
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from qgis.core import *
-
-import shapely.geometry
-import shapely.ops
 
 #from shapely.ops import cascaded_union
 
@@ -54,7 +54,8 @@ FAULT_FILE_DIR = 'fault_sources/DISS'
 FAULT_FILE = 'CSSTop_polyline.shp'
 
 CATALOG_DIR = 'eq_catalog'
-CATALOG_FILE = 'cenec-zmap.dat'
+# CATALOG_FILE = 'cenec-zmap.dat'
+CATALOG_FILE = 'SHARE_20110311.csv'
 
 try:
     from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
@@ -118,7 +119,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
     def loadAreaSourceLayer(self):
         if self.area_source_layer is None:
-            area_source_path = os.path.join( DATA_DIR, ZONE_FILE_DIR, ZONE_FILE )
+            area_source_path = os.path.join(DATA_DIR, ZONE_FILE_DIR, ZONE_FILE)
             self.area_source_layer = QgsVectorLayer(area_source_path, "Area Sources", 
                 "ogr")
             QgsMapLayerRegistry.instance().addMapLayer(self.area_source_layer)
@@ -133,11 +134,11 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
     def loadCatalogLayer(self):
         if self.catalog_layer is None:
-            catalog_path = os.path.join( DATA_DIR, CATALOG_DIR, CATALOG_FILE )
+            catalog_path = os.path.join(DATA_DIR, CATALOG_DIR, CATALOG_FILE)
 
             self.catalog = QPCatalog.QPCatalog()
-            self.catalog.importZMAP(catalog_path, minimumDataset=True)
-            
+            # self.catalog.importZMAP(catalog_path, minimumDataset=True)
+            self.catalog.importSHAREPotsdamCSV(catalog_path)
 
             # cut catalog to years > 1900 (because of datetime)
             # TODO(fab): change the datetime lib to mx.DateTime
@@ -170,13 +171,17 @@ class SeismicSource(QDialog, Ui_SeismicSource):
                 curr_lon = curr_ori.longitude.value
                 curr_lat = curr_ori.latitude.value
                 magnitude = curr_mag.mag.value
-                depth = curr_ori.depth.value
+
+                try:
+                    depth = curr_ori.depth.value
+                except Exception:
+                    depth = numpy.nan
 
                 f = QgsFeature()
                 f.setGeometry( QgsGeometry.fromPoint( QgsPoint(
                     curr_lon,curr_lat) ) )
                 f.setAttributeMap( { 0 : QVariant(magnitude),
-                                    1 : QVariant(depth) } )
+                                     1 : QVariant(depth) } )
                 pr.addFeatures( [ f ] )
 
             # update layer's extent when new features have been added
