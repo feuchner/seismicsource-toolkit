@@ -75,13 +75,20 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.figures = {}
 
         # Button: load data
-        QObject.connect(self.btnLoadData, SIGNAL("clicked()"), self.loadDataLayers)
+        QObject.connect(self.btnLoadData, SIGNAL("clicked()"), 
+            self.loadDataLayers)
 
         # Button: cumul distribution plot
-        QObject.connect(self.btnDisplayCumulDist, SIGNAL("clicked()"), self.updateCumulDist)
+        QObject.connect(self.btnDisplayCumulDist, SIGNAL("clicked()"), 
+            self.updateCumulDist)
 
         # Button: FMD plot
-        QObject.connect(self.btnDisplayFMD, SIGNAL("clicked()"), self.updateFMD)
+        QObject.connect(self.btnDisplayFMD, SIGNAL("clicked()"), 
+            self.updateFMD)
+
+        # Checkbox: Normalize FMD plot
+        QObject.connect(self.checkBoxGRAnnualRate, SIGNAL("stateChanged(int)"), 
+            self._updateFMDDisplay)
 
         # init stuff
         self.background_layer = None
@@ -91,9 +98,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         self.progressBarLoadData.setValue(0)
         self.labelCatalogEvents.setText("Catalog events: 0")
+        self.labelSelectedZones.setText("Selected zones: 0")
         self.labelSelectedEvents.setText("Selected events: 0")
 
-    def loadDataLayers( self ):
+    def loadDataLayers(self):
 
         # remove default layers
         # QgsMapLayerRegistry.instance().removeMapLayer(layer_id)
@@ -103,10 +111,12 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.loadDefaultLayers()
         self.progressBarLoadData.setValue(100)
 
+        # set zone layer to active layer
+
     def loadBackgroundLayer(self):
         if self.background_layer is None:
-            background_path = os.path.join( DATA_DIR, BACKGROUND_FILE_DIR, 
-                BACKGROUND_FILE )
+            background_path = os.path.join(DATA_DIR, BACKGROUND_FILE_DIR, 
+                BACKGROUND_FILE)
             self.background_layer = QgsVectorLayer(background_path, 
                 "Political Boundaries", "ogr")
             QgsMapLayerRegistry.instance().addMapLayer(self.background_layer)
@@ -228,25 +238,33 @@ class SeismicSource(QDialog, Ui_SeismicSource):
     def updateFMD(self):
         self._filterEventsFromSelection()
         self._computeFMD()
-        self._plotFMD()
+        self._updateFMDDisplay()
         
+    def _updateFMDDisplay(self):
+        if 'fmd' in self.figures:
+            self._displayValues()
+            self._plotFMD()
+
     def _computeFMD(self):
         self.figures['fmd'] = {}
-        fmd = self.catalog_selected.getFmd(minEventsGR=MIN_EVENTS_FOR_GR)
-        self.figures['fmd']['gr'] = fmd.GR
-        self.figures['fmd']['fig'] = fmd.plot(imgfile=None, 
+        self.figures['fmd']['fmd'] = self.catalog_selected.getFmd(
+            minEventsGR=MIN_EVENTS_FOR_GR)
+
+    def _displayValues(self):
+        """Updates a and b value display."""
+
+        if self.checkBoxGRAnnualRate.isChecked():
+            aValue = self.figures['fmd']['fmd'].GR['aValueNormalized']
+        else:
+            aValue = self.figures['fmd']['fmd'].GR['aValue']
+        self.lcdNumberAValue.display("%.2f" % aValue)
+        self.lcdNumberBValue.display("%.2f" % self.figures['fmd']['fmd'].GR['bValue'])
+
+    def _plotFMD(self):
+
+        self.figures['fmd']['fig'] = self.figures['fmd']['fmd'].plot(imgfile=None, 
             fmdtype='cumulative', 
             normalize=self.checkBoxGRAnnualRate.isChecked())
-
-        # update a and b value display
-        if self.checkBoxGRAnnualRate.isChecked():
-            aValue = fmd.GR['aValueNormalized']
-        else:
-            aValue = fmd.GR['aValue']
-        self.lcdNumberAValue.display("%.2f" % aValue)
-        self.lcdNumberBValue.display("%.2f" % fmd.GR['bValue'])
-  
-    def _plotFMD(self):
 
         self.figures['fmd']['axes'] = \
             self.figures['fmd']['fig'].add_subplot(111)
