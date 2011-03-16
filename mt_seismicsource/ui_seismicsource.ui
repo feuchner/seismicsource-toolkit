@@ -80,32 +80,16 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="labelSelectedEvents">
+      <widget class="QLabel" name="labelSelectedZones">
        <property name="text">
-        <string>Selected events:</string>
+        <string>Selected zones:</string>
        </property>
       </widget>
      </item>
      <item>
-      <spacer name="verticalSpacer">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="sizeType">
-        <enum>QSizePolicy::Preferred</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>20</width>
-         <height>40</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="btnDisplayCumulDist">
+      <widget class="QLabel" name="labelSelectedEvents">
        <property name="text">
-        <string>display cumulative distribution</string>
+        <string>Selected events:</string>
        </property>
       </widget>
      </item>
@@ -189,6 +173,13 @@
          <bool>true</bool>
         </property>
        </widget>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnDisplayCumulDist">
+       <property name="text">
+        <string>display cumulative distribution</string>
+       </property>
       </widget>
      </item>
     </layout>

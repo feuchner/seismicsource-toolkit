@@ -197,7 +197,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
     def _computeCumulDist(self):
         self.figures['cumuldist'] = {}
         self.figures['cumuldist']['fig'] = \
-            self.catalog_selected.getCumulativeDistribution().plot(imgfile=None)
+            self.catalog_selected.getCumulativeDistribution().plot(
+                imgfile=None)
 
     def _plotCumulDist(self):
 
@@ -231,14 +232,18 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         
     def _computeFMD(self):
         self.figures['fmd'] = {}
-        fmd = self.catalog_selected.getFmd(minEventsGR=MIN_EVENTS_FOR_GR, 
-            normalize=self.checkBoxGRAnnualRate.isChecked())
+        fmd = self.catalog_selected.getFmd(minEventsGR=MIN_EVENTS_FOR_GR)
         self.figures['fmd']['gr'] = fmd.GR
         self.figures['fmd']['fig'] = fmd.plot(imgfile=None, 
-            fmdtype='cumulative')
+            fmdtype='cumulative', 
+            normalize=self.checkBoxGRAnnualRate.isChecked())
 
         # update a and b value display
-        self.lcdNumberAValue.display("%.2f" % fmd.GR['aValue'])
+        if self.checkBoxGRAnnualRate.isChecked():
+            aValue = fmd.GR['aValueNormalized']
+        else:
+            aValue = fmd.GR['aValue']
+        self.lcdNumberAValue.display("%.2f" % aValue)
         self.lcdNumberBValue.display("%.2f" % fmd.GR['bValue'])
   
     def _plotFMD(self):
@@ -299,5 +304,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.catalog_selected.merge(self.catalog)
         self.catalog_selected.cut(geometry=geometry)
 
+        self.labelSelectedZones.setText(
+            "Selected zones: %s" % len(features_selected))
         self.labelSelectedEvents.setText(
             "Selected events: %s" % self.catalog_selected.size())
