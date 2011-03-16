@@ -35,12 +35,9 @@ from PyQt4.QtGui import *
 
 from qgis.core import *
 
-#from shapely.ops import cascaded_union
-
-from ui_seismicsource import Ui_SeismicSource
-
 import QPCatalog
 
+from ui_seismicsource import Ui_SeismicSource
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
@@ -54,8 +51,10 @@ FAULT_FILE_DIR = 'fault_sources/DISS'
 FAULT_FILE = 'CSSTop_polyline.shp'
 
 CATALOG_DIR = 'eq_catalog'
-# CATALOG_FILE = 'cenec-zmap.dat'
-CATALOG_FILE = 'SHARE_20110311.csv'
+CATALOG_FILE = 'cenec-zmap.dat'
+#CATALOG_FILE = 'SHARE_20110311.csv'
+
+MIN_EVENTS_FOR_GR = 10
 
 try:
     from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
@@ -137,8 +136,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             catalog_path = os.path.join(DATA_DIR, CATALOG_DIR, CATALOG_FILE)
 
             self.catalog = QPCatalog.QPCatalog()
-            # self.catalog.importZMAP(catalog_path, minimumDataset=True)
-            self.catalog.importSHAREPotsdamCSV(catalog_path)
+            self.catalog.importZMAP(catalog_path, minimumDataset=True)
+            #self.catalog.importSHAREPotsdamCSV(catalog_path)
 
             # cut catalog to years > 1900 (because of datetime)
             # TODO(fab): change the datetime lib to mx.DateTime
@@ -156,7 +155,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
             # add fields
             pr.addAttributes([QgsField("magnitude", QVariant.Double),
-                            QgsField("depth",  QVariant.Double)])
+                              QgsField("depth",  QVariant.Double)])
 
             # add EQs as features
             for curr_event in self.catalog_selected.eventParameters.event:
@@ -232,8 +231,15 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         
     def _computeFMD(self):
         self.figures['fmd'] = {}
-        self.figures['fmd']['fig'] = self.catalog_selected.getFmd(0.1).plot(
-            imgfile=None, fmdtype='cumulative')
+        fmd = self.catalog_selected.getFmd(minEventsGR=MIN_EVENTS_FOR_GR, 
+            normalize=self.checkBoxGRAnnualRate.isChecked())
+        self.figures['fmd']['gr'] = fmd.GR
+        self.figures['fmd']['fig'] = fmd.plot(imgfile=None, 
+            fmdtype='cumulative')
+
+        # update a and b value display
+        self.lcdNumberAValue.display("%.2f" % fmd.GR['aValue'])
+        self.lcdNumberBValue.display("%.2f" % fmd.GR['bValue'])
   
     def _plotFMD(self):
 

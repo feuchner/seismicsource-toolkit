@@ -25,7 +25,7 @@
      <x>0</x>
      <y>10</y>
      <width>311</width>
-     <height>621</height>
+     <height>671</height>
     </rect>
    </property>
    <widget class="QDialogButtonBox" name="buttonBox">
@@ -118,7 +118,7 @@
         <property name="geometry">
          <rect>
           <x>20</x>
-          <y>60</y>
+          <y>20</y>
           <width>67</width>
           <height>30</height>
          </rect>
@@ -171,6 +171,22 @@
         </property>
         <property name="text">
          <string>b value</string>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="checkBoxGRAnnualRate">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>80</y>
+          <width>121</width>
+          <height>23</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Annual Rate</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </widget>
