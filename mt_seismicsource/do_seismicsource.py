@@ -46,13 +46,16 @@ BACKGROUND_FILE = 'world.shp'
 
 ZONE_FILE_DIR = 'area_sources/GEM1'
 ZONE_FILE = 'europe_source_model.shp'
+ZONE_FILES = ('europe_source_model.shp',)
 
 FAULT_FILE_DIR = 'fault_sources/DISS'
 FAULT_FILE = 'CSSTop_polyline.shp'
+FAULT_FILES = ('CSSTop_polyline.shp',)
 
 CATALOG_DIR = 'eq_catalog'
 CATALOG_FILE = 'cenec-zmap.dat'
 #CATALOG_FILE = 'SHARE_20110311.csv'
+CATALOG_FILES = ('cenec-zmap.dat', 'SHARE_20110311.dat')
 
 MIN_EVENTS_FOR_GR = 10
 
@@ -96,6 +99,11 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.fault_source_layer = None
         self.catalog_layer = None
 
+        # prepare data load combo boxes
+        self.comboBoxZoneInput.addItems(ZONE_FILES)
+        self.comboBoxFaultInput.addItems(FAULT_FILES)
+        self.comboBoxEQCatalogInput.addItems(CATALOG_FILES)
+
         self.progressBarLoadData.setValue(0)
         self.labelCatalogEvents.setText("Catalog events: 0")
         self.labelSelectedZones.setText("Selected zones: 0")
@@ -128,22 +136,24 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
     def loadAreaSourceLayer(self):
         if self.area_source_layer is None:
-            area_source_path = os.path.join(DATA_DIR, ZONE_FILE_DIR, ZONE_FILE)
+            area_source_path = os.path.join(DATA_DIR, ZONE_FILE_DIR, 
+                unicode(self.comboBoxZoneInput.currentText()))
             self.area_source_layer = QgsVectorLayer(area_source_path, "Area Sources", 
                 "ogr")
             QgsMapLayerRegistry.instance().addMapLayer(self.area_source_layer)
 
     def loadFaultSourceLayer(self):
         if self.fault_source_layer is None:
-            fault_source_path = os.path.join( DATA_DIR, FAULT_FILE_DIR, 
-                FAULT_FILE )
+            fault_source_path = os.path.join(DATA_DIR, FAULT_FILE_DIR, 
+                unicode(self.comboBoxFaultInput.currentText()))
             self.fault_source_layer = QgsVectorLayer(fault_source_path, 
                 "Fault Sources", "ogr")
             QgsMapLayerRegistry.instance().addMapLayer(self.fault_source_layer)
 
     def loadCatalogLayer(self):
         if self.catalog_layer is None:
-            catalog_path = os.path.join(DATA_DIR, CATALOG_DIR, CATALOG_FILE)
+            catalog_path = os.path.join(DATA_DIR, CATALOG_DIR, 
+                unicode(self.comboBoxEQCatalogInput.currentText()))
 
             self.catalog = QPCatalog.QPCatalog()
             self.catalog.importZMAP(catalog_path, minimumDataset=True)
