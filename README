@@ -1,6 +1,17 @@
 SHARE Seismic Source Toolkit
+============================
 
-The SHARE Seismic Source Toolkit is a Python plugin for QGis.
-It is used in the SHARE project to modify the seismic source
-zone dataset that is the basis for subsequent seismic 
-hazard calculations. 
+The SHARE Seismic Source Toolkit is a Python plugin for QGis. It is used in 
+the SHARE project to modify the seismic source zone dataset that is the 
+basis for subsequent seismic hazard calculations.
+
+NOTE:
+This toolkit is an expert tool. For its intended use in SHARE, some input 
+files are required, which are not public and hence are not included in 
+this repository. Nevertheless, the tool may be of interest to an expert
+community. Example input files for demonstration purposes will be added
+later.
+
+Requirements:
+
+* QuakePy (www.quakepy.org)
