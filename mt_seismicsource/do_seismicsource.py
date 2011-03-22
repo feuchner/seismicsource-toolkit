@@ -121,16 +121,21 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.loadDefaultLayers()
         self.progressBarLoadData.setValue(100)
 
-        # set zone layer to active layer
+        # TODO(fab): make zone layer the active layer
 
     def loadBackgroundLayer(self):
         if self.background_layer is None:
             background_path = os.path.join(DATA_DIR, BACKGROUND_FILE_DIR, 
                 BACKGROUND_FILE)
+
+            if not os.path.isfile(background_path):
+                _warning_box_missing_layer_file(background_path)
+                return
+
             self.background_layer = QgsVectorLayer(background_path, 
                 "Political Boundaries", "ogr")
             QgsMapLayerRegistry.instance().addMapLayer(self.background_layer)
-        
+
     def loadDefaultLayers(self):
         self.loadAreaSourceLayer()
         self.loadFaultSourceLayer()
@@ -140,6 +145,11 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         if self.area_source_layer is None:
             area_source_path = os.path.join(DATA_DIR, ZONE_FILE_DIR, 
                 unicode(self.comboBoxZoneInput.currentText()))
+
+            if not os.path.isfile(area_source_path):
+                _warning_box_missing_layer_file(area_source_path)
+                return
+
             self.area_source_layer = QgsVectorLayer(area_source_path, 
                 "Area Sources", "ogr")
             QgsMapLayerRegistry.instance().addMapLayer(self.area_source_layer)
@@ -148,17 +158,27 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         if self.fault_source_layer is None:
             fault_source_path = os.path.join(DATA_DIR, FAULT_FILE_DIR, 
                 unicode(self.comboBoxFaultInput.currentText()))
+
+            if not os.path.isfile(fault_source_path):
+                _warning_box_missing_layer_file(fault_source_path)
+                return
+
             self.fault_source_layer = QgsVectorLayer(fault_source_path, 
                 "Fault Sources", "ogr")
             QgsMapLayerRegistry.instance().addMapLayer(
-                self.fault_source_layer)
+                    self.fault_source_layer)
 
     def loadCatalogLayer(self):
         if self.catalog_layer is None:
             catalog_path = os.path.join(DATA_DIR, CATALOG_DIR, 
                 unicode(self.comboBoxEQCatalogInput.currentText()))
 
+            if not os.path.isfile(catalog_path):
+                _warning_box_missing_layer_file(catalog_path)
+                return
+
             self.catalog = QPCatalog.QPCatalog()
+
             self.catalog.importZMAP(catalog_path, minimumDataset=True)
             #self.catalog.importSHAREPotsdamCSV(catalog_path)
 
@@ -344,3 +364,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             "Selected zones: %s" % len(features_selected))
         self.labelSelectedEvents.setText(
             "Selected events: %s" % self.catalog_selected.size())
+
+def _warning_box_missing_layer_file(filename):
+    QMessageBox.warning(None, "File not found", 
+        "Layer file not found: %s" % os.path.basename(filename))
+    
