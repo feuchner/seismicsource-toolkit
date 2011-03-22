@@ -60,8 +60,10 @@ CATALOG_FILES = ('cenec-zmap.dat', 'SHARE_20110311.dat')
 MIN_EVENTS_FOR_GR = 10
 
 try:
-    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-    from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
+    from matplotlib.backends.backend_qt4agg \
+        import FigureCanvasQTAgg as FigureCanvas
+    from matplotlib.backends.backend_qt4agg \
+        import NavigationToolbar2QTAgg as NavigationToolbar
     from matplotlib.figure import Figure
     import matplotlib.font_manager as FontManager
 except ImportError:
@@ -90,8 +92,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             self.updateFMD)
 
         # Checkbox: Normalize FMD plot
-        QObject.connect(self.checkBoxGRAnnualRate, SIGNAL("stateChanged(int)"), 
-            self._updateFMDDisplay)
+        QObject.connect(self.checkBoxGRAnnualRate, 
+            SIGNAL("stateChanged(int)"), self._updateFMDDisplay)
 
         # init stuff
         self.background_layer = None
@@ -138,8 +140,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         if self.area_source_layer is None:
             area_source_path = os.path.join(DATA_DIR, ZONE_FILE_DIR, 
                 unicode(self.comboBoxZoneInput.currentText()))
-            self.area_source_layer = QgsVectorLayer(area_source_path, "Area Sources", 
-                "ogr")
+            self.area_source_layer = QgsVectorLayer(area_source_path, 
+                "Area Sources", "ogr")
             QgsMapLayerRegistry.instance().addMapLayer(self.area_source_layer)
 
     def loadFaultSourceLayer(self):
@@ -148,7 +150,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
                 unicode(self.comboBoxFaultInput.currentText()))
             self.fault_source_layer = QgsVectorLayer(fault_source_path, 
                 "Fault Sources", "ogr")
-            QgsMapLayerRegistry.instance().addMapLayer(self.fault_source_layer)
+            QgsMapLayerRegistry.instance().addMapLayer(
+                self.fault_source_layer)
 
     def loadCatalogLayer(self):
         if self.catalog_layer is None:
@@ -162,15 +165,18 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             # cut catalog to years > 1900 (because of datetime)
             # TODO(fab): change the datetime lib to mx.DateTime
             self.catalog.cut(mintime='1900-01-01', mintime_exclude=True)
-            self.labelCatalogEvents.setText("Catalog events: %s" % self.catalog.size())
+            self.labelCatalogEvents.setText(
+                "Catalog events: %s" % self.catalog.size())
 
             # cut with selected polygons
             self.catalog_selected = QPCatalog.QPCatalog()
             self.catalog_selected.merge(self.catalog)
-            self.labelSelectedEvents.setText("Selected events: %s" % self.catalog_selected.size())
+            self.labelSelectedEvents.setText(
+                "Selected events: %s" % self.catalog_selected.size())
 
             # create layer
-            self.catalog_layer = QgsVectorLayer("Point", "CENEC catalog", "memory")
+            self.catalog_layer = QgsVectorLayer("Point", "CENEC catalog", 
+                "memory")
             pr = self.catalog_layer.dataProvider()
 
             # add fields
@@ -204,7 +210,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
                 pr.addFeatures( [ f ] )
 
             # update layer's extent when new features have been added
-            # because change of extent in provider is not propagated to the layer
+            # because change of extent in provider is not 
+            # propagated to the layer
             self.catalog_layer.updateExtents()
             QgsMapLayerRegistry.instance().addMapLayer(self.catalog_layer)
 
@@ -268,12 +275,13 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         else:
             aValue = self.figures['fmd']['fmd'].GR['aValue']
         self.lcdNumberAValue.display("%.2f" % aValue)
-        self.lcdNumberBValue.display("%.2f" % self.figures['fmd']['fmd'].GR['bValue'])
+        self.lcdNumberBValue.display(
+            "%.2f" % self.figures['fmd']['fmd'].GR['bValue'])
 
     def _plotFMD(self):
 
-        self.figures['fmd']['fig'] = self.figures['fmd']['fmd'].plot(imgfile=None, 
-            fmdtype='cumulative', 
+        self.figures['fmd']['fig'] = self.figures['fmd']['fmd'].plot(
+            imgfile=None, fmdtype='cumulative', 
             normalize=self.checkBoxGRAnnualRate.isChecked())
 
         self.figures['fmd']['axes'] = \
