@@ -12,6 +12,73 @@ this repository. Nevertheless, the tool may be of interest to an expert
 community. Example input files for demonstration purposes will be added
 later.
 
-Requirements:
+Installation
+============
 
-* QuakePy (www.quakepy.org)
+Succesful installations have been done so far on fresh openSUSE 11.4 and 
+Kubuntu 10.10 systems.
+
+openSUSE 11.4
+-------------
+
+This describes the installation on a fresh openSUSE 11.4 system.
+
+Add repository http://download.opensuse.org/repositories/Application:/Geo/openSUSE_11.4
+to software repositories (YAST -> Software Repositories -> Add)
+
+Install following packages:
+
+$ sudo zypper install make python-setuptools git
+$ sudo zypper install python-lxml python-matplotlib python-egenix-mx-base
+$ sudo zypper install python-cython python-qt4-devel qgis-devel
+
+$ sudo easy_install pip
+$ sudo pip Shapely
+
+Continue with instructions for all systems (see below).
+
+Kubuntu 10.10
+-------------
+
+This describes the installation on a fresh Kubuntu 10.10 system.
+
+Install following packages:
+
+$ sudo apt-get install python-setuptools tcsh git subversion
+$ sudo apt-get install python-lxml python-matplotlib python-egenix-mxdatetime
+$ sudo apt-get install python-shapely cython 
+$ sudo apt-get install qgis qgis-dev python-qgis pyqt-dev-tools
+
+Continue with instructions for all systems (see below).
+
+All systems
+-----------
+
+ * install pyRXP from sources (required for QuakePy):
+
+download & unpack from http://www.reportlab.com/software/opensource/pyrxp/download/
+$ python ./setup.py build
+$ sudo python ./setup.py install
+
+ * Install QuakePy (www.quakepy.org) from SVN:
+
+$ cd /my/path/to/
+$ svn co https://quake.ethz.ch/svn/quakepy/trunk quakepy
+
+Add line to $HOME/.profile (assuming bash):
+export PYTHONPATH=/my/path/to/quakepy:$PYTHONPATH
+
+Optional, but recommended: run QuakePy unit tests:
+$ cd /my/path/to/quakepy
+$ make check
+$ make testclean
+
+ * Install toolkit from Github:
+
+$ cd /my/path/to/
+$ git clone https://github.com/feuchner/seismicsource-toolkit.git
+$ cd seismicsource-toolkit/mt_seismicsource
+$ make
+
+In Quantum GIS, activate plugin:
+Plugins -> Manage Plugins -> "SHARE Seismic Source Toolkit"
