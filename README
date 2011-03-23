@@ -33,7 +33,7 @@ $ sudo zypper install python-lxml python-matplotlib python-egenix-mx-base
 $ sudo zypper install python-cython python-qt4-devel qgis-devel
 
 $ sudo easy_install pip
-$ sudo pip Shapely
+$ sudo pip install Shapely
 
 Continue with instructions for all systems (see below).
 
