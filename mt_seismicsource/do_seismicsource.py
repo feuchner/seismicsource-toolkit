@@ -59,6 +59,10 @@ CATALOG_FILES = ('cenec-zmap.dat', 'SHARE_20110311.dat')
 
 MIN_EVENTS_FOR_GR = 10
 
+(ZONE_TABLE_ID_IDX, ZONE_TABLE_NAME_IDX, ZONE_TABLE_EQCTR_IDX, 
+    ZONE_TABLE_BVALDEF_IDX, ZONE_TABLE_BVAL_IDX, 
+    ZONE_TABLE_AVAL_IDX) = range(6)
+
 try:
     from matplotlib.backends.backend_qt4agg \
         import FigureCanvasQTAgg as FigureCanvas
@@ -83,9 +87,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         QObject.connect(self.btnLoadData, SIGNAL("clicked()"), 
             self.loadDataLayers)
 
-        # Button: cumul distribution plot
-        QObject.connect(self.btnDisplayCumulDist, SIGNAL("clicked()"), 
-            self.updateCumulDist)
+        # Button: compute zone values
+        QObject.connect(self.btnComputeZoneValues, SIGNAL("clicked()"), 
+            self.updateZoneValues)
 
         # Button: FMD plot
         QObject.connect(self.btnDisplayFMD, SIGNAL("clicked()"), 
@@ -153,6 +157,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             self.area_source_layer = QgsVectorLayer(area_source_path, 
                 "Area Sources", "ogr")
             QgsMapLayerRegistry.instance().addMapLayer(self.area_source_layer)
+
+            # check if all features are okay
+            self._checkAreaSourceLayer()
 
     def loadFaultSourceLayer(self):
         if self.fault_source_layer is None:
@@ -235,6 +242,12 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             self.catalog_layer.updateExtents()
             QgsMapLayerRegistry.instance().addMapLayer(self.catalog_layer)
 
+
+    def updateZoneValues(self):
+        """Update a and b values for selected zones."""
+
+        # self._filterEventsFromSelection()
+        self._updateZoneTable()
 
     def updateCumulDist(self):
         self._filterEventsFromSelection()
@@ -337,7 +350,6 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         for feature in features_selected:
 
             # yields list of QGSPoints
-            # TODO(fab): if layer is not of Polygon type, complain
             qgis_geometry_aspolygon = feature.geometry().asPolygon()
             if len(qgis_geometry_aspolygon) == 0:
                 QMessageBox.warning(None, "Error", 
@@ -365,7 +377,119 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.labelSelectedEvents.setText(
             "Selected events: %s" % self.catalog_selected.size())
 
+    def _updateZoneTable(self):
+        """Update table of source zones with computed values."""
+
+        # reset table rows to number of zones
+        feature_count = len(self.area_source_layer.selectedFeatures())
+        self.zoneTable.clearContents()
+
+        if feature_count > 0:
+            self.zoneTable.setRowCount(feature_count)
+
+            # get attribute indexes
+            attr_idx = {'ssid': None, 'ssshortnam': None, 'ssmfdvalb': None}
+            pr = self.area_source_layer.dataProvider()
+        
+            # if attribute name is not found, -1 is returned
+            for curr_attr in attr_idx:
+                attr_idx[curr_attr] = pr.fieldNameIndex(curr_attr)
+
+            for feature_idx, feature in enumerate(
+                self.area_source_layer.selectedFeatures()):
+
+                fmd = self._computeZoneFMD(feature)
+
+                if attr_idx['ssid'] != -1:
+                    feature_id = \
+                        feature.attributeMap()[attr_idx['ssid']].toString()
+                else:
+                    feature_id = feature.id()
+
+                if attr_idx['ssshortnam'] != -1:
+                    feature_name = \
+                        feature.attributeMap()[attr_idx['ssshortnam']].toString()
+                else:
+                    feature_name = "-"
+
+                if attr_idx['ssmfdvalb'] != -1:
+                    feature_bdef = \
+                        feature.attributeMap()[attr_idx['ssmfdvalb']].toString()
+                else:
+                    feature_bdef = "-"
+
+                self.zoneTable.setItem(feature_idx, ZONE_TABLE_ID_IDX, 
+                    QTableWidgetItem(QString("%s" % feature_id)))
+
+                self.zoneTable.setItem(feature_idx, ZONE_TABLE_NAME_IDX, 
+                    QTableWidgetItem(QString("%s" % feature_name)))
+
+                self.zoneTable.setItem(feature_idx, ZONE_TABLE_EQCTR_IDX,
+                    QTableWidgetItem(QString("%s" % fmd.GR['magCtr'])))
+
+                self.zoneTable.setItem(feature_idx, ZONE_TABLE_BVALDEF_IDX, 
+                    QTableWidgetItem(QString("%s" % feature_bdef)))
+
+                self.zoneTable.setItem(feature_idx, ZONE_TABLE_BVAL_IDX,
+                    QTableWidgetItem(QString("%.2f" % fmd.GR['bValue'])))
+
+                self.zoneTable.setItem(feature_idx, ZONE_TABLE_AVAL_IDX,
+                    QTableWidgetItem(QString("%.2f" % fmd.GR['aValue'])))
+
+
+    def _computeZoneFMD(self, feature):
+        """Compute FMD for selected feature."""
+
+        # cut catalog to feature
+        qgis_geometry_aspolygon = feature.geometry().asPolygon()
+        vertices = [(x.x(), x.y()) for x in qgis_geometry_aspolygon[0]]
+        geometry = shapely.geometry.Polygon(vertices)
+
+        # cut catalog with selected polygons
+        catalog_selected = QPCatalog.QPCatalog()
+        catalog_selected.merge(self.catalog)
+        catalog_selected.cut(geometry=geometry)
+        return catalog_selected.getFmd(minEventsGR=MIN_EVENTS_FOR_GR)
+
+    def _checkAreaSourceLayer(self):
+        """Check if features in area source layer are without errors."""
+
+        broken_features = []
+        for feature_idx, feature in enumerate(self.area_source_layer):
+
+            try:
+                qgis_geometry_aspolygon = feature.geometry().asPolygon()
+            except Exception:
+                broken_features.append(feature_idx)
+                continue
+
+            # no outer ring given
+            if len(qgis_geometry_aspolygon) == 0:
+                broken_features.append(feature_idx)
+                continue
+
+            # check if there are enough vertices
+            vertices = [(x.x(), x.y()) for x in qgis_geometry_aspolygon[0]]
+            if len(vertices) < 4:
+                broken_features.append(feature_idx)
+                continue
+
+            try:
+                shapely_polygon = shapely.geometry.Polygon(vertices)
+            except Exception:
+                broken_features.append(feature_idx)
+                continue
+
+        if len(broken_features) > 0:
+            self._warning_box_broken_area_features(broken_features)
+
+
 def _warning_box_missing_layer_file(filename):
     QMessageBox.warning(None, "File not found", 
         "Layer file not found: %s" % os.path.basename(filename))
+
+def _warning_box_broken_area_features(broken_features):
+     QMessageBox.warning(None, "Broken features", 
+        "IDs of broken features:\n %s" % " ".join(
+        [str(x) for x in broken_features]))
     

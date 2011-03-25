@@ -253,47 +253,7 @@
        </widget>
       </widget>
      </item>
-     <item>
-      <widget class="QPushButton" name="btnDisplayCumulDist">
-       <property name="text">
-        <string>display cumulative distribution</string>
-       </property>
-      </widget>
-     </item>
     </layout>
-   </widget>
-  </widget>
-  <widget class="QWidget" name="widgetPlotCumulDist" native="true">
-   <property name="geometry">
-    <rect>
-     <x>320</x>
-     <y>10</y>
-     <width>401</width>
-     <height>350</height>
-    </rect>
-   </property>
-   <property name="minimumSize">
-    <size>
-     <width>300</width>
-     <height>350</height>
-    </size>
-   </property>
-   <property name="maximumSize">
-    <size>
-     <width>450</width>
-     <height>450</height>
-    </size>
-   </property>
-   <widget class="QWidget" name="verticalLayoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>10</y>
-      <width>381</width>
-      <height>331</height>
-     </rect>
-    </property>
-    <layout class="QVBoxLayout" name="layoutPlotCumulDist"/>
    </widget>
   </widget>
   <widget class="QWidget" name="widgetPlotFMD" native="true">
@@ -327,6 +287,96 @@
      </rect>
     </property>
     <layout class="QVBoxLayout" name="layoutPlotFMD"/>
+   </widget>
+  </widget>
+  <widget class="QWidget" name="widgetZoneTable" native="true">
+   <property name="geometry">
+    <rect>
+     <x>320</x>
+     <y>10</y>
+     <width>401</width>
+     <height>351</height>
+    </rect>
+   </property>
+   <widget class="QTableWidget" name="zoneTable">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>30</y>
+      <width>401</width>
+      <height>321</height>
+     </rect>
+    </property>
+    <property name="sortingEnabled">
+     <bool>true</bool>
+    </property>
+    <property name="columnCount">
+     <number>8</number>
+    </property>
+    <column>
+     <property name="text">
+      <string>ID</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Name</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>EQ Cnt</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>b val Def</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>b value</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>a value</string>
+     </property>
+    </column>
+    <column/>
+    <column/>
+   </widget>
+   <widget class="QLabel" name="labelZoneTable">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>121</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Selected zones</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnComputeZoneValues">
+    <property name="geometry">
+     <rect>
+      <x>160</x>
+      <y>0</y>
+      <width>241</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Compute Values</string>
+    </property>
    </widget>
   </widget>
  </widget>
