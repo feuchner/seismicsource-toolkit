@@ -230,18 +230,17 @@ class SeismicSource(QDialog, Ui_SeismicSource):
                     depth = numpy.nan
 
                 f = QgsFeature()
-                f.setGeometry( QgsGeometry.fromPoint( QgsPoint(
-                    curr_lon,curr_lat) ) )
-                f.setAttributeMap( { 0 : QVariant(magnitude),
-                                     1 : QVariant(depth) } )
-                pr.addFeatures( [ f ] )
+                f.setGeometry(QgsGeometry.fromPoint(QgsPoint(
+                    curr_lon, curr_lat)))
+                f.setAttributeMap(
+                    {0: QVariant(magnitude), 1: QVariant(depth)})
+                pr.addFeatures([f])
 
             # update layer's extent when new features have been added
             # because change of extent in provider is not 
             # propagated to the layer
             self.catalog_layer.updateExtents()
             QgsMapLayerRegistry.instance().addMapLayer(self.catalog_layer)
-
 
     def updateZoneValues(self):
         """Update a and b values for selected zones."""
@@ -286,10 +285,22 @@ class SeismicSource(QDialog, Ui_SeismicSource):
                 self.figures['cumuldist']['mpltoolbar'])
 
     def updateFMD(self):
-        self._filterEventsFromSelection()
-        self._computeFMD()
+        """Update FMD display for one selected zone in zone table."""
+
+        selected_features = self.zoneTable.selectedItems()
+
+        if len(selected_features) == 0:
+            QMessageBox.warning(None, "No zone selected", 
+                "Please select one zone in the zone table")
+
+        # get feature index of first selected row
+        feature_id = selected_features[ZONE_TABLE_ID_IDX].text()
+        feature_idx = self.feature_map[feature_id]
+        feature = self.area_source_layer.selectedFeatures()[feature_idx]
+
+        self._computeZoneFMD(feature)
         self._updateFMDDisplay()
-        
+
     def _updateFMDDisplay(self):
         if 'fmd' in self.figures:
             self._displayValues()
@@ -395,6 +406,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             for curr_attr in attr_idx:
                 attr_idx[curr_attr] = pr.fieldNameIndex(curr_attr)
 
+            # create mapping from feature id to index
+            self.feature_map = {}
+
             for feature_idx, feature in enumerate(
                 self.area_source_layer.selectedFeatures()):
 
@@ -436,9 +450,13 @@ class SeismicSource(QDialog, Ui_SeismicSource):
                 self.zoneTable.setItem(feature_idx, ZONE_TABLE_AVAL_IDX,
                     QTableWidgetItem(QString("%.2f" % fmd.GR['aValue'])))
 
+                self.feature_map[feature_id] = feature_idx
+
 
     def _computeZoneFMD(self, feature):
         """Compute FMD for selected feature."""
+
+        self.figures['fmd'] = {}
 
         # cut catalog to feature
         qgis_geometry_aspolygon = feature.geometry().asPolygon()
@@ -449,7 +467,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         catalog_selected = QPCatalog.QPCatalog()
         catalog_selected.merge(self.catalog)
         catalog_selected.cut(geometry=geometry)
-        return catalog_selected.getFmd(minEventsGR=MIN_EVENTS_FOR_GR)
+
+        self.figures['fmd']['fmd'] =  catalog_selected.getFmd(
+            minEventsGR=MIN_EVENTS_FOR_GR)
+        return self.figures['fmd']['fmd']
 
     def _checkAreaSourceLayer(self):
         """Check if features in area source layer are without errors."""
