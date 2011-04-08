@@ -37,6 +37,7 @@ from qgis.core import *
 
 import QPCatalog
 
+import plots
 from ui_seismicsource import Ui_SeismicSource
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
@@ -99,6 +100,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         QObject.connect(self.checkBoxGRAnnualRate, 
             SIGNAL("stateChanged(int)"), self._updateFMDDisplay)
 
+        # FMD plot window
+        self.fmd_canvas = None
+        self.fmd_toolbar = None
+
         # init stuff
         self.background_layer = None
         self.area_source_layer = None
@@ -144,12 +149,11 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.loadAreaSourceLayer()
         self.loadFaultSourceLayer()
         self.loadCatalogLayer()
-
+        
     def loadAreaSourceLayer(self):
         if self.area_source_layer is None:
             area_source_path = os.path.join(DATA_DIR, ZONE_FILE_DIR, 
                 unicode(self.comboBoxZoneInput.currentText()))
-
             if not os.path.isfile(area_source_path):
                 _warning_box_missing_layer_file(area_source_path)
                 return
@@ -248,42 +252,6 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         # self._filterEventsFromSelection()
         self._updateZoneTable()
 
-    def updateCumulDist(self):
-        self._filterEventsFromSelection()
-        self._computeCumulDist()
-        self._plotCumulDist()
-        
-    def _computeCumulDist(self):
-        self.figures['cumuldist'] = {}
-        self.figures['cumuldist']['fig'] = \
-            self.catalog_selected.getCumulativeDistribution().plot(
-                imgfile=None)
-
-    def _plotCumulDist(self):
-
-        self.figures['cumuldist']['axes'] = \
-            self.figures['cumuldist']['fig'].add_subplot(111)
-        self.figures['cumuldist']['fp'] = FontManager.FontProperties()
-
-        self.figures['cumuldist']['fig'].suptitle('Cumulative Distribution',
-            fontproperties=self.figures['cumuldist']['fp'])
-
-        self.figures['cumuldist']['canvas'] = FigureCanvas(
-            self.figures['cumuldist']['fig'])
-        self.figures['cumuldist']['canvas'].draw()
-
-        self.figures['cumuldist']['mpltoolbar'] = NavigationToolbar(
-            self.figures['cumuldist']['canvas'], self.widgetPlotCumulDist)
-        lstActions = self.figures['cumuldist']['mpltoolbar'].actions()
-        self.figures['cumuldist']['mpltoolbar'].removeAction(lstActions[7])
-        
-        # check if widget already added to layout
-        if self.layoutPlotCumulDist.isEmpty():
-            self.layoutPlotCumulDist.addWidget(
-                self.figures['cumuldist']['canvas'])
-            self.layoutPlotCumulDist.addWidget(
-                self.figures['cumuldist']['mpltoolbar'])
-
     def updateFMD(self):
         """Update FMD display for one selected zone in zone table."""
 
@@ -318,37 +286,38 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             aValue = self.figures['fmd']['fmd'].GR['aValueNormalized']
         else:
             aValue = self.figures['fmd']['fmd'].GR['aValue']
-        self.lcdNumberAValue.display("%.2f" % aValue)
-        self.lcdNumberBValue.display(
-            "%.2f" % self.figures['fmd']['fmd'].GR['bValue'])
+        # %.2f
+        self.inputAValue.setValue(aValue)
+        self.inputBValue.setValue(self.figures['fmd']['fmd'].GR['bValue'])
 
     def _plotFMD(self):
 
+        # remove widgets from layout
+        self.layoutPlotFMD.removeWidget(self.fmd_toolbar)
+        self.layoutPlotFMD.removeWidget(self.fmd_canvas)
+        del self.fmd_canvas
+        del self.fmd_toolbar
+
+        # new FMD plot (returns figure)
         self.figures['fmd']['fig'] = self.figures['fmd']['fmd'].plot(
             imgfile=None, fmdtype='cumulative', 
             normalize=self.checkBoxGRAnnualRate.isChecked())
 
-        self.figures['fmd']['axes'] = \
-            self.figures['fmd']['fig'].add_subplot(111)
-        self.figures['fmd']['fp'] = FontManager.FontProperties()
+        self.fmd_canvas = plots.FMDCanvas(self.figures['fmd']['fig'])
+        self.fmd_canvas.draw()
 
-        self.figures['fmd']['fig'].suptitle('FMD', 
-            fontproperties=self.figures['fmd']['fp'])
+        # FMD plot window, re-populate layout
+        self.layoutPlotFMD.addWidget(self.fmd_canvas)
+        self.fmd_toolbar = self._createFMDToolbar(self.fmd_canvas, 
+            self.widgetPlotFMD)
+        self.layoutPlotFMD.addWidget(self.fmd_toolbar)
 
-        self.figures['fmd']['canvas'] = FigureCanvas(
-            self.figures['fmd']['fig'])
-        self.figures['fmd']['canvas'].draw()
-
-        self.figures['fmd']['mpltoolbar'] = NavigationToolbar(
-            self.figures['fmd']['canvas'], self.widgetPlotFMD)
-        lstActions = self.figures['fmd']['mpltoolbar'].actions()
-        self.figures['fmd']['mpltoolbar'].removeAction(lstActions[7])
-
-        # check if widget already added to layout
-        if self.layoutPlotFMD.isEmpty():
-            self.layoutPlotFMD.addWidget(self.figures['fmd']['canvas'])
-            self.layoutPlotFMD.addWidget(self.figures['fmd']['mpltoolbar'])
-
+    def _createFMDToolbar(self, canvas, widget):
+        toolbar = NavigationToolbar(canvas, widget)
+        lstActions = toolbar.actions()
+        toolbar.removeAction(lstActions[7])
+        return toolbar
+        
     def _filterEventsFromSelection(self):
         """Select events from EQ catalog that are within selected polygons
         from area source layer."""

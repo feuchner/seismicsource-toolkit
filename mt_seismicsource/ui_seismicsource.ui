@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>779</width>
-    <height>723</height>
+    <width>815</width>
+    <height>849</height>
    </rect>
   </property>
   <property name="focusPolicy">
@@ -189,30 +189,10 @@
          <string>FMD</string>
         </property>
        </widget>
-       <widget class="QLCDNumber" name="lcdNumberAValue">
-        <property name="geometry">
-         <rect>
-          <x>130</x>
-          <y>60</y>
-          <width>64</width>
-          <height>23</height>
-         </rect>
-        </property>
-       </widget>
-       <widget class="QLCDNumber" name="lcdNumberBValue">
-        <property name="geometry">
-         <rect>
-          <x>210</x>
-          <y>60</y>
-          <width>64</width>
-          <height>23</height>
-         </rect>
-        </property>
-       </widget>
        <widget class="QLabel" name="labelAValue">
         <property name="geometry">
          <rect>
-          <x>130</x>
+          <x>120</x>
           <y>30</y>
           <width>66</width>
           <height>21</height>
@@ -251,6 +231,26 @@
          <bool>true</bool>
         </property>
        </widget>
+       <widget class="KDoubleNumInput" name="inputAValue">
+        <property name="geometry">
+         <rect>
+          <x>110</x>
+          <y>50</y>
+          <width>90</width>
+          <height>33</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="KDoubleNumInput" name="inputBValue">
+        <property name="geometry">
+         <rect>
+          <x>200</x>
+          <y>50</y>
+          <width>90</width>
+          <height>33</height>
+         </rect>
+        </property>
+       </widget>
       </widget>
      </item>
     </layout>
@@ -277,13 +277,13 @@
      <height>450</height>
     </size>
    </property>
-   <widget class="QWidget" name="verticalLayoutWidget_2">
+   <widget class="QWidget" name="verticalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>10</y>
-      <width>381</width>
-      <height>331</height>
+      <x>0</x>
+      <y>0</y>
+      <width>401</width>
+      <height>351</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="layoutPlotFMD"/>
@@ -380,6 +380,13 @@
    </widget>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>KDoubleNumInput</class>
+   <extends>QWidget</extends>
+   <header>knuminput.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>
