@@ -54,9 +54,7 @@ FAULT_FILE = 'CSSTop_polyline.shp'
 FAULT_FILES = ('CSSTop_polyline.shp',)
 
 CATALOG_DIR = 'eq_catalog'
-CATALOG_FILE = 'cenec-zmap.dat'
-#CATALOG_FILE = 'SHARE_20110311.csv'
-CATALOG_FILES = ('cenec-zmap.dat', 'SHARE_20110311.dat')
+CATALOG_FILES = ('cenec-zmap.dat', 'SHARE_20110311.dat.gz')
 
 MIN_EVENTS_FOR_GR = 10
 
@@ -190,8 +188,11 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
             self.catalog = QPCatalog.QPCatalog()
 
-            self.catalog.importZMAP(catalog_path, minimumDataset=True)
-            #self.catalog.importSHAREPotsdamCSV(catalog_path)
+            if catalog_path.endswith('.gz'):
+                self.catalog.importZMAP(catalog_path, minimumDataset=True,
+                    compression='gz')
+            else:
+                self.catalog.importZMAP(catalog_path, minimumDataset=True)
 
             # cut catalog to years > 1900 (because of datetime)
             # TODO(fab): change the datetime lib to mx.DateTime
