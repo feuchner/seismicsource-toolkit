@@ -38,7 +38,11 @@ from qgis.core import *
 import QPCatalog
 
 import plots
+import do_zone_analysis
 from ui_seismicsource import Ui_SeismicSource
+
+
+#from ui_zone_analysis import Ui_ZoneAnalysis
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
@@ -97,6 +101,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         # Checkbox: Normalize FMD plot
         QObject.connect(self.checkBoxGRAnnualRate, 
             SIGNAL("stateChanged(int)"), self._updateFMDDisplay)
+
+        # Button: analyze zones
+        QObject.connect(self.btnAnalyzeZones, SIGNAL("clicked()"), 
+            self.analyzeZones)
 
         # FMD plot window
         self.fmd_canvas = None
@@ -441,6 +449,16 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.figures['fmd']['fmd'] =  catalog_selected.getFmd(
             minEventsGR=MIN_EVENTS_FOR_GR)
         return self.figures['fmd']['fmd']
+
+    def analyzeZones(self):
+        """Analyze source zone layer."""
+
+        d_zone_analysis = do_zone_analysis.ZoneAnalysis(self.iface)
+        d_zone_analysis.exec_()
+
+        # make point layer from polygons
+
+        # get nearest neighbors
 
     def _checkAreaSourceLayer(self):
         """Check if features in area source layer are without errors."""
