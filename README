@@ -29,8 +29,9 @@ to software repositories (YAST -> Software Repositories -> Add)
 Install following packages:
 
 $ sudo zypper install make python-setuptools git
-$ sudo zypper install python-lxml python-matplotlib python-egenix-mx-base
-$ sudo zypper install python-cython python-qt4-devel qgis-devel
+$ sudo zypper install python-lxml python-matplotlib python-numpy-devel 
+$ sudo zypper install python-egenix-mx-base python-cython
+$ sudo zypper install python-qt4-devel qgis-devel
 
 $ sudo easy_install pip
 $ sudo pip install Shapely
