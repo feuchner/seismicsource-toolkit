@@ -6,27 +6,78 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>675</width>
+    <width>745</width>
     <height>596</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Sliver Analysis</string>
   </property>
   <widget class="QTableWidget" name="table">
    <property name="geometry">
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>661</width>
+     <width>731</width>
      <height>571</height>
     </rect>
    </property>
+   <property name="columnCount">
+    <number>17</number>
+   </property>
    <column>
     <property name="text">
-     <string>zone_id</string>
+     <string>Dist</string>
     </property>
    </column>
+   <column>
+    <property name="text">
+     <string>RefID</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>RefZ</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>RefLon</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>RefLat</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>TestID</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>TestZ</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>TestLon</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>TestLat</string>
+    </property>
+   </column>
+   <column/>
+   <column/>
+   <column/>
+   <column/>
+   <column/>
+   <column/>
+   <column/>
+   <column/>
   </widget>
  </widget>
  <resources/>
