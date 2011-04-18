@@ -25,10 +25,8 @@ Author: Fabian Euchner, fabian@sed.ethz.ch
 ############################################################################
 
 import numpy
-#import os
-#import shapely.geometry
-#import shapely.ops
-#import sys
+import shapely.geometry
+# import shapely.ops
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -37,22 +35,84 @@ from qgis.core import *
 
 from ui_zone_analysis import Ui_ZoneAnalysis
 
-MIN_SLIVER_DISTANCE = 10
+MIN_SLIVER_DISTANCE = 0.1
+NEIGHBORING_ZONE_COUNT = 4
 NEIGHBOR_COUNT = 3
+
+ANALYSIS_TABLE_COLUMN_COUNT = 9
 
 class ZoneAnalysis(QDialog, Ui_ZoneAnalysis):
     """This class represents the zone analysis dialog."""
 
-    def __init__(self, iface, zone_layer):
+    def __init__(self, iface, zone_layer, analysis_layer=None):
         QDialog.__init__(self)
         self.iface = iface
         self.setupUi(self)
 
         self.zone_layer = zone_layer
+        self.analysis_layer = analysis_layer
+        self.distance_matrix = None
+
         self._analyze()
 
     def _analyze(self):
-        """Brute-force nearest neighbor analysis."""
+        """Improved, almost brute-force nearest neighbor analysis."""
+
+        if len(self.zone_layer.selectedFeatures()) == 0:
+            QMessageBox.warning(None, "No source zone selected", 
+                "Please select at least one source zone")
+            return
+
+        # get feature IDs for selected source zone polygons
+        selected_zones_ids = [feature.id() for feature in \
+            self.zone_layer.selectedFeatures()]
+
+        # convert all QGis polygons of source zone layer to Shapely
+        source_zones_shapely = []
+        selected_zones_indices = []
+
+        prz = self.zone_layer.dataProvider()
+        prz.select()
+
+        feature_cnt = 0
+        for feature in prz:
+
+            qgis_geometry_aspolygon = feature.geometry().asPolygon()
+            if len(qgis_geometry_aspolygon) == 0:
+                QMessageBox.warning(None, "Error", 
+                    "illegal empty polygon, ID: %s" % feature.id())
+                continue
+            else:
+                vertices = [(x.x(), x.y()) for x in qgis_geometry_aspolygon[0]]
+                if len(vertices) == 0:
+                    QMessageBox.warning(None, "Error", 
+                        "illegal empty vertices, ID: %s" % feature.id())
+                    continue
+
+            if feature.id() in selected_zones_ids:
+                selected_zones_indices.append(feature_cnt)
+
+            shapely_polygon = shapely.geometry.Polygon(vertices)
+            source_zones_shapely.append(shapely_polygon)
+
+            feature_cnt += 1
+
+        # build distance matrix
+        # TODO(fab): we don't need full distance matrix!
+        self._compute_distance_matrix(source_zones_shapely)
+
+        # get neighboring zones for each selected reference zone
+        # - select NEIGHBORING_ZONE_COUNT neighboring zones from distance matrix
+        test_zone_indices = []
+        for ref_zone_idx in selected_zones_indices:
+            test_zone_distances = self._get_distances(ref_zone_idx)
+            test_zone_indices.extend(self._get_closest_zone_indices(
+                test_zone_distances)[0:NEIGHBORING_ZONE_COUNT].tolist())
+            
+        # remove duplicates in test_zone_indices
+        test_zone_indices = list(set(test_zone_indices))
+
+        # get vertices for reference zone and neighboring zones
 
         # point array
         # 0 - point ID
@@ -60,38 +120,42 @@ class ZoneAnalysis(QDialog, Ui_ZoneAnalysis):
         # 2 - lon
         # 3 - lat
         points = []
+        reference_vertex_indices = []
 
-        # make point layer from polygons
-        prz = self.zone_layer.dataProvider()
-        prz.select()
-
-        #QMessageBox.warning(None, "Features", 
-            #"Zone layer has %s features" % prz.featureCount())
-
-        feature_cnt = 0
+        # extract vertices from reference and test source polygons
         point_cnt = 0
-        feature = QgsFeature()
-        while prz.nextFeature(feature):
+        involved_zones = selected_zones_indices
+        involved_zones.extend(test_zone_indices)
+        involved_zones = list(set(involved_zones))
 
-            if feature_cnt > 2:
-                break
+        QMessageBox.information(None, "Involved", "%s" % (involved_zones))
 
-            geom = feature.geometry().asPolygon()
+        for curr_zone_idx, curr_zone in enumerate(source_zones_shapely):
 
-            if len(geom) > 0:
-                for vertex in geom[0]:
-                    points.append([float(point_cnt), float(feature.id()), 
-                        vertex.x(), vertex.y()])
-                    point_cnt += 1
+            if curr_zone_idx in involved_zones: 
+                coords = curr_zone.exterior.coords
 
-            feature_cnt += 1
+                QMessageBox.information(None, "Coords", 
+                    "Zone: %s, coords: %s" % (curr_zone_idx, coords))
+
+                if curr_zone_idx in selected_zones_indices:
+                    addRefZone = True
+                else:
+                    addRefZone = False
+
+                if len(coords) > 3:
+                    for (vertex_lon, vertex_lat) in list(coords)[0:-1]:
+                        points.append([float(point_cnt), float(curr_zone_idx),
+                            vertex_lon, vertex_lat])
+
+                        if addRefZone:
+                            reference_vertex_indices.append(point_cnt)
+
+                        point_cnt += 1
 
         points_arr = numpy.array(points, dtype=float)
         del points
-
-        #QMessageBox.information(None, "Point layer", 
-            #"Point layer has %s features, %s array rows" % (point_cnt, points_arr.shape[0]))
-
+        
         # get nearest neighbors
         # neighbors array holds (9 cols):
         #  0: distance
@@ -104,26 +168,44 @@ class ZoneAnalysis(QDialog, Ui_ZoneAnalysis):
         #  7: second point lon
         #  8: second point lat
 
+        #maxNeighborCount = point_cnt * (point_cnt-1) / 2 # all zones selected
+        maxNeighborCount = len(reference_vertex_indices) * point_cnt
+
+        QMessageBox.information(None, "NeighborCount", "%s, %s, %s" % (
+            maxNeighborCount, point_cnt, len(reference_vertex_indices)))
+
         neighbor_cnt = 0
-        neighbors = numpy.ones((point_cnt * (point_cnt-1) / 2, 9), dtype=float) * numpy.nan
+        neighbors = numpy.ones((maxNeighborCount, 
+            ANALYSIS_TABLE_COLUMN_COUNT), dtype=float) * numpy.nan
 
-        for reference_point_idx in xrange(points_arr.shape[0]):
-            for test_point_idx in xrange(reference_point_idx+1, points_arr.shape[0]):
+        pra = self.analysis_layer.dataProvider()
+        pra.rewind()
+        for reference_point_idx in reference_vertex_indices:
 
-                # check if points are in same polygon
-                if points_arr[reference_point_idx, 1] == points_arr[test_point_idx, 1]:
+            reference_point = shapely.geometry.Point(
+                (points_arr[reference_point_idx, 2], 
+                 points_arr[reference_point_idx, 3]))
+
+            for test_point_idx in xrange(points_arr.shape[0]):
+
+                # skip, if same point or points are in same polygon
+                if reference_point_idx == test_point_idx or \
+                    points_arr[reference_point_idx, 1] == \
+                        points_arr[test_point_idx, 1]:
                     continue
 
                 # get distance
-                distArea = QgsDistanceArea()
-                distance = float(distArea.measureLine(
-                    QgsPoint(points_arr[reference_point_idx, 2], points_arr[reference_point_idx, 3]), 
-                    QgsPoint(points_arr[test_point_idx, 2], points_arr[test_point_idx, 3])))
+                test_point = shapely.geometry.Point(
+                    (points_arr[test_point_idx, 2], 
+                     points_arr[test_point_idx, 3]))
 
-                # QMessageBox.information(None, "Distance", "%s" % distance)
+                distance = reference_point.distance(test_point)
 
-                # if distance is greater than the margin, ignore
-                if distance > MIN_SLIVER_DISTANCE:
+                # if points are the same, distance is zero, or distance is greater
+                # than the margin, ignore
+                if reference_point == test_point or \
+                    distance == 0.0 or \
+                    distance > MIN_SLIVER_DISTANCE:
                     continue
 
                 neighbors[neighbor_cnt, 0] = distance
@@ -135,6 +217,16 @@ class ZoneAnalysis(QDialog, Ui_ZoneAnalysis):
                 neighbors[neighbor_cnt, 6] = points_arr[test_point_idx, 1]
                 neighbors[neighbor_cnt, 7] = points_arr[test_point_idx, 2]
                 neighbors[neighbor_cnt, 8] = points_arr[test_point_idx, 3]
+ 
+                # add point pair to analysis layer
+                if test_point_idx == 0:
+                    pra.addFeatures([self._new_point_feature_from_coord(
+                        points_arr[reference_point_idx, 2], 
+                        points_arr[reference_point_idx, 3])])
+
+                pra.addFeatures([self._new_point_feature_from_coord(
+                    points_arr[test_point_idx, 2], 
+                    points_arr[test_point_idx, 3])])
 
                 neighbor_cnt += 1
 
@@ -143,52 +235,145 @@ class ZoneAnalysis(QDialog, Ui_ZoneAnalysis):
         # reshape array
         neighbors_trunc = neighbors[0:neighbor_cnt, :]
 
-        #QMessageBox.information(None, "Neighbors", "%s" % neighbors_trunc)
-        #QMessageBox.information(None, "Neighbors Dist", "%s" % neighbors_trunc[:, 0])
-
         # sort array (distance)
         dist_indices = numpy.argsort(neighbors_trunc[:, 0], axis=0)
-
-        #QMessageBox.information(None, "Indices", "%s" % dist_indices)
 
         neighbors_trunc = neighbors_trunc[dist_indices.T]
 
         # write to table
         self._display_table(neighbors_trunc)
 
-        #self.table.clearContents()
-        #self.table.setRowCount(neighbor_cnt)
-        #self.table.setColumnCount(neighbors_trunc.shape[1])
+    def _analyze_brute(self):
+        """Almost brute-force nearest neighbor analysis."""
+
+        # get feature IDs for selected source zone polygons
+        selected_zones_ids = [feature.id() for feature in \
+            self.zone_layer.selectedFeatures()]
+
+        if len(selected_zones_ids) == 0:
+            QMessageBox.warning(None, "No source zone selected", 
+                "Please select at least one source zone")
+            return
+
+        # get neighboring zones for each reference zone
+        # - add margin ("buffer") to zone outline
+        # - select zones that overlap with that larger zone
+        # get vertices for reference zone and neighboring zones
+        # - ref zone goes first
         
-        #for row in xrange(neighbor_cnt):
-            #for col in xrange(neighbors_trunc.shape[1]):
+        # point array
+        # 0 - point ID
+        # 1 - zone ID
+        # 2 - lon
+        # 3 - lat
+        points = []
+        reference_vertex_indices = []
 
-                #if neighbors_trunc[row, col] == int(neighbors_trunc[row, col]):
-                    #display_value = int(neighbors_trunc[row, col])
-                #else:
-                    #display_value = neighbors_trunc[row, col]
+        # extract vertices from source zone polygon layer
+        prz = self.zone_layer.dataProvider()
+        pra = self.analysis_layer.dataProvider()
+        prz.select()
 
-                #self.table.setItem(row, col, 
-                    #QTableWidgetItem(QString("%s" % display_value)))
+        feature_cnt = 0
+        point_cnt = 0
+        for feature in prz:
 
-    def _display_table(self, neighbors_trunc):
-        """Write computed values to table cells."""
+            geom = feature.geometry().asPolygon()
+
+            if feature.id() in selected_zones_ids:
+                addToRefVertices = True
+            else:
+                addToRefVertices = False
+
+            if len(geom) > 0:
+                for vertex in geom[0]:
+                    points.append([float(point_cnt), float(feature.id()),
+                        vertex.x(), vertex.y()])
+                    if addToRefVertices:
+                        reference_vertex_indices.append(point_cnt)
+                    point_cnt += 1
+
+            feature_cnt += 1
+
+        points_arr = numpy.array(points, dtype=float)
+        del points
         
-        neighbor_cnt = neighbors_trunc.shape[0]
-        self.table.clearContents()
-        self.table.setRowCount(neighbor_cnt)
-        self.table.setColumnCount(neighbors_trunc.shape[1])
+        # get nearest neighbors
+        # neighbors array holds (9 cols):
+        #  0: distance
+        #  1: first point id
+        #  2: polygon id
+        #  3: first point lon
+        #  4: first point lat
+        #  5: second point id
+        #  6: polygon id
+        #  7: second point lon
+        #  8: second point lat
 
-        for row in xrange(neighbor_cnt):
-            for col in xrange(neighbors_trunc.shape[1]):
+        #maxNeighborCount = point_cnt * (point_cnt-1) / 2 # all zones selected
+        maxNeighborCount = point_cnt * len(reference_vertex_indices)
 
-                if neighbors_trunc[row, col] == int(neighbors_trunc[row, col]):
-                    display_str = "%s" % int(neighbors_trunc[row, col])
-                else:
-                    display_str = "%.3f" % neighbors_trunc[row, col]
+        neighbor_cnt = 0
+        neighbors = numpy.ones((maxNeighborCount, 
+            ANALYSIS_TABLE_COLUMN_COUNT), dtype=float) * numpy.nan
 
-                self.table.setItem(row, col, QTableWidgetItem(
-                    QString(display_str)))
+        # all zones selected
+        # outer loop: xrange(points_arr.shape[0])
+        # inner loop: xrange(reference_point_idx+1, points_arr.shape[0])
+        for reference_point_idx in reference_vertex_indices:
+            for test_point_idx in xrange(points_arr.shape[0]):
+
+                # skip, if same point or points are in same polygon
+                if reference_point_idx == test_point_idx or \
+                    points_arr[reference_point_idx, 1] == points_arr[test_point_idx, 1]:
+                    continue
+
+                # get distance
+                distArea = QgsDistanceArea()
+
+                reference_point = QgsPoint(
+                    points_arr[reference_point_idx, 2], 
+                    points_arr[reference_point_idx, 3])
+                test_point = QgsPoint(points_arr[test_point_idx, 2], 
+                    points_arr[test_point_idx, 3])
+
+                distance = float(distArea.measureLine(reference_point, 
+                    test_point))
+
+                # if points are the same or distance is greater than the margin, ignore
+                if reference_point == test_point or \
+                    distance > MIN_SLIVER_DISTANCE:
+                    continue
+
+                neighbors[neighbor_cnt, 0] = distance
+                neighbors[neighbor_cnt, 1] = reference_point_idx
+                neighbors[neighbor_cnt, 2] = points_arr[reference_point_idx, 1]
+                neighbors[neighbor_cnt, 3] = points_arr[reference_point_idx, 2]
+                neighbors[neighbor_cnt, 4] = points_arr[reference_point_idx, 3]
+                neighbors[neighbor_cnt, 5] = test_point_idx
+                neighbors[neighbor_cnt, 6] = points_arr[test_point_idx, 1]
+                neighbors[neighbor_cnt, 7] = points_arr[test_point_idx, 2]
+                neighbors[neighbor_cnt, 8] = points_arr[test_point_idx, 3]
+ 
+                # add point pair to analysis layer
+                if test_point_idx == 0:
+                    pra.addFeatures([self._new_point_feature(reference_point)])
+                pra.addFeatures([self._new_point_feature(test_point)])
+
+                neighbor_cnt += 1
+
+        del points_arr
+
+        # reshape array
+        neighbors_trunc = neighbors[0:neighbor_cnt, :]
+
+        # sort array (distance)
+        dist_indices = numpy.argsort(neighbors_trunc[:, 0], axis=0)
+
+        neighbors_trunc = neighbors_trunc[dist_indices.T]
+
+        # write to table
+        self._display_table(neighbors_trunc)
 
     #def _analyze_with_index(self):
         #"""Analyze nearest neighbors with geospatial index.
@@ -209,8 +394,7 @@ class ZoneAnalysis(QDialog, Ui_ZoneAnalysis):
         #prz.select()
 
         #feature_cnt = 0
-        #feature = QgsFeature()
-        #while prz.nextFeature(feature):
+        #for feature in prz:
 
             #feature_cnt += 1
             #geom = feature.geometry().asPolygon()
@@ -269,7 +453,7 @@ class ZoneAnalysis(QDialog, Ui_ZoneAnalysis):
 
         #pr_neighbors = point_layer.dataProvider()
         #pr_neighbors.select()
-        #while pr.nextFeature(feature):
+        #for feature in pr:
             
             #pr_neighbors.rewind()
             #reference_id = float(feature.id())
@@ -317,11 +501,65 @@ class ZoneAnalysis(QDialog, Ui_ZoneAnalysis):
 
 
         ## write to table
-        #self.table.clearContents()
-        #self.table.setRowCount(neighbor_ctr)
-        #self.table.setColumnCount(neighbors.shape[1])
+        #self._display_table(neighbors)
+
+
+    def _compute_distance_matrix(self, zones_shapely):
+        """Compute distance matrix for zone polygons, using Shapely
+        distance function."""
+        dim = len(zones_shapely)
+        self.distance_matrix = numpy.ones((dim, dim), dtype=float) * numpy.nan
+
+        for curr_ref_idx in xrange(dim):
+            ref_zone = zones_shapely[curr_ref_idx]
+
+            for curr_test_idx in xrange(curr_ref_idx+1, dim):
+                test_zone = zones_shapely[curr_test_idx]
+                self.distance_matrix[curr_ref_idx, curr_test_idx] = \
+                    ref_zone.distance(test_zone)
+
+    def _get_distance(self, ref_idx, test_idx):
+        if ref_idx == test_idx:
+            return 0.0
+        elif ref_idx < test_idx:
+            return self.distance_matrix[ref_idx, test_idx]
+        else:
+            return self.distance_matrix[test_idx, ref_idx]
+
+    def _get_distances(self, zone_idx):
+        distances = [self._get_distance(zone_idx, idx) for idx in xrange(
+            self.distance_matrix.shape[0])]
+        return distances
+
+    def _get_closest_zone_indices(self, distances):
+        """distances is a list."""
+        return numpy.argsort(numpy.array(distances, dtype=float))
+            
+    def _display_table(self, neighbors_trunc):
+        """Write computed values to table cells."""
         
-        #for row in xrange(neighbor_ctr):
-            #for col in xrange(neighbors.shape[1]):
-                #self.table.setItem(row, col, 
-                    #QTableWidgetItem(QString("%s" % neighbors[row, col])))
+        neighbor_cnt = neighbors_trunc.shape[0]
+        self.table.clearContents()
+        self.table.setRowCount(neighbor_cnt)
+        self.table.setColumnCount(neighbors_trunc.shape[1])
+
+        for row in xrange(neighbor_cnt):
+            for col in xrange(neighbors_trunc.shape[1]):
+
+                if neighbors_trunc[row, col] == int(neighbors_trunc[row, col]):
+                    display_str = "%s" % int(neighbors_trunc[row, col])
+                else:
+                    display_str = "%.3f" % neighbors_trunc[row, col]
+
+                self.table.setItem(row, col, QTableWidgetItem(
+                    QString(display_str)))
+
+    def _new_point_feature(self, point):
+        f = QgsFeature()
+        f.setGeometry(QgsGeometry.fromPoint(point))
+        return f
+
+    def _new_point_feature_from_coord(self, lon, lat):
+        point = QgsPoint(lon, lat)
+        return self._new_point_feature(point)
+

@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string>Sliver Analysis</string>
   </property>
+  <property name="sizeGripEnabled">
+   <bool>true</bool>
+  </property>
   <widget class="QTableWidget" name="table">
    <property name="geometry">
     <rect>

@@ -41,9 +41,6 @@ import plots
 import do_zone_analysis
 from ui_seismicsource import Ui_SeismicSource
 
-
-#from ui_zone_analysis import Ui_ZoneAnalysis
-
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
 BACKGROUND_FILE_DIR = 'misc'
@@ -113,11 +110,13 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.fmd_canvas = None
         self.fmd_toolbar = None
 
-        # init stuff
+        # layers
         self.background_layer = None
         self.area_source_layer = None
         self.fault_source_layer = None
         self.catalog_layer = None
+
+        self.sliver_analysis_layer = None
 
         # prepare data load combo boxes
         self.comboBoxZoneInput.addItems(ZONE_FILES)
@@ -456,8 +455,14 @@ class SeismicSource(QDialog, Ui_SeismicSource):
     def analyzeZones(self):
         """Analyze source zone layer."""
 
+        # init empty point layer in memory
+        if self.sliver_analysis_layer is None:
+            self.sliver_analysis_layer = QgsVectorLayer(
+                "Point", "Sliver Analysis", "memory")
+            QgsMapLayerRegistry.instance().addMapLayer(self.sliver_analysis_layer)
+
         d_zone_analysis = do_zone_analysis.ZoneAnalysis(self.iface, 
-            self.area_source_layer)
+            self.area_source_layer, self.sliver_analysis_layer)
         d_zone_analysis.exec_()
 
     def _checkAreaSourceLayer(self):
