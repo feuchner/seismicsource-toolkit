@@ -12,6 +12,8 @@ this repository. Nevertheless, the tool may be of interest to an expert
 community. Example input files for demonstration purposes will be added
 later.
 
+The toolkit requires Quantum GIS version >= 1.6.
+
 Installation
 ============
 
@@ -46,9 +48,15 @@ This describes the installation on a fresh Kubuntu 10.10 system.
 Install following packages:
 
 $ sudo apt-get install python-setuptools tcsh git subversion
-$ sudo apt-get install python-lxml python-matplotlib python-egenix-mxdatetime
-$ sudo apt-get install python-shapely cython 
-$ sudo apt-get install qgis qgis-dev python-qgis pyqt-dev-tools
+$ sudo apt-get install python-lxml python-matplotlib
+$ sudo apt-get install python-egenix-mxdatetime python-shapely cython
+$ sudo apt-get install pyqt-dev-tools
+
+Add repository for QGis (version 1.4 from Kubuntu 10.10 is too old):
+
+$ sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
+$ sudo apt-get update
+$ sudo apt-get install qgis qgis-dev python-qgis
 
 Continue with instructions for all systems (see below).
 
