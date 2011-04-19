@@ -41,16 +41,18 @@ NEIGHBOR_COUNT = 3
 
 ANALYSIS_TABLE_COLUMN_COUNT = 9
 
+SLIVER_ANALYSIS_LAYER_ID = "Sliver Analysis"
+
 class ZoneAnalysis(QDialog, Ui_ZoneAnalysis):
     """This class represents the zone analysis dialog."""
 
-    def __init__(self, iface, zone_layer, analysis_layer=None):
+    def __init__(self, iface, zone_layer):
         QDialog.__init__(self)
         self.iface = iface
         self.setupUi(self)
 
         self.zone_layer = zone_layer
-        self.analysis_layer = analysis_layer
+        self.analysis_layer = None
         self.distance_matrix = None
 
         self._analyze()
@@ -79,14 +81,10 @@ class ZoneAnalysis(QDialog, Ui_ZoneAnalysis):
 
             qgis_geometry_aspolygon = feature.geometry().asPolygon()
             if len(qgis_geometry_aspolygon) == 0:
-                QMessageBox.warning(None, "Error", 
-                    "illegal empty polygon, ID: %s" % feature.id())
                 continue
             else:
                 vertices = [(x.x(), x.y()) for x in qgis_geometry_aspolygon[0]]
                 if len(vertices) == 0:
-                    QMessageBox.warning(None, "Error", 
-                        "illegal empty vertices, ID: %s" % feature.id())
                     continue
 
             if feature.id() in selected_zones_ids:
@@ -128,15 +126,15 @@ class ZoneAnalysis(QDialog, Ui_ZoneAnalysis):
         involved_zones.extend(test_zone_indices)
         involved_zones = list(set(involved_zones))
 
-        QMessageBox.information(None, "Involved", "%s" % (involved_zones))
+        #QMessageBox.information(None, "Involved", "%s" % (involved_zones))
 
         for curr_zone_idx, curr_zone in enumerate(source_zones_shapely):
 
             if curr_zone_idx in involved_zones: 
                 coords = curr_zone.exterior.coords
 
-                QMessageBox.information(None, "Coords", 
-                    "Zone: %s, coords: %s" % (curr_zone_idx, coords))
+                #QMessageBox.information(None, "Coords", 
+                    #"Zone: %s, coords: %s" % (curr_zone_idx, coords))
 
                 if curr_zone_idx in selected_zones_indices:
                     addRefZone = True
@@ -171,15 +169,15 @@ class ZoneAnalysis(QDialog, Ui_ZoneAnalysis):
         #maxNeighborCount = point_cnt * (point_cnt-1) / 2 # all zones selected
         maxNeighborCount = len(reference_vertex_indices) * point_cnt
 
-        QMessageBox.information(None, "NeighborCount", "%s, %s, %s" % (
-            maxNeighborCount, point_cnt, len(reference_vertex_indices)))
+        #QMessageBox.information(None, "NeighborCount", "%s, %s, %s" % (
+            #maxNeighborCount, point_cnt, len(reference_vertex_indices)))
 
         neighbor_cnt = 0
         neighbors = numpy.ones((maxNeighborCount, 
             ANALYSIS_TABLE_COLUMN_COUNT), dtype=float) * numpy.nan
 
+        self._replaceAnalysisLayer()
         pra = self.analysis_layer.dataProvider()
-        pra.rewind()
         for reference_point_idx in reference_vertex_indices:
 
             reference_point = shapely.geometry.Point(
@@ -548,11 +546,27 @@ class ZoneAnalysis(QDialog, Ui_ZoneAnalysis):
 
                 if neighbors_trunc[row, col] == int(neighbors_trunc[row, col]):
                     display_str = "%s" % int(neighbors_trunc[row, col])
+                elif col == 0:
+                    # first column with distances, these can be << 1
+                    display_str = "%.6f" % neighbors_trunc[row, col]
                 else:
                     display_str = "%.3f" % neighbors_trunc[row, col]
 
                 self.table.setItem(row, col, QTableWidgetItem(
                     QString(display_str)))
+
+    def _replaceAnalysisLayer(self):
+        """Create new point layer for sliver analysis."""
+
+        # remove old analysis layer from registry
+        # TODO(fab): does not work
+        if self.analysis_layer is not None:
+            QgsMapLayerRegistry.instance().removeMapLayer(SLIVER_ANALYSIS_LAYER_ID)
+
+        # init empty point layer in memory
+        self.analysis_layer = QgsVectorLayer("Point", SLIVER_ANALYSIS_LAYER_ID, 
+            "memory")
+        QgsMapLayerRegistry.instance().addMapLayer(self.analysis_layer)
 
     def _new_point_feature(self, point):
         f = QgsFeature()
