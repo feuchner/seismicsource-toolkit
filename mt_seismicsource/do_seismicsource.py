@@ -103,8 +103,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         QObject.connect(self.btnAnalyzeSlivers, SIGNAL("clicked()"), 
             self.analyzeZones)
 
-        # Init threshold for sliver analysis
+        # Init threshold and buffer for sliver analysis
         self.inputAnalyzeSlivers.setValue(do_zone_analysis.MIN_SLIVER_DISTANCE)
+        self.inputAnalyzeBuffer.setValue(do_zone_analysis.ZONE_BUFFER_DISTANCE)
 
         # FMD plot window
         self.fmd_canvas = None
@@ -454,7 +455,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         """Analyze source zone layer."""
 
         d_zone_analysis = do_zone_analysis.ZoneAnalysis(self.iface, 
-            self.area_source_layer, self.inputAnalyzeSlivers.value())
+            self.area_source_layer, self.inputAnalyzeSlivers.value(),
+            self.inputAnalyzeBuffer.value())
         d_zone_analysis.exec_()
 
     def _checkAreaSourceLayer(self):

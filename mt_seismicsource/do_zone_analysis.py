@@ -36,7 +36,7 @@ from qgis.core import *
 from ui_zone_analysis import Ui_ZoneAnalysis
 
 MIN_SLIVER_DISTANCE = 0.1
-ZONE_BUFFER_FACTOR = 5
+ZONE_BUFFER_DISTANCE = 0.5
 
 NEIGHBORING_ZONE_COUNT = 10
 NEIGHBOR_COUNT = 3
@@ -48,17 +48,20 @@ SLIVER_ANALYSIS_LAYER_ID = "Sliver Analysis"
 class ZoneAnalysis(QDialog, Ui_ZoneAnalysis):
     """This class represents the zone analysis dialog."""
 
-    def __init__(self, iface, zone_layer, min_distance=MIN_SLIVER_DISTANCE):
+    def __init__(self, iface, zone_layer, min_distance=MIN_SLIVER_DISTANCE,
+        zone_buffer=ZONE_BUFFER_DISTANCE):
         QDialog.__init__(self)
         self.iface = iface
         self.setupUi(self)
 
         self.zone_layer = zone_layer
         self.min_distance = min_distance
+        self.zone_buffer = zone_buffer
         self.analysis_layer = None
         self.distance_matrix = None
 
-        self._analyze_distance_based()
+        self._analyze_buffer_based()
+        # self._analyze_distance_based()
 
     def _analyze_buffer_based(self):
         """Almost brute-force nearest neighbor analysis, using
@@ -99,20 +102,23 @@ class ZoneAnalysis(QDialog, Ui_ZoneAnalysis):
 
             feature_cnt += 1
 
-        # build distance matrix
-        # TODO(fab): we don't need full distance matrix!
-        self._compute_distance_matrix(source_zones_shapely)
-
-        # get neighboring zones for each selected reference zone
-        # - select NEIGHBORING_ZONE_COUNT neighboring zones from distance matrix
+        # get neighboring zones for each reference zone
+        # - add margin ("buffer") to zone outline
+        # - select zones that overlap with that larger zone
         test_zone_indices = []
         for ref_zone_idx in selected_zones_indices:
-            test_zone_distances = self._get_distance_list(ref_zone_idx)
 
-            # first index in closest zone list is reference zone itself
-            # start at index 1
-            test_zone_indices.extend(self._get_closest_zone_indices(
-                test_zone_distances)[1:NEIGHBORING_ZONE_COUNT+1].tolist())
+            # build buffer around zone
+            buffered_zone = source_zones_shapely[ref_zone_idx].buffer(
+                self.zone_buffer)
+
+            for test_zone_idx, test_zone in enumerate(source_zones_shapely):
+
+                if ref_zone_idx == test_zone_idx:
+                    continue
+
+                if buffered_zone.intersects(test_zone):
+                    test_zone_indices.append(test_zone_idx)
             
         # remove duplicates in test_zone_indices
         test_zone_indices = list(set(test_zone_indices))

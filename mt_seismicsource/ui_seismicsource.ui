@@ -175,6 +175,29 @@
          <string>Threshold</string>
         </property>
        </widget>
+       <widget class="KDoubleNumInput" name="inputAnalyzeBuffer">
+        <property name="geometry">
+         <rect>
+          <x>90</x>
+          <y>60</y>
+          <width>90</width>
+          <height>33</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QLabel" name="labelSliverBuffer">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>60</y>
+          <width>66</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Buffer</string>
+        </property>
+       </widget>
       </widget>
      </item>
      <item>
