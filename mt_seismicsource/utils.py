@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+## -*- coding: utf-8 -*-
 """
 SHARE Seismic Source Toolkit
 
@@ -44,7 +44,23 @@ ATTICIVY_MMIN = 3.5
 ATTICIVY_EXECUTABLE = 'code/AtticIvy/AtticIvy'
 ATTICIVY_ZONE_FILE = 'AtticIvy-Zone.inp'
 ATTICIVY_CATALOG_FILE = 'AtticIvy-Catalog.dat'
-ATTICIVY_RESULT_FILE = '%s_out.txt' % ATTICIVY_ZONE_FILE[0:-5]
+ATTICIVY_RESULT_FILE = '%s_out.txt' % ATTICIVY_ZONE_FILE[0:-4]
+
+ATTICIVY_MISSING_ZONE_PARAMETERS = """# Mmax.....:  2
+ 5.5   0.5
+ 6.5   0.5
+# Periods..:  4
+ 3.5 1970
+ 4.0 1750
+ 4.5 1700
+ 6.5 1300
+A prior and weight
+ 0.0   0.0
+B prior and weight
+ 1.0  50.0
+"""
+
+# maximum likelihood a- and b-values, as implemented in ZMAP
 
 def assignActivityMaxLikelihood():
     pass
@@ -98,7 +114,7 @@ def computeActivityAtticIvy(zones, catalog, Mmin=ATTICIVY_MMIN):
     activity_list = activityFromAtticIvy(result_file_path)
 
     # remove temp file directory
-    shutil.rmtree(temp_dir)
+    #shutil.rmtree(temp_dir)
 
     return activity_list
 
@@ -113,19 +129,52 @@ def writeZones2AtticIvy(zones, path, Mmin):
     fh = open(path, 'w')
 
     # write header
-    fh.write('Mmin.......:%3.1f' % ATTICIVY_MMIN)
-    fh.write('# zones....:%3i' % len(zones))
+    fh.write('Mmin.......:%3.1f\n' % ATTICIVY_MMIN)
+    fh.write('# zones....:%3i\n' % featureCount(zones, checkGeometry=True))
     
     # loop over zones
     for curr_zone_idx, curr_zone in enumerate(zones):
 
         # get geometry
-        geom = curr_zone.geometry().asPolygon()
-        vertices = [(x.x(), x.y()) for x in geom[0]]
-        fh.write('%04i , %s' % (curr_zone_idx, len(vertices)))
+        vertices = verticesOuterFromQGSPolygon(curr_zone)
+        if vertices is None:
+            continue
+        
+        fh.write('%04i , %s\n' % (curr_zone_idx, len(vertices)))
         for vertex in vertices:
-            fh.write('%s , %s' % (vertex[1], vertex[0]))
+            fh.write('%s , %s\n' % (vertex[1], vertex[0]))
 
-        # TODO(fab): get attributes
+        # TODO(fab): use real parameters
+        fh.write(ATTICIVY_MISSING_ZONE_PARAMETERS)
 
     fh.close()
+
+def activityFromAtticIvy(path):
+    """Read output from AtticIvy program. Returns list of (a, b) value
+    pairs.
+    """
+    fh = open(path, 'r')
+    result_values = fh.readlines()
+    fh.close()
+
+    return result_values
+
+def featureCount(layer_provider, checkGeometry=False):
+    counter = 0
+    for feature in layer_provider:
+        if checkGeometry is False:
+            counter += 1
+        elif verticesOuterFromQGSPolygon(feature) is not None:
+            counter += 1
+    return counter
+
+def verticesOuterFromQGSPolygon(feature):
+    geom = feature.geometry().asPolygon()
+    if len(geom) == 0:
+        return None
+    else:
+        # skip last vertex is it's a duplicate of first one
+        vertices = [(x.x(), x.y()) for x in geom[0][0:-1]]
+        if len(vertices) == 0:
+            return None
+    return vertices

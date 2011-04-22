@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SliverAnalysis</class>
+ <widget class="QDialog" name="SliverAnalysis">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>819</width>
+    <height>594</height>
+   </rect>
+  </property>
+  <property name="focusPolicy">
+   <enum>Qt::StrongFocus</enum>
+  </property>
+  <property name="windowTitle">
+   <string>Sliver Analysis</string>
+  </property>
+  <property name="sizeGripEnabled">
+   <bool>true</bool>
+  </property>
+  <widget class="QWidget" name="widgetAnalysis" native="true">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>10</y>
+     <width>321</width>
+     <height>111</height>
+    </rect>
+   </property>
+   <widget class="QWidget" name="verticalLayoutWidget_3">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>0</y>
+      <width>301</width>
+      <height>101</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="layoutAnalysis">
+     <item>
+      <widget class="QGroupBox" name="groupBoxAnalyzeSlivers">
+       <property name="title">
+        <string>Analyze Slivers</string>
+       </property>
+       <widget class="QPushButton" name="btnAnalyzeSlivers">
+        <property name="geometry">
+         <rect>
+          <x>190</x>
+          <y>30</y>
+          <width>101</width>
+          <height>30</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Analyze!</string>
+        </property>
+       </widget>
+       <widget class="KDoubleNumInput" name="inputAnalyzeSlivers">
+        <property name="geometry">
+         <rect>
+          <x>90</x>
+          <y>30</y>
+          <width>90</width>
+          <height>33</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QLabel" name="labelSliverThreshold">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>30</y>
+          <width>71</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Threshold</string>
+        </property>
+       </widget>
+       <widget class="KDoubleNumInput" name="inputAnalyzeBuffer">
+        <property name="geometry">
+         <rect>
+          <x>90</x>
+          <y>60</y>
+          <width>90</width>
+          <height>33</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QLabel" name="labelSliverBuffer">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>60</y>
+          <width>66</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Buffer</string>
+        </property>
+       </widget>
+       <widget class="QProgressBar" name="progressBarAnalyzeSlivers">
+        <property name="geometry">
+         <rect>
+          <x>190</x>
+          <y>60</y>
+          <width>101</width>
+          <height>23</height>
+         </rect>
+        </property>
+        <property name="value">
+         <number>24</number>
+        </property>
+       </widget>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QTableWidget" name="table">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>120</y>
+     <width>821</width>
+     <height>471</height>
+    </rect>
+   </property>
+   <property name="columnCount">
+    <number>17</number>
+   </property>
+   <column>
+    <property name="text">
+     <string>Dist</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>RefID</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>RefZ</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>RefLon</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>RefLat</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>TestID</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>TestZ</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>TestLon</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>TestLat</string>
+    </property>
+   </column>
+   <column/>
+   <column/>
+   <column/>
+   <column/>
+   <column/>
+   <column/>
+   <column/>
+   <column/>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>KDoubleNumInput</class>
+   <extends>QWidget</extends>
+   <header>knuminput.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

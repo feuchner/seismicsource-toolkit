@@ -38,7 +38,8 @@ from qgis.core import *
 import QPCatalog
 
 import plots
-import do_zone_analysis
+import utils
+
 from ui_seismicsource import Ui_SeismicSource
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
@@ -99,13 +100,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         QObject.connect(self.checkBoxGRAnnualRate, 
             SIGNAL("stateChanged(int)"), self._updateFMDDisplay)
 
-        # Button: analyze zones
-        QObject.connect(self.btnAnalyzeSlivers, SIGNAL("clicked()"), 
-            self.analyzeZones)
-
-        # Init threshold and buffer for sliver analysis
-        self.inputAnalyzeSlivers.setValue(do_zone_analysis.MIN_SLIVER_DISTANCE)
-        self.inputAnalyzeBuffer.setValue(do_zone_analysis.ZONE_BUFFER_DISTANCE)
+        # Button: compute activity (AtticIvy)
+        QObject.connect(self.btnAtticIvy, SIGNAL("clicked()"), 
+            self.computeAtticIvy)
 
         # FMD plot window
         self.fmd_canvas = None
@@ -451,13 +448,14 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             minEventsGR=MIN_EVENTS_FOR_GR)
         return self.figures['fmd']['fmd']
 
-    def analyzeZones(self):
-        """Analyze source zone layer."""
-
-        d_zone_analysis = do_zone_analysis.ZoneAnalysis(self.iface, 
-            self.area_source_layer, self.inputAnalyzeSlivers.value(),
-            self.inputAnalyzeBuffer.value())
-        d_zone_analysis.exec_()
+    def computeAtticIvy(self):
+        """Compute activity with AtticIvy code."""
+        prz = self.area_source_layer.dataProvider()
+        prz.select()
+        activity = utils.computeActivityAtticIvy(prz, 
+            self.catalog)
+        QMessageBox.information(None, "Activity", 
+            "%s" % activity)
 
     def _checkAreaSourceLayer(self):
         """Check if features in area source layer are without errors."""

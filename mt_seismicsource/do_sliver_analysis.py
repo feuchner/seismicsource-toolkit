@@ -2,7 +2,7 @@
 """
 SHARE Seismic Source Toolkit
 
-Dialog for results of zone analysis.
+Dialog for sliver analysis of polygon layer.
 
 Author: Fabian Euchner, fabian@sed.ethz.ch
 """
@@ -33,7 +33,8 @@ from PyQt4.QtGui import *
 
 from qgis.core import *
 
-from ui_zone_analysis import Ui_ZoneAnalysis
+import utils
+from ui_sliver_analysis import Ui_SliverAnalysis
 
 MIN_SLIVER_DISTANCE = 0.1
 ZONE_BUFFER_DISTANCE = 0.5
@@ -45,23 +46,28 @@ ANALYSIS_TABLE_COLUMN_COUNT = 9
 
 SLIVER_ANALYSIS_LAYER_ID = "Sliver Analysis"
 
-class ZoneAnalysis(QDialog, Ui_ZoneAnalysis):
-    """This class represents the zone analysis dialog."""
+class SliverAnalysis(QDialog, Ui_SliverAnalysis):
+    """This class represents the sliver analysis dialog."""
 
-    def __init__(self, iface, zone_layer, min_distance=MIN_SLIVER_DISTANCE,
-        zone_buffer=ZONE_BUFFER_DISTANCE):
+    def __init__(self, iface):
+
         QDialog.__init__(self)
         self.iface = iface
+
         self.setupUi(self)
 
-        self.zone_layer = zone_layer
-        self.min_distance = min_distance
-        self.zone_buffer = zone_buffer
+         # Init threshold and buffer for sliver analysis
+        self.inputAnalyzeSlivers.setValue(MIN_SLIVER_DISTANCE)
+        self.inputAnalyzeBuffer.setValue(ZONE_BUFFER_DISTANCE)
+
+        self.zone_layer = self.iface.activeLayer()
+
         self.analysis_layer = None
         self.distance_matrix = None
 
-        self._analyze_buffer_based()
-        # self._analyze_distance_based()
+        # Button: analyze zones
+        QObject.connect(self.btnAnalyzeSlivers, SIGNAL("clicked()"), 
+            self._analyze_buffer_based)
 
     def _analyze_buffer_based(self):
         """Almost brute-force nearest neighbor analysis, using
@@ -71,6 +77,9 @@ class ZoneAnalysis(QDialog, Ui_ZoneAnalysis):
             QMessageBox.warning(None, "No source zone selected", 
                 "Please select at least one source zone")
             return
+
+        self.min_distance = self.inputAnalyzeSlivers.value()
+        self.zone_buffer = self.inputAnalyzeBuffer.value()
 
         # get feature IDs for selected source zone polygons
         selected_zones_ids = [feature.id() for feature in \
@@ -86,13 +95,9 @@ class ZoneAnalysis(QDialog, Ui_ZoneAnalysis):
         feature_cnt = 0
         for feature in prz:
 
-            qgis_geometry_aspolygon = feature.geometry().asPolygon()
-            if len(qgis_geometry_aspolygon) == 0:
+            vertices = utils.verticesOuterFromQGSPolygon(feature)
+            if vertices is None:
                 continue
-            else:
-                vertices = [(x.x(), x.y()) for x in qgis_geometry_aspolygon[0]]
-                if len(vertices) == 0:
-                    continue
 
             if feature.id() in selected_zones_ids:
                 selected_zones_indices.append(feature_cnt)

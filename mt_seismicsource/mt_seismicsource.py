@@ -35,8 +35,11 @@ from PyQt4.QtGui import *
 from qgis.core import *
 
 import do_seismicsource
+import do_sliver_analysis
 
-PLUGIN_TITLE = 'SHARE Seismic Source Toolkit'
+PLUGIN_MENU_TITLE = 'SHARE Seismic Source Toolkit'
+PLUGIN_TITLE_TOOLKIT = 'Seismic Source Toolkit'
+PLUGIN_TITLE_SLIVER_ANALYSIS = 'Silver Analysis'
 
 class SeismicSourceToolkit(object):
     """Main class of the Seismic Source Toolkit plugin"""
@@ -44,18 +47,34 @@ class SeismicSourceToolkit(object):
         self.iface = iface
         self.mainWindow = self.iface.mainWindow
         self.seismicSourceDialog = None
+        self.sliverAnalysisDialog = None
 
     def initGui(self):
-        self.seismicSource = QAction(PLUGIN_TITLE, self.mainWindow())
+        self.seismicSource = QAction(PLUGIN_TITLE_TOOLKIT, self.mainWindow())
         QObject.connect(self.seismicSource, SIGNAL("triggered()"), 
             self.doSeismicSource)
-        self.iface.addPluginToMenu(PLUGIN_TITLE, self.seismicSource)
+        
+        self.sliverAnalysis = QAction(PLUGIN_TITLE_SLIVER_ANALYSIS, 
+            self.mainWindow())
+        QObject.connect(self.sliverAnalysis, SIGNAL("triggered()"), 
+            self.doSliverAnalysis)
+
+        self.iface.addPluginToMenu(PLUGIN_MENU_TITLE, self.seismicSource)
+        self.iface.addPluginToMenu(PLUGIN_MENU_TITLE, self.sliverAnalysis)
 
     def unload(self):
-        self.iface.removePluginMenu(PLUGIN_TITLE, self.seismicSource)
+        self.iface.removePluginMenu(PLUGIN_MENU_TITLE, self.seismicSource)
+        self.iface.removePluginMenu(PLUGIN_MENU_TITLE, self.sliverAnalysis)
 
     def doSeismicSource(self):
         self.seismicSourceDialog = do_seismicsource.SeismicSource(self.iface)
         self.seismicSourceDialog.setModal(False)
         self.seismicSourceDialog.show()
         self.seismicSourceDialog.raise_()
+
+    def doSliverAnalysis(self):
+        self.sliverAnalysisDialog = do_sliver_analysis.SliverAnalysis(
+            self.iface)
+        self.sliverAnalysisDialog.setModal(False)
+        self.sliverAnalysisDialog.show()
+        self.sliverAnalysisDialog.raise_()

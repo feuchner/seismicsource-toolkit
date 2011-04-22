@@ -25,7 +25,7 @@
      <x>0</x>
      <y>10</y>
      <width>311</width>
-     <height>711</height>
+     <height>761</height>
     </rect>
    </property>
    <widget class="QWidget" name="verticalLayoutWidget_3">
@@ -34,7 +34,7 @@
       <x>10</x>
       <y>0</y>
       <width>301</width>
-      <height>711</height>
+      <height>761</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="layoutControl">
@@ -135,67 +135,34 @@
       </widget>
      </item>
      <item>
-      <widget class="QGroupBox" name="groupBoxAnalyzeSlivers">
+      <widget class="QGroupBox" name="groupBoxAtticIvy">
        <property name="title">
-        <string>Analyze Slivers</string>
+        <string>AtticIvy</string>
        </property>
-       <widget class="QPushButton" name="btnAnalyzeSlivers">
+       <widget class="QPushButton" name="btnAtticIvy">
         <property name="geometry">
          <rect>
-          <x>190</x>
+          <x>180</x>
           <y>30</y>
-          <width>101</width>
+          <width>115</width>
           <height>30</height>
          </rect>
         </property>
         <property name="text">
-         <string>Analyze!</string>
+         <string>Compute</string>
         </property>
        </widget>
-       <widget class="KDoubleNumInput" name="inputAnalyzeSlivers">
+       <widget class="QProgressBar" name="progressBarAtticIvy">
         <property name="geometry">
          <rect>
-          <x>90</x>
+          <x>20</x>
           <y>30</y>
-          <width>90</width>
-          <height>33</height>
+          <width>118</width>
+          <height>23</height>
          </rect>
         </property>
-       </widget>
-       <widget class="QLabel" name="labelSliverThreshold">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>30</y>
-          <width>71</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Threshold</string>
-        </property>
-       </widget>
-       <widget class="KDoubleNumInput" name="inputAnalyzeBuffer">
-        <property name="geometry">
-         <rect>
-          <x>90</x>
-          <y>60</y>
-          <width>90</width>
-          <height>33</height>
-         </rect>
-        </property>
-       </widget>
-       <widget class="QLabel" name="labelSliverBuffer">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>60</y>
-          <width>66</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Buffer</string>
+        <property name="value">
+         <number>24</number>
         </property>
        </widget>
       </widget>
@@ -320,8 +287,8 @@
     <rect>
      <x>320</x>
      <y>370</y>
-     <width>401</width>
-     <height>350</height>
+     <width>450</width>
+     <height>401</height>
     </rect>
    </property>
    <property name="minimumSize">
@@ -341,8 +308,8 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>401</width>
-      <height>351</height>
+      <width>451</width>
+      <height>401</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="layoutPlotFMD"/>
@@ -353,7 +320,7 @@
     <rect>
      <x>320</x>
      <y>10</y>
-     <width>401</width>
+     <width>491</width>
      <height>351</height>
     </rect>
    </property>
@@ -362,7 +329,7 @@
      <rect>
       <x>0</x>
       <y>30</y>
-      <width>401</width>
+      <width>491</width>
       <height>321</height>
      </rect>
     </property>
