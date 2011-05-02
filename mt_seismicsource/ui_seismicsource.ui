@@ -137,7 +137,7 @@
      <item>
       <widget class="QGroupBox" name="groupBoxAtticIvy">
        <property name="title">
-        <string>AtticIvy</string>
+        <string>AtticIvy (takes some time!)</string>
        </property>
        <widget class="QPushButton" name="btnAtticIvy">
         <property name="geometry">

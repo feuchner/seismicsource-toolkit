@@ -29,6 +29,7 @@ import os
 import shapely.geometry
 import shapely.ops
 import sys
+import time
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -120,6 +121,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.comboBoxEQCatalogInput.addItems(CATALOG_FILES)
 
         self.progressBarLoadData.setValue(0)
+        self.progressBarAtticIvy.setValue(0)
+
         self.labelCatalogEvents.setText("Catalog events: 0")
         self.labelSelectedZones.setText("Selected zones: 0")
         self.labelSelectedEvents.setText("Selected events: 0")
@@ -129,9 +132,13 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         # remove default layers
         # QgsMapLayerRegistry.instance().removeMapLayer(layer_id)
 
+        # "busy" progress bar
+        self.progressBarLoadData.setRange(0, 0)
+
         self.loadBackgroundLayer()
-        self.progressBarLoadData.setValue(50)
         self.loadDefaultLayers()
+
+        self.progressBarLoadData.setRange(0, 100)
         self.progressBarLoadData.setValue(100)
 
         # TODO(fab): make zone layer the active layer
@@ -450,10 +457,18 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
     def computeAtticIvy(self):
         """Compute activity with AtticIvy code."""
+
+        self.progressBarAtticIvy.setRange(0, 0)
         prz = self.area_source_layer.dataProvider()
         prz.select()
+
+        time.sleep(1)
+
         activity = utils.computeActivityAtticIvy(prz, 
             self.catalog)
+        self.progressBarAtticIvy.setRange(0, 100)
+        self.progressBarAtticIvy.setValue(100)
+
         QMessageBox.information(None, "Activity", 
             "%s" % activity)
 

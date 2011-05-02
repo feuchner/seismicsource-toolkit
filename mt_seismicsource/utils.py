@@ -26,24 +26,22 @@ Author: Fabian Euchner, fabian@sed.ethz.ch
 
 import numpy
 import os
-#import shapely.geometry
-#import shapely.ops
+import shapely.geometry
 import shutil
+import stat
 import subprocess
-#import sys
 import tempfile
 
-#from PyQt4.QtCore import *
-#from PyQt4.QtGui import *
-
-#from qgis.core import *
-
-# import QPCatalog
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
 
 ATTICIVY_MMIN = 3.5
 ATTICIVY_EXECUTABLE = 'code/AtticIvy/AtticIvy'
 ATTICIVY_ZONE_FILE = 'AtticIvy-Zone.inp'
 ATTICIVY_CATALOG_FILE = 'AtticIvy-Catalog.dat'
+
+# AtticIvy output file name convention:
+# remove '.inp' extension of zone file name and add '_out.txt'
 ATTICIVY_RESULT_FILE = '%s_out.txt' % ATTICIVY_ZONE_FILE[0:-4]
 
 ATTICIVY_MISSING_ZONE_PARAMETERS = """# Mmax.....:  2
@@ -95,8 +93,10 @@ def computeActivityAtticIvy(zones, catalog, Mmin=ATTICIVY_MMIN):
     """
     
     # create temp dir for computation
-    temp_dir = tempfile.mkdtemp()
+    temp_dir_base = os.path.dirname(__file__)
+    temp_dir = tempfile.mkdtemp(dir=temp_dir_base)
 
+    # NOTE: cannot use full file names, since they can be only 30 chars long
     # write zone data to temp file in AtticIvy format
     zone_file_path = os.path.join(temp_dir, ATTICIVY_ZONE_FILE)
     writeZones2AtticIvy(zones, zone_file_path, Mmin)
@@ -106,15 +106,26 @@ def computeActivityAtticIvy(zones, catalog, Mmin=ATTICIVY_MMIN):
     catalog.exportAtticIvy(catalog_file_path)
 
     # start AtticIvy computation (subprocess)
-    exec_path = os.path.join(os.path.dirname(__file__), ATTICIVY_EXECUTABLE)
-    retcode = subprocess.call([exec_path, zone_file_path, catalog_file_path])
+    exec_path_full = os.path.join(os.path.dirname(__file__), 
+        ATTICIVY_EXECUTABLE)
+    exec_file = os.path.basename(exec_path_full)
+
+    # copy executable to temp dir, set executable permissions
+    shutil.copy(exec_path_full, temp_dir)
+    os.chmod(os.path.join(temp_dir, exec_file), stat.S_IXUSR)
+
+    retcode = subprocess.call([exec_file, ATTICIVY_ZONE_FILE, 
+        ATTICIVY_CATALOG_FILE], cwd=temp_dir)
+    
+    #QMessageBox.information(None, "Ran Musson code", 
+        #"Musson code: retval %s" % retcode)
 
     # read results from AtticIvy output file
     result_file_path = os.path.join(temp_dir, ATTICIVY_RESULT_FILE)
     activity_list = activityFromAtticIvy(result_file_path)
 
     # remove temp file directory
-    #shutil.rmtree(temp_dir)
+    shutil.rmtree(temp_dir)
 
     return activity_list
 
@@ -126,38 +137,79 @@ def writeZones2AtticIvy(zones, path, Mmin):
     """
 
     # open file for writing
-    fh = open(path, 'w')
+    with open(path, 'w') as fh:
 
-    # write header
-    fh.write('Mmin.......:%3.1f\n' % ATTICIVY_MMIN)
-    fh.write('# zones....:%3i\n' % featureCount(zones, checkGeometry=True))
-    
-    # loop over zones
-    for curr_zone_idx, curr_zone in enumerate(zones):
-
-        # get geometry
-        vertices = verticesOuterFromQGSPolygon(curr_zone)
-        if vertices is None:
-            continue
+        # write header
+        fh.write('Mmin.......:%3.1f\n' % ATTICIVY_MMIN)
+        fh.write('# zones....:%3i\n' % featureCount(zones, 
+            checkGeometry=True))
         
-        fh.write('%04i , %s\n' % (curr_zone_idx, len(vertices)))
-        for vertex in vertices:
-            fh.write('%s , %s\n' % (vertex[1], vertex[0]))
+        # loop over zones
+        for curr_zone_idx, curr_zone in enumerate(zones):
 
-        # TODO(fab): use real parameters
-        fh.write(ATTICIVY_MISSING_ZONE_PARAMETERS)
+            # get geometry
+            vertices = verticesOuterFromQGSPolygon(curr_zone)
+            if vertices is None:
+                continue
+            
+            fh.write('%04i , %s\n' % (curr_zone_idx, len(vertices)))
+            for vertex in vertices:
+                fh.write('%s , %s\n' % (vertex[1], vertex[0]))
 
-    fh.close()
+            # TODO(fab): use real parameters
+            fh.write(ATTICIVY_MISSING_ZONE_PARAMETERS)
 
 def activityFromAtticIvy(path):
     """Read output from AtticIvy program. Returns list of (a, b) value
     pairs.
+    a: activity
+    b: b-value
     """
-    fh = open(path, 'r')
-    result_values = fh.readlines()
-    fh.close()
+    result_values = []
+    with open(path, 'r') as fh:
+
+        zoneStartMode = True
+        dataLengthMode = False
+        dataLineMode = False
+
+        # loop over zones
+        for line in fh:
+        
+            # ignore blank lines
+            if len(line.strip()) == 0:
+                continue
+
+            elif zoneStartMode is True:
+                # reading zone ID from file not required, we rely on 
+                # order of zones in file
+                zone_data = []
+                dataLengthMode = True
+                zoneStartMode = False
+
+            elif dataLengthMode is True:
+                data_line_count = int(line.strip())
+                data_line_idx = 0
+                dataLineMode = True
+                dataLengthMode = False
+
+            elif dataLineMode is True:
+                # don't use first value (weight) value from result file
+                # second value: a (activity), third value: b
+                (weight, activity, b_value) = line.strip().split()
+                zone_data.append((float(activity), float(b_value)))
+                data_line_idx += 1
+
+                # all lines read
+                if data_line_idx == data_line_count:
+
+                    # get proper (middle) line
+                    result_values.append(zone_data[data_line_count / 2])
+                    zoneStartMode = True
+                    dataLineMode = False
 
     return result_values
+
+# Misc. QGis/Shapely featutes
 
 def featureCount(layer_provider, checkGeometry=False):
     counter = 0
@@ -178,3 +230,30 @@ def verticesOuterFromQGSPolygon(feature):
         if len(vertices) == 0:
             return None
     return vertices
+
+def polygonsQGS2Shapely(polygons, getVertices=False):
+    """Convert feature geometry of QGis polygon iterable to list of Shapely
+    polygons. Polygons can be a list of QGis features, or a data provider."""
+
+    polygons_shapely = []
+    vertices_shapely = []
+
+    for feature in polygons:
+
+        vertices = utils.verticesOuterFromQGSPolygon(feature)
+        if vertices is None:
+            continue
+
+        shapely_polygon = shapely.geometry.Polygon(vertices)
+        polygons_shapely.append(shapely_polygon)
+
+        if getVertices is True:
+            for vertex in vertices:
+                vertices_shapely.append(shapely.geometry.Point(vertex))
+
+    return (polygons_shapely, vertices_shapely)
+
+def getSelectedRefZoneIndices(reference_zones):
+    """Get indices of selected zones from list of all source zones.
+    reference_zones is list of selected QGis features."""
+    return []
