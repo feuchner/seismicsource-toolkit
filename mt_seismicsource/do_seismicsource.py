@@ -462,15 +462,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         prz = self.area_source_layer.dataProvider()
         prz.select()
 
-        time.sleep(1)
-
-        activity = utils.computeActivityAtticIvy(prz, 
-            self.catalog)
+        utils.assignActivityAtticIvy(prz, self.catalog)
         self.progressBarAtticIvy.setRange(0, 100)
         self.progressBarAtticIvy.setValue(100)
-
-        QMessageBox.information(None, "Activity", 
-            "%s" % activity)
 
     def _checkAreaSourceLayer(self):
         """Check if features in area source layer are without errors."""

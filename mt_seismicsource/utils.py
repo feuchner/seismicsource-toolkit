@@ -35,6 +35,8 @@ import tempfile
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from qgis.core import *
+
 ATTICIVY_MMIN = 3.5
 ATTICIVY_EXECUTABLE = 'code/AtticIvy/AtticIvy'
 ATTICIVY_ZONE_FILE = 'AtticIvy-Zone.inp'
@@ -63,12 +65,13 @@ B prior and weight
 def assignActivityMaxLikelihood():
     pass
 
-def computeActivityMaxLikelihood():
+def computeActivityMaxLikelihood(zones, catalog):
     """Computes a-and b values using the maximum likelihood method for
     a set of source zone polygons.
     
-    Input: iterable of zone polygons
-           earthquake catalog as QuakePy object
+    Input: 
+        zones       iterable of polygon features in QGis format
+        catalog     earthquake catalog as QuakePy object
 
     Output: list of (a, b) pairs
     """
@@ -77,16 +80,37 @@ def computeActivityMaxLikelihood():
 
 # Roger Musson's AtticIvy
 
-def assignActivityAtticIvy():
-    pass
+def assignActivityAtticIvy(provider, catalog):
+    """Compute activity with Roger Musson's AtticIvy code and assign a and
+    b values to each area source zone.
+
+    Input:
+        provider    provider of polygon feature layer
+        catalog     earthquake catalog as QuakePy object
+    """
+
+    activity = computeActivityAtticIvy(provider, catalog)
+    QMessageBox.information(None, "Activity", "%s" % activity)
+
+    # get attribute indexes
+    attribute_map = getAttibuteIndex(provider, 
+        (('a_rm', QVariant.Double), ('b_rm', QVariant.Double),
+         ('activity_rm', QVariant.String)), create=True)
+
+    for zone_idx, zone in enumerate(provider):
+        zone.setAttributeMap(
+            {attribute_map['a_rm'][0]: QVariant(activity[zone_idx][0]), 
+             attribute_map['b_rm'][0]: QVariant(activity[zone_idx][1]),
+             attribute_map['activity_rm'][0]: QVariant(
+                activity[zone_idx][2])})
 
 def computeActivityAtticIvy(zones, catalog, Mmin=ATTICIVY_MMIN):
     """Computes a-and b values using Roger Musson's AtticIvy code for
     a set of source zone polygons.
     
     Input: 
-        zones   iterable of zone features in QGis format 
-        catalog earthquake catalog as QuakePy object
+        zones       iterable of zone features in QGis format 
+        catalog     earthquake catalog as QuakePy object
 
     Output: 
         list of (a, b) pairs
@@ -117,8 +141,9 @@ def computeActivityAtticIvy(zones, catalog, Mmin=ATTICIVY_MMIN):
     retcode = subprocess.call([exec_file, ATTICIVY_ZONE_FILE, 
         ATTICIVY_CATALOG_FILE], cwd=temp_dir)
     
-    #QMessageBox.information(None, "Ran Musson code", 
-        #"Musson code: retval %s" % retcode)
+    if retcode != 0:
+        QMessageBox.warning(None, "AtticIvy Error", 
+            "AtticIvy return value: %s" % retcode)
 
     # read results from AtticIvy output file
     result_file_path = os.path.join(temp_dir, ATTICIVY_RESULT_FILE)
@@ -160,10 +185,12 @@ def writeZones2AtticIvy(zones, path, Mmin):
             fh.write(ATTICIVY_MISSING_ZONE_PARAMETERS)
 
 def activityFromAtticIvy(path):
-    """Read output from AtticIvy program. Returns list of (a, b) value
-    pairs.
+    """Read output from AtticIvy program. Returns list of 
+    [a, b, activity_string] value triples.
     a: activity
     b: b-value
+    activity_string: string of all [weight, a, b] triples per zone, in a row,
+                     separated by white space
     """
     result_values = []
     with open(path, 'r') as fh:
@@ -183,6 +210,7 @@ def activityFromAtticIvy(path):
                 # reading zone ID from file not required, we rely on 
                 # order of zones in file
                 zone_data = []
+                zone_data_string = ""
                 dataLengthMode = True
                 zoneStartMode = False
 
@@ -196,14 +224,21 @@ def activityFromAtticIvy(path):
                 # don't use first value (weight) value from result file
                 # second value: a (activity), third value: b
                 (weight, activity, b_value) = line.strip().split()
-                zone_data.append((float(activity), float(b_value)))
+                zone_data.append([float(activity), float(b_value)])
+
+                # append new line to zone data string
+                zone_data_string = "%s %s %s %s" % (
+                    zone_data_string, weight, activity, b_value)
                 data_line_idx += 1
 
                 # all lines read
                 if data_line_idx == data_line_count:
 
-                    # get proper (middle) line
-                    result_values.append(zone_data[data_line_count / 2])
+                    # get proper (middle) line and append zone data string
+                    zone_values = zone_data[data_line_count / 2]
+                    zone_values.append(zone_data_string.lstrip())
+                    result_values.append(zone_values)
+                    
                     zoneStartMode = True
                     dataLineMode = False
 
@@ -257,3 +292,35 @@ def getSelectedRefZoneIndices(reference_zones):
     """Get indices of selected zones from list of all source zones.
     reference_zones is list of selected QGis features."""
     return []
+
+def getAttibuteIndex(provider, attributes, create=True):
+    """Get indices of attributes in QGis layer. 
+
+    Input:
+        provider    layer provider
+        attributes  iterable of pairs (attribute_name, attribute_type), e.g.
+                    (('a_rm', QVariant.Double), ('b_rm', QVariant.Double)).
+        create      if True, missing attributes will be added to the layer.
+
+    Output:
+        return value is a dictionary with attribute name as keys, and 
+        (index, type) pais as values
+
+    """
+    
+    attribute_map = {}
+
+    for (attr_name, attr_type) in attributes:
+        attr_index = provider.fieldNameIndex(attr_name)
+
+        # if attribute not existing (return value -1), create it,
+        # if create is True
+        if attr_index == -1 and create is True:
+            provider.addAttributes([QgsField(attr_name, attr_type)])
+            attr_index = provider.fieldNameIndex(attr_name)
+
+        attribute_map[attr_name] = (attr_index, attr_type)
+
+    return attribute_map
+
+
