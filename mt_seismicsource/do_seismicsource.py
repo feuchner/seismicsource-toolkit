@@ -121,7 +121,6 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.comboBoxEQCatalogInput.addItems(CATALOG_FILES)
 
         self.progressBarLoadData.setValue(0)
-        self.progressBarAtticIvy.setValue(0)
 
         self.labelCatalogEvents.setText("Catalog events: 0")
         self.labelSelectedZones.setText("Selected zones: 0")
@@ -250,8 +249,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
                 f = QgsFeature()
                 f.setGeometry(QgsGeometry.fromPoint(QgsPoint(
                     curr_lon, curr_lat)))
-                f.setAttributeMap(
-                    {0: QVariant(magnitude), 1: QVariant(depth)})
+                f[0] = QVariant(magnitude)
+                f[1] = QVariant(depth)
                 pr.addFeatures([f])
 
             # update layer's extent when new features have been added
@@ -458,13 +457,17 @@ class SeismicSource(QDialog, Ui_SeismicSource):
     def computeAtticIvy(self):
         """Compute activity with AtticIvy code."""
 
-        self.progressBarAtticIvy.setRange(0, 0)
-        prz = self.area_source_layer.dataProvider()
-        prz.select()
+        self.activityLED.setColor(QColor(255, 0, 0))
+        self.activityLEDLabel.setText('Computing...')
+        self.btnAtticIvy.setEnabled(False)
 
-        utils.assignActivityAtticIvy(prz, self.catalog)
-        self.progressBarAtticIvy.setRange(0, 100)
-        self.progressBarAtticIvy.setValue(100)
+        utils.assignActivityAtticIvy(self.area_source_layer, self.catalog)
+
+        self.activityLED.setColor(QColor(0, 255, 0))
+        self.activityLEDLabel.setText('Idle')
+        self.btnAtticIvy.setEnabled(True)
+
+        # QCoreApplication.processEvents()
 
     def _checkAreaSourceLayer(self):
         """Check if features in area source layer are without errors."""

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>815</width>
+    <width>814</width>
     <height>849</height>
    </rect>
   </property>
@@ -139,31 +139,54 @@
        <property name="title">
         <string>AtticIvy (takes some time!)</string>
        </property>
-       <widget class="QPushButton" name="btnAtticIvy">
+       <widget class="QGroupBox" name="groupBoxActivityLED">
         <property name="geometry">
          <rect>
-          <x>180</x>
+          <x>10</x>
           <y>30</y>
-          <width>115</width>
-          <height>30</height>
+          <width>281</width>
+          <height>31</height>
          </rect>
         </property>
-        <property name="text">
-         <string>Compute</string>
+        <property name="title">
+         <string/>
         </property>
-       </widget>
-       <widget class="QProgressBar" name="progressBarAtticIvy">
-        <property name="geometry">
-         <rect>
-          <x>20</x>
-          <y>30</y>
-          <width>118</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="value">
-         <number>24</number>
-        </property>
+        <widget class="KLed" name="activityLED">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>10</y>
+           <width>16</width>
+           <height>16</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QLabel" name="activityLEDLabel">
+         <property name="geometry">
+          <rect>
+           <x>30</x>
+           <y>10</y>
+           <width>141</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Idle</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="btnAtticIvy">
+         <property name="geometry">
+          <rect>
+           <x>180</x>
+           <y>0</y>
+           <width>101</width>
+           <height>30</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Compute</string>
+         </property>
+        </widget>
        </widget>
       </widget>
      </item>
@@ -407,6 +430,11 @@
   </widget>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>KLed</class>
+   <extends>QWidget</extends>
+   <header>kled.h</header>
+  </customwidget>
   <customwidget>
    <class>KDoubleNumInput</class>
    <extends>QWidget</extends>

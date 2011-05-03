@@ -31,6 +31,7 @@ import shutil
 import stat
 import subprocess
 import tempfile
+import time
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -77,19 +78,57 @@ def computeActivityMaxLikelihood(zones, catalog):
 
     Output: list of (a, b) pairs
     """
-    
     pass
 
 # Roger Musson's AtticIvy
 
-def assignActivityAtticIvy(provider, catalog):
+def assignActivityAtticIvy(layer, catalog):
     """Compute activity with Roger Musson's AtticIvy code and assign a and
     b values to each area source zone.
 
     Input:
-        provider    provider of polygon feature layer
+        layer       polygon feature layer
         catalog     earthquake catalog as QuakePy object
     """
+
+    provider = layer.dataProvider()
+    provider.select()
+
+    if not provider.capabilities() > 7:
+        QMessageBox.warning(None, "Cannot add attributes", 
+            "Cannot add attributes, code %s" % provider.capabilities())
+
+    layer.blockSignals(True)
+    layer.startEditing()
+    if not layer.isEditable():
+        QMessageBox.warning(None, "Layer not editable", "Layer not editable")
+
+    # layer.pendingFields()
+
+    #vlayer.beginEditCommand("Attribute added")
+        #if not vlayer.addAttribute(newField):
+            #print "Could not add the new field to the provider."
+            #vlayer.destroyEditCommand()
+            #if not wasEditing:
+                #vlayer.rollBack()
+            #return False
+        #vlayer.endEditCommand()
+
+    #if not vlayer.dataProvider().capabilities() > 7: # can't add attributes
+        #print("Data provider does not support adding attributes: "
+                #"Cannot add required geometry fields.")
+        #vlayer.rollBack()
+        #return False
+
+    #vlayer.select(vlayer.pendingAllAttributesList(), QgsRectangle(), True, False)
+
+    #vlayer.changeAttributeValue(feature.id(), id, attrs[i], False)
+
+    #layer.blockSignals(False)
+    #layer.setModified(True, False)
+
+    #if not wasEditing:
+        #layer.commitChanges()
 
     # get attribute indexes
     attribute_map = getAttributeIndex(provider, 
@@ -100,12 +139,15 @@ def assignActivityAtticIvy(provider, catalog):
             features.AREA_SOURCE_ATTRIBUTES_RM):
             (curr_idx, curr_type) = attribute_map[attr_dict['name']]
             try:
-                zone.setAttributeMap(
-                    {curr_idx: QVariant(activity[zone_idx][attr_idx])})
+                zone[curr_idx] = QVariant(activity[zone_idx][attr_idx])
             except Exception:
                 error_str = "curr_idx: %s, zone_idx: %s, attr_idx: %s" % (
                     curr_idx, zone_idx, attr_idx)
                 raise RuntimeError, error_str
+
+    layer.blockSignals(False)
+    layer.setModified(True, False)
+    layer.commitChanges()
 
 def computeActivityAtticIvy(zones, catalog, Mmin=ATTICIVY_MMIN):
     """Computes a-and b values using Roger Musson's AtticIvy code for
@@ -324,7 +366,6 @@ def getAttributeIndex(provider, attributes, create=True):
     Output:
         return value is a dictionary with attribute name as keys, and 
         (index, type) pais as values
-
     """
     
     attribute_map = {}
