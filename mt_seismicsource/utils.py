@@ -37,6 +37,8 @@ from PyQt4.QtGui import *
 
 from qgis.core import *
 
+import features
+
 ATTICIVY_MMIN = 3.5
 ATTICIVY_EXECUTABLE = 'code/AtticIvy/AtticIvy'
 ATTICIVY_ZONE_FILE = 'AtticIvy-Zone.inp'
@@ -89,20 +91,21 @@ def assignActivityAtticIvy(provider, catalog):
         catalog     earthquake catalog as QuakePy object
     """
 
-    activity = computeActivityAtticIvy(provider, catalog)
-    QMessageBox.information(None, "Activity", "%s" % activity)
-
     # get attribute indexes
-    attribute_map = getAttibuteIndex(provider, 
-        (('a_rm', QVariant.Double), ('b_rm', QVariant.Double),
-         ('activity_rm', QVariant.String)), create=True)
-
-    for zone_idx, zone in enumerate(provider):
-        zone.setAttributeMap(
-            {attribute_map['a_rm'][0]: QVariant(activity[zone_idx][0]), 
-             attribute_map['b_rm'][0]: QVariant(activity[zone_idx][1]),
-             attribute_map['activity_rm'][0]: QVariant(
-                activity[zone_idx][2])})
+    attribute_map = getAttributeIndex(provider, 
+        features.AREA_SOURCE_ATTRIBUTES_RM, create=True)
+    activity = computeActivityAtticIvy(provider, catalog)
+    for zone_idx, zone in walkValidPolygonFeatures(provider):
+        for attr_idx, attr_dict in enumerate(
+            features.AREA_SOURCE_ATTRIBUTES_RM):
+            (curr_idx, curr_type) = attribute_map[attr_dict['name']]
+            try:
+                zone.setAttributeMap(
+                    {curr_idx: QVariant(activity[zone_idx][attr_idx])})
+            except Exception:
+                error_str = "curr_idx: %s, zone_idx: %s, attr_idx: %s" % (
+                    curr_idx, zone_idx, attr_idx)
+                raise RuntimeError, error_str
 
 def computeActivityAtticIvy(zones, catalog, Mmin=ATTICIVY_MMIN):
     """Computes a-and b values using Roger Musson's AtticIvy code for
@@ -247,13 +250,28 @@ def activityFromAtticIvy(path):
 # Misc. QGis/Shapely featutes
 
 def featureCount(layer_provider, checkGeometry=False):
-    counter = 0
-    for feature in layer_provider:
-        if checkGeometry is False:
-            counter += 1
-        elif verticesOuterFromQGSPolygon(feature) is not None:
-            counter += 1
-    return counter
+    if checkGeometry is False:
+        return layer_provider.featureCount()
+    else:
+        counter = 0
+        layer_provider.rewind()
+        for feature in layer_provider:
+            if verticesOuterFromQGSPolygon(feature) is not None:
+                counter += 1
+        return counter
+
+def walkValidPolygonFeatures(provider):
+    """Generator that yields index and feature for polygon layer, skips
+    features with invalid geometry.
+    """
+    feature_idx = 0
+    provider.rewind()
+    for feature in provider:
+        if verticesOuterFromQGSPolygon(feature) is None:
+            continue
+        else:
+            feature_idx += 1
+            yield(feature_idx-1, feature)
 
 def verticesOuterFromQGSPolygon(feature):
     geom = feature.geometry().asPolygon()
@@ -293,13 +311,14 @@ def getSelectedRefZoneIndices(reference_zones):
     reference_zones is list of selected QGis features."""
     return []
 
-def getAttibuteIndex(provider, attributes, create=True):
+def getAttributeIndex(provider, attributes, create=True):
     """Get indices of attributes in QGis layer. 
 
     Input:
         provider    layer provider
-        attributes  iterable of pairs (attribute_name, attribute_type), e.g.
-                    (('a_rm', QVariant.Double), ('b_rm', QVariant.Double)).
+        attributes  iterable of dicts with attributes 'name', 'type', e.g.
+                    (('name': 'a_rm', 'type': QVariant.Double), 
+                     ('name': 'b_rm', 'type': QVariant.Double)).
         create      if True, missing attributes will be added to the layer.
 
     Output:
@@ -310,16 +329,17 @@ def getAttibuteIndex(provider, attributes, create=True):
     
     attribute_map = {}
 
-    for (attr_name, attr_type) in attributes:
-        attr_index = provider.fieldNameIndex(attr_name)
+    for attr_dict in attributes:
+        attr_index = provider.fieldNameIndex(attr_dict['name'])
 
         # if attribute not existing (return value -1), create it,
         # if create is True
         if attr_index == -1 and create is True:
-            provider.addAttributes([QgsField(attr_name, attr_type)])
-            attr_index = provider.fieldNameIndex(attr_name)
+            provider.addAttributes([QgsField(attr_dict['name'], 
+                attr_dict['type'])])
+            attr_index = provider.fieldNameIndex(attr_dict['name'])
 
-        attribute_map[attr_name] = (attr_index, attr_type)
+        attribute_map[attr_dict['name']] = (attr_index, attr_dict['type'])
 
     return attribute_map
 
