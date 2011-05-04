@@ -132,11 +132,11 @@ def assignActivityAtticIvy(layer, catalog):
 
     # get attribute indexes
     attribute_map = getAttributeIndex(provider, 
-        features.AREA_SOURCE_ATTRIBUTES_RM, create=True)
+        features.AREA_SOURCE_ATTRIBUTES_AB_RM, create=True)
     activity = computeActivityAtticIvy(provider, catalog)
     for zone_idx, zone in walkValidPolygonFeatures(provider):
         for attr_idx, attr_dict in enumerate(
-            features.AREA_SOURCE_ATTRIBUTES_RM):
+            features.AREA_SOURCE_ATTRIBUTES_AB_RM):
             (curr_idx, curr_type) = attribute_map[attr_dict['name']]
             try:
                 zone[curr_idx] = QVariant(activity[zone_idx][attr_idx])
@@ -148,6 +148,8 @@ def assignActivityAtticIvy(layer, catalog):
     layer.blockSignals(False)
     layer.setModified(True, False)
     layer.commitChanges()
+
+    QMessageBox.information(None, "Activity", "%s" % activity)
 
 def computeActivityAtticIvy(zones, catalog, Mmin=ATTICIVY_MMIN):
     """Computes a-and b values using Roger Musson's AtticIvy code for

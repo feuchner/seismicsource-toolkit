@@ -39,9 +39,42 @@ from PyQt4.QtCore import *
 
 # NOTE: attribute names can have max 10 chars
 
+# max/min magnitudes
+AREA_SOURCE_ATTR_MMIN = {'name': 'mmin', 'type': QVariant.Double}
+AREA_SOURCE_ATTR_MMAX = {'name': 'mmax', 'type': QVariant.Double}
+AREA_SOURCE_ATTR_MMAXDIST = {'name': 'mmaxdist', 'type': QVariant.String}
+
+AREA_SOURCE_ATTRIBUTES_MINMAXMAG = (AREA_SOURCE_ATTR_MMIN, 
+    AREA_SOURCE_ATTR_MMAX, AREA_SOURCE_ATTR_MMAXDIST)
+
+# magnitude of completeness
+AREA_SOURCE_ATTR_MC = {'name': 'mc', 'type': QVariant.Double}
+AREA_SOURCE_ATTR_MCDIST = {'name': 'mcdist', 'type': QVariant.String}
+
+AREA_SOURCE_ATTRIBUTES_MC = (AREA_SOURCE_ATTR_MC, AREA_SOURCE_ATTR_MCDIST)
+
+# a/b prior
+AREA_SOURCE_ATTR_A_PRIOR = {'name': 'a_prior', 'type': QVariant.Double}
+AREA_SOURCE_ATTR_B_PRIOR = {'name': 'b_prior', 'type': QVariant.Double}
+
+AREA_SOURCE_ATTRIBUTES_AB_PRIOR = (AREA_SOURCE_ATTR_A_PRIOR, 
+    AREA_SOURCE_ATTR_B_PRIOR)
+
+# a/b maximum likelihood
+AREA_SOURCE_ATTR_A_ML = {'name': 'a_ml', 'type': QVariant.Double}
+AREA_SOURCE_ATTR_B_ML = {'name': 'b_ml', 'type': QVariant.Double}
+
+AREA_SOURCE_ATTRIBUTES_AB_ML = (AREA_SOURCE_ATTR_A_ML, AREA_SOURCE_ATTR_B_ML)
+
+# a/b according to RogerMusson's AtticIvy
 AREA_SOURCE_ATTR_A_RM = {'name': 'a_rm', 'type': QVariant.Double}
 AREA_SOURCE_ATTR_B_RM = {'name': 'b_rm', 'type': QVariant.Double}
 AREA_SOURCE_ATTR_ACTIVITY_RM = {'name': 'activit_rm', 'type': QVariant.String}
 
-AREA_SOURCE_ATTRIBUTES_RM = (AREA_SOURCE_ATTR_A_RM, AREA_SOURCE_ATTR_B_RM, 
-    AREA_SOURCE_ATTR_ACTIVITY_RM) 
+AREA_SOURCE_ATTRIBUTES_AB_RM = (AREA_SOURCE_ATTR_A_RM, AREA_SOURCE_ATTR_B_RM, 
+    AREA_SOURCE_ATTR_ACTIVITY_RM)
+
+# combination of all attribute groups
+AREA_SOURCE_ATTRIBUTES_ALL = (AREA_SOURCE_ATTRIBUTES_MINMAXMAG, 
+    AREA_SOURCE_ATTRIBUTES_MC, AREA_SOURCE_ATTRIBUTES_AB_PRIOR, 
+    AREA_SOURCE_ATTRIBUTES_AB_ML, AREA_SOURCE_ATTRIBUTES_AB_RM)
