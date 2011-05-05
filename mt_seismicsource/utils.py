@@ -1,4 +1,4 @@
-## -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 SHARE Seismic Source Toolkit
 
@@ -40,29 +40,6 @@ from qgis.core import *
 
 import features
 
-ATTICIVY_MMIN = 3.5
-ATTICIVY_EXECUTABLE = 'code/AtticIvy/AtticIvy'
-ATTICIVY_ZONE_FILE = 'AtticIvy-Zone.inp'
-ATTICIVY_CATALOG_FILE = 'AtticIvy-Catalog.dat'
-
-# AtticIvy output file name convention:
-# remove '.inp' extension of zone file name and add '_out.txt'
-ATTICIVY_RESULT_FILE = '%s_out.txt' % ATTICIVY_ZONE_FILE[0:-4]
-
-ATTICIVY_MISSING_ZONE_PARAMETERS = """# Mmax.....:  2
- 5.5   0.5
- 6.5   0.5
-# Periods..:  4
- 3.5 1970
- 4.0 1750
- 4.5 1700
- 6.5 1300
-A prior and weight
- 0.0   0.0
-B prior and weight
- 1.0  50.0
-"""
-
 # maximum likelihood a- and b-values, as implemented in ZMAP
 
 def assignActivityMaxLikelihood():
@@ -80,217 +57,6 @@ def computeActivityMaxLikelihood(zones, catalog):
     """
     pass
 
-# Roger Musson's AtticIvy
-
-def assignActivityAtticIvy(layer, catalog):
-    """Compute activity with Roger Musson's AtticIvy code and assign a and
-    b values to each area source zone.
-
-    Input:
-        layer       polygon feature layer
-        catalog     earthquake catalog as QuakePy object
-    """
-
-    provider = layer.dataProvider()
-    provider.select()
-
-    if not provider.capabilities() > 7:
-        QMessageBox.warning(None, "Cannot add attributes", 
-            "Cannot add attributes, code %s" % provider.capabilities())
-
-    layer.blockSignals(True)
-    layer.startEditing()
-    if not layer.isEditable():
-        QMessageBox.warning(None, "Layer not editable", "Layer not editable")
-
-    # layer.pendingFields()
-
-    #vlayer.beginEditCommand("Attribute added")
-        #if not vlayer.addAttribute(newField):
-            #print "Could not add the new field to the provider."
-            #vlayer.destroyEditCommand()
-            #if not wasEditing:
-                #vlayer.rollBack()
-            #return False
-        #vlayer.endEditCommand()
-
-    #if not vlayer.dataProvider().capabilities() > 7: # can't add attributes
-        #print("Data provider does not support adding attributes: "
-                #"Cannot add required geometry fields.")
-        #vlayer.rollBack()
-        #return False
-
-    #vlayer.select(vlayer.pendingAllAttributesList(), QgsRectangle(), True, False)
-
-    #vlayer.changeAttributeValue(feature.id(), id, attrs[i], False)
-
-    #layer.blockSignals(False)
-    #layer.setModified(True, False)
-
-    #if not wasEditing:
-        #layer.commitChanges()
-
-    # get attribute indexes
-    attribute_map = getAttributeIndex(provider, 
-        features.AREA_SOURCE_ATTRIBUTES_AB_RM, create=True)
-    activity = computeActivityAtticIvy(provider, catalog)
-    for zone_idx, zone in walkValidPolygonFeatures(provider):
-        for attr_idx, attr_dict in enumerate(
-            features.AREA_SOURCE_ATTRIBUTES_AB_RM):
-            (curr_idx, curr_type) = attribute_map[attr_dict['name']]
-            try:
-                zone[curr_idx] = QVariant(activity[zone_idx][attr_idx])
-            except Exception:
-                error_str = "curr_idx: %s, zone_idx: %s, attr_idx: %s" % (
-                    curr_idx, zone_idx, attr_idx)
-                raise RuntimeError, error_str
-
-    layer.blockSignals(False)
-    layer.setModified(True, False)
-    layer.commitChanges()
-
-    QMessageBox.information(None, "Activity", "%s" % activity)
-
-def computeActivityAtticIvy(zones, catalog, Mmin=ATTICIVY_MMIN):
-    """Computes a-and b values using Roger Musson's AtticIvy code for
-    a set of source zone polygons.
-    
-    Input: 
-        zones       iterable of zone features in QGis format 
-        catalog     earthquake catalog as QuakePy object
-
-    Output: 
-        list of (a, b) pairs
-    """
-    
-    # create temp dir for computation
-    temp_dir_base = os.path.dirname(__file__)
-    temp_dir = tempfile.mkdtemp(dir=temp_dir_base)
-
-    # NOTE: cannot use full file names, since they can be only 30 chars long
-    # write zone data to temp file in AtticIvy format
-    zone_file_path = os.path.join(temp_dir, ATTICIVY_ZONE_FILE)
-    writeZones2AtticIvy(zones, zone_file_path, Mmin)
-
-    # write catalog to temp file in AtticIvy format
-    catalog_file_path = os.path.join(temp_dir, ATTICIVY_CATALOG_FILE)
-    catalog.exportAtticIvy(catalog_file_path)
-
-    # start AtticIvy computation (subprocess)
-    exec_path_full = os.path.join(os.path.dirname(__file__), 
-        ATTICIVY_EXECUTABLE)
-    exec_file = os.path.basename(exec_path_full)
-
-    # copy executable to temp dir, set executable permissions
-    shutil.copy(exec_path_full, temp_dir)
-    os.chmod(os.path.join(temp_dir, exec_file), stat.S_IXUSR)
-
-    retcode = subprocess.call([exec_file, ATTICIVY_ZONE_FILE, 
-        ATTICIVY_CATALOG_FILE], cwd=temp_dir)
-    
-    if retcode != 0:
-        QMessageBox.warning(None, "AtticIvy Error", 
-            "AtticIvy return value: %s" % retcode)
-
-    # read results from AtticIvy output file
-    result_file_path = os.path.join(temp_dir, ATTICIVY_RESULT_FILE)
-    activity_list = activityFromAtticIvy(result_file_path)
-
-    # remove temp file directory
-    shutil.rmtree(temp_dir)
-
-    return activity_list
-
-def writeZones2AtticIvy(zones, path, Mmin):
-    """Write AtticIvy zone file.
-
-    Input:
-        zones   Iterable of polygon features in QGis format
-    """
-
-    # open file for writing
-    with open(path, 'w') as fh:
-
-        # write header
-        fh.write('Mmin.......:%3.1f\n' % ATTICIVY_MMIN)
-        fh.write('# zones....:%3i\n' % featureCount(zones, 
-            checkGeometry=True))
-        
-        # loop over zones
-        for curr_zone_idx, curr_zone in enumerate(zones):
-
-            # get geometry
-            vertices = verticesOuterFromQGSPolygon(curr_zone)
-            if vertices is None:
-                continue
-            
-            fh.write('%04i , %s\n' % (curr_zone_idx, len(vertices)))
-            for vertex in vertices:
-                fh.write('%s , %s\n' % (vertex[1], vertex[0]))
-
-            # TODO(fab): use real parameters
-            fh.write(ATTICIVY_MISSING_ZONE_PARAMETERS)
-
-def activityFromAtticIvy(path):
-    """Read output from AtticIvy program. Returns list of 
-    [a, b, activity_string] value triples.
-    a: activity
-    b: b-value
-    activity_string: string of all [weight, a, b] triples per zone, in a row,
-                     separated by white space
-    """
-    result_values = []
-    with open(path, 'r') as fh:
-
-        zoneStartMode = True
-        dataLengthMode = False
-        dataLineMode = False
-
-        # loop over zones
-        for line in fh:
-        
-            # ignore blank lines
-            if len(line.strip()) == 0:
-                continue
-
-            elif zoneStartMode is True:
-                # reading zone ID from file not required, we rely on 
-                # order of zones in file
-                zone_data = []
-                zone_data_string = ""
-                dataLengthMode = True
-                zoneStartMode = False
-
-            elif dataLengthMode is True:
-                data_line_count = int(line.strip())
-                data_line_idx = 0
-                dataLineMode = True
-                dataLengthMode = False
-
-            elif dataLineMode is True:
-                # don't use first value (weight) value from result file
-                # second value: a (activity), third value: b
-                (weight, activity, b_value) = line.strip().split()
-                zone_data.append([float(activity), float(b_value)])
-
-                # append new line to zone data string
-                zone_data_string = "%s %s %s %s" % (
-                    zone_data_string, weight, activity, b_value)
-                data_line_idx += 1
-
-                # all lines read
-                if data_line_idx == data_line_count:
-
-                    # get proper (middle) line and append zone data string
-                    zone_values = zone_data[data_line_count / 2]
-                    zone_values.append(zone_data_string.lstrip())
-                    result_values.append(zone_values)
-                    
-                    zoneStartMode = True
-                    dataLineMode = False
-
-    return result_values
-
 # Misc. QGis/Shapely featutes
 
 def featureCount(layer_provider, checkGeometry=False):
@@ -302,6 +68,7 @@ def featureCount(layer_provider, checkGeometry=False):
         for feature in layer_provider:
             if verticesOuterFromQGSPolygon(feature) is not None:
                 counter += 1
+        layer_provider.rewind()
         return counter
 
 def walkValidPolygonFeatures(provider):
@@ -386,4 +153,60 @@ def getAttributeIndex(provider, attributes, create=True):
 
     return attribute_map
 
+def shp2memory(layer, name):
+    """Convert QGis layer from shapefile to QGis layer in memory.
+    Returns layer from memory provider.
 
+    Works only for Polygon and LineString layers at the moment.
+    """
+
+    pr_orig = layer.dataProvider()
+    geometry_type = pr_orig.geometryType()
+    if geometry_type == 3:
+        geometry_token = "Polygon"
+    elif geometry_type == 2:
+        geometry_token = "LineString"
+    else:
+        error_str = "Currently, only geometry types Polygon (3) and " \
+            "LineString (2) are supported."
+        raise RuntimeError, error_str
+
+    # create layer
+    mem_layer = QgsVectorLayer(geometry_token, name, "memory")
+    pr = mem_layer.dataProvider()
+
+    #QMessageBox.information(None, "Orig Layer", "%s, %s, %s, %s" % (
+        #pr_orig.encoding(), pr_orig.geometryType(),
+            #pr_orig.crs(), pr_orig.fields()))
+
+    # TODO(fab): check if encoding() and crs() have to be set in new layer
+
+    # add fields
+    pr.addAttributes([field for idx, field in pr_orig.fields().items()])
+
+    # select all attribute indexes
+    allAttrIndices = pr_orig.attributeIndexes()
+    pr_orig.select(allAttrIndices)
+
+    for feat in pr_orig:
+        geom = feat.geometry()
+        attrs = feat.attributeMap()
+
+        f = QgsFeature()
+        f.setGeometry(geom)
+
+        for attr_idx, attr in attrs.items():
+            f[attr_idx] = QVariant(attr)
+        pr.addFeatures([f])
+
+    mem_layer.updateExtents()
+    return mem_layer
+
+def warning_box_missing_layer_file(filename):
+    QMessageBox.warning(None, "File not found", 
+        "Layer file not found: %s" % os.path.basename(filename))
+
+def warning_box_broken_area_features(broken_features):
+     QMessageBox.warning(None, "Broken features", 
+        "IDs of broken features:\n %s" % " ".join(
+        [str(x) for x in broken_features]))

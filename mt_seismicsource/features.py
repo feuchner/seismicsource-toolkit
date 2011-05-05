@@ -24,18 +24,7 @@ Author: Fabian Euchner, fabian@sed.ethz.ch
 #    59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ############################################################################
 
-#import numpy
-#import os
-#import shapely.geometry
-#import shutil
-#import stat
-#import subprocess
-#import tempfile
-
 from PyQt4.QtCore import *
-#from PyQt4.QtGui import *
-
-#from qgis.core import *
 
 # NOTE: attribute names can have max 10 chars
 

@@ -34,6 +34,13 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
 
+# setup module path
+# TODO(fab): this is a dirty workaround ...
+#PACKAGES = ('algorithms', 'layers')
+#for package in PACKAGES:
+    #sys.path.insert(0, os.path.join(os.path.dirname(__file__), package))
+#sys.path.insert(0, os.path.dirname(__file__))
+
 import do_seismicsource
 import do_sliver_analysis
 

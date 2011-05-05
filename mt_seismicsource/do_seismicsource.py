@@ -27,7 +27,7 @@ Author: Fabian Euchner, fabian@sed.ethz.ch
 import numpy
 import os
 import shapely.geometry
-import shapely.ops
+# import shapely.ops
 import sys
 import time
 
@@ -38,26 +38,19 @@ from qgis.core import *
 
 import QPCatalog
 
+#import areasource
+#import atticivy
+#import eqcatalog
+#import faultsource
+import algorithms
+import layers
 import plots
 import utils
 
 from ui_seismicsource import Ui_SeismicSource
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
-
 BACKGROUND_FILE_DIR = 'misc'
 BACKGROUND_FILE = 'world.shp'
-
-ZONE_FILE_DIR = 'area_sources/GEM1'
-ZONE_FILE = 'europe_source_model.shp'
-ZONE_FILES = ('europe_source_model.shp',)
-
-FAULT_FILE_DIR = 'fault_sources/DISS'
-FAULT_FILE = 'CSSTop_polyline.shp'
-FAULT_FILES = ('CSSTop_polyline.shp',)
-
-CATALOG_DIR = 'eq_catalog'
-CATALOG_FILES = ('cenec-zmap.dat', 'SHARE_20110311.dat.gz')
 
 MIN_EVENTS_FOR_GR = 10
 
@@ -116,9 +109,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.catalog_layer = None
 
         # prepare data load combo boxes
-        self.comboBoxZoneInput.addItems(ZONE_FILES)
-        self.comboBoxFaultInput.addItems(FAULT_FILES)
-        self.comboBoxEQCatalogInput.addItems(CATALOG_FILES)
+        self.comboBoxZoneInput.addItems(layers.areasource.ZONE_FILES)
+        self.comboBoxFaultInput.addItems(layers.faultsource.FAULT_FILES)
+        self.comboBoxEQCatalogInput.addItems(layers.eqcatalog.CATALOG_FILES)
 
         self.progressBarLoadData.setValue(0)
 
@@ -144,11 +137,11 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
     def loadBackgroundLayer(self):
         if self.background_layer is None:
-            background_path = os.path.join(DATA_DIR, BACKGROUND_FILE_DIR, 
-                BACKGROUND_FILE)
+            background_path = os.path.join(layers.DATA_DIR,
+                BACKGROUND_FILE_DIR, BACKGROUND_FILE)
 
             if not os.path.isfile(background_path):
-                _warning_box_missing_layer_file(background_path)
+                utils.warning_box_missing_layer_file(background_path)
                 return
 
             self.background_layer = QgsVectorLayer(background_path, 
@@ -156,108 +149,13 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             QgsMapLayerRegistry.instance().addMapLayer(self.background_layer)
 
     def loadDefaultLayers(self):
-        self.loadAreaSourceLayer()
-        self.loadFaultSourceLayer()
-        self.loadCatalogLayer()
-        
-    def loadAreaSourceLayer(self):
-        if self.area_source_layer is None:
-            area_source_path = os.path.join(DATA_DIR, ZONE_FILE_DIR, 
-                unicode(self.comboBoxZoneInput.currentText()))
-            if not os.path.isfile(area_source_path):
-                _warning_box_missing_layer_file(area_source_path)
-                return
 
-            self.area_source_layer = QgsVectorLayer(area_source_path, 
-                "Area Sources", "ogr")
-            QgsMapLayerRegistry.instance().addMapLayer(self.area_source_layer)
-
-            # check if all features are okay
-            self._checkAreaSourceLayer()
-
-    def loadFaultSourceLayer(self):
-        if self.fault_source_layer is None:
-            fault_source_path = os.path.join(DATA_DIR, FAULT_FILE_DIR, 
-                unicode(self.comboBoxFaultInput.currentText()))
-
-            if not os.path.isfile(fault_source_path):
-                _warning_box_missing_layer_file(fault_source_path)
-                return
-
-            self.fault_source_layer = QgsVectorLayer(fault_source_path, 
-                "Fault Sources", "ogr")
-            QgsMapLayerRegistry.instance().addMapLayer(
-                    self.fault_source_layer)
-
-    def loadCatalogLayer(self):
-        if self.catalog_layer is None:
-            catalog_path = os.path.join(DATA_DIR, CATALOG_DIR, 
-                unicode(self.comboBoxEQCatalogInput.currentText()))
-
-            if not os.path.isfile(catalog_path):
-                _warning_box_missing_layer_file(catalog_path)
-                return
-
-            self.catalog = QPCatalog.QPCatalog()
-
-            if catalog_path.endswith('.gz'):
-                self.catalog.importZMAP(catalog_path, minimumDataset=True,
-                    compression='gz')
-            else:
-                self.catalog.importZMAP(catalog_path, minimumDataset=True)
-
-            # cut catalog to years > 1900 (because of datetime)
-            # TODO(fab): change the datetime lib to mx.DateTime
-            self.catalog.cut(mintime='1900-01-01', mintime_exclude=True)
-            self.labelCatalogEvents.setText(
-                "Catalog events: %s" % self.catalog.size())
-
-            # cut with selected polygons
-            self.catalog_selected = QPCatalog.QPCatalog()
-            self.catalog_selected.merge(self.catalog)
-            self.labelSelectedEvents.setText(
-                "Selected events: %s" % self.catalog_selected.size())
-
-            # create layer
-            self.catalog_layer = QgsVectorLayer("Point", "CENEC catalog", 
-                "memory")
-            pr = self.catalog_layer.dataProvider()
-
-            # add fields
-            pr.addAttributes([QgsField("magnitude", QVariant.Double),
-                              QgsField("depth",  QVariant.Double)])
-
-            # add EQs as features
-            for curr_event in self.catalog_selected.eventParameters.event:
-                curr_ori = curr_event.getPreferredOrigin()
-
-                # skip events without magnitude
-                try:
-                    curr_mag = curr_event.getPreferredMagnitude()
-                except IndexError:
-                    continue
-
-                curr_lon = curr_ori.longitude.value
-                curr_lat = curr_ori.latitude.value
-                magnitude = curr_mag.mag.value
-
-                try:
-                    depth = curr_ori.depth.value
-                except Exception:
-                    depth = numpy.nan
-
-                f = QgsFeature()
-                f.setGeometry(QgsGeometry.fromPoint(QgsPoint(
-                    curr_lon, curr_lat)))
-                f[0] = QVariant(magnitude)
-                f[1] = QVariant(depth)
-                pr.addFeatures([f])
-
-            # update layer's extent when new features have been added
-            # because change of extent in provider is not 
-            # propagated to the layer
-            self.catalog_layer.updateExtents()
-            QgsMapLayerRegistry.instance().addMapLayer(self.catalog_layer)
+        layers.areasource.loadAreaSourceLayer(self, self.area_source_layer)
+        layers.faultsource.loadFaultSourceLayer(self, self.fault_source_layer)
+        layers.eqcatalog.loadEQCatalogLayer(self, self.catalog_layer)
+        #self.loadAreaSourceLayer()
+        #self.loadFaultSourceLayer()
+        #self.loadCatalogLayer()
 
     def updateZoneValues(self):
         """Update a and b values for selected zones."""
@@ -461,53 +359,22 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.activityLEDLabel.setText('Computing...')
         self.btnAtticIvy.setEnabled(False)
 
-        utils.assignActivityAtticIvy(self.area_source_layer, self.catalog)
+        self.area_source_layer.blockSignals(True)
+        self.area_source_layer.startEditing()
 
+        pr = self.area_source_layer.dataProvider()
+        pr.select()
+        algorithms.atticivy.assignActivityAtticIvy(pr, self.catalog)
+
+        self.area_source_layer.blockSignals(False)
+        self.area_source_layer.setModified(True, False)
+        self.area_source_layer.commitChanges()
+        
         self.activityLED.setColor(QColor(0, 255, 0))
         self.activityLEDLabel.setText('Idle')
         self.btnAtticIvy.setEnabled(True)
 
         # QCoreApplication.processEvents()
 
-    def _checkAreaSourceLayer(self):
-        """Check if features in area source layer are without errors."""
 
-        broken_features = []
-        for feature_idx, feature in enumerate(self.area_source_layer):
-
-            try:
-                qgis_geometry_aspolygon = feature.geometry().asPolygon()
-            except Exception:
-                broken_features.append(feature_idx)
-                continue
-
-            # no outer ring given
-            if len(qgis_geometry_aspolygon) == 0:
-                broken_features.append(feature_idx)
-                continue
-
-            # check if there are enough vertices
-            vertices = [(x.x(), x.y()) for x in qgis_geometry_aspolygon[0]]
-            if len(vertices) < 4:
-                broken_features.append(feature_idx)
-                continue
-
-            try:
-                shapely_polygon = shapely.geometry.Polygon(vertices)
-            except Exception:
-                broken_features.append(feature_idx)
-                continue
-
-        if len(broken_features) > 0:
-            self._warning_box_broken_area_features(broken_features)
-
-
-def _warning_box_missing_layer_file(filename):
-    QMessageBox.warning(None, "File not found", 
-        "Layer file not found: %s" % os.path.basename(filename))
-
-def _warning_box_broken_area_features(broken_features):
-     QMessageBox.warning(None, "Broken features", 
-        "IDs of broken features:\n %s" % " ".join(
-        [str(x) for x in broken_features]))
     
