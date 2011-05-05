@@ -77,23 +77,34 @@ def assignActivityAtticIvy(provider, catalog):
     provider.select()
     attribute_map = utils.getAttributeIndex(provider, 
         features.AREA_SOURCE_ATTRIBUTES_AB_RM, create=True)
-    #QMessageBox.information(None, "Attributes", "%s" % attribute_map)
 
     provider.rewind()
     activity = computeActivityAtticIvy(provider, catalog)
-    QMessageBox.information(None, "Activity", "%s" % activity)
 
+    # assemble value dict
+    values = {}
     provider.rewind()
     for zone_idx, zone in utils.walkValidPolygonFeatures(provider):
+
+        attributes = {}
         for attr_idx, attr_dict in enumerate(
             features.AREA_SOURCE_ATTRIBUTES_AB_RM):
             (curr_idx, curr_type) = attribute_map[attr_dict['name']]
             try:
-                zone[curr_idx] = QVariant(activity[zone_idx][attr_idx])
-            except Exception:
-                error_str = "curr_idx: %s, zone_idx: %s, attr_idx: %s" % (
-                    curr_idx, zone_idx, attr_idx)
+                attributes[curr_idx] = QVariant(activity[zone_idx][attr_idx])
+            except Exception, e:
+                error_str = \
+        "error in attribute: curr_idx: %s, zone_idx: %s, attr_idx: %s, %s" % (
+                    curr_idx, zone_idx, attr_idx, e)
                 raise RuntimeError, error_str
+
+        values[zone.id()] = attributes
+
+    try:
+        provider.changeAttributeValues(values)
+    except Exception, e:
+        error_str = "cannot update attribute values, %s" % (e)
+        raise RuntimeError, error_str
 
 def computeActivityAtticIvy(zones, catalog, Mmin=ATTICIVY_MMIN):
     """Computes a-and b values using Roger Musson's AtticIvy code for

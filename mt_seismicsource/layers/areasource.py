@@ -57,11 +57,22 @@ def loadAreaSourceLayer(cls):
         "Area Sources", "ogr")
 
     layer = utils.shp2memory(temp_area_source_layer, "Area Sources")
-    QgsMapLayerRegistry.instance().addMapLayer(layer)
 
     # check if all features are okay
     _checkAreaSourceLayer(layer)
+
+    # create feature attributes
+    createAttributes(layer)
+
+    QgsMapLayerRegistry.instance().addMapLayer(layer)
     return layer
+
+def createAttributes(layer):
+    """Create attributes for area source layer."""
+    provider = layer.dataProvider()
+    for attribute_list in features.AREA_SOURCE_ATTRIBUTES_ALL:
+        attribute_map = utils.getAttributeIndex(provider, attribute_list, 
+            create=True)
 
 def _checkAreaSourceLayer(layer):
     """Check if features in area source layer are without errors."""

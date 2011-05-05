@@ -355,22 +355,12 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.activityLEDLabel.setText('Computing...')
         self.btnAtticIvy.setEnabled(False)
 
-        self.area_source_layer.blockSignals(True)
-        self.area_source_layer.startEditing()
-
         pr = self.area_source_layer.dataProvider()
         pr.select()
         atticivy.assignActivityAtticIvy(pr, self.catalog)
 
-        self.area_source_layer.blockSignals(False)
-        self.area_source_layer.setModified(True, False)
-        self.area_source_layer.commitChanges()
-        
         self.activityLED.setColor(QColor(0, 255, 0))
         self.activityLEDLabel.setText('Idle')
         self.btnAtticIvy.setEnabled(True)
 
         # QCoreApplication.processEvents()
-
-
-    
