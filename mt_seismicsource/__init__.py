@@ -43,5 +43,5 @@ def authorName():
     return "Fabian Euchner"
 
 def classFactory(iface):
-    from mt_seismicsource import SeismicSourceToolkit
+    from seismic_source_toolkit import SeismicSourceToolkit
     return SeismicSourceToolkit(iface)
