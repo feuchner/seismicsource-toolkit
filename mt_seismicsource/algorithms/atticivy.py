@@ -73,7 +73,6 @@ def assignActivityAtticIvy(provider, catalog):
         catalog     earthquake catalog as QuakePy object
     """
 
-
     # get attribute indexes
     provider.select()
     attribute_map = utils.getAttributeIndex(provider, 
@@ -140,7 +139,7 @@ def computeActivityAtticIvy(zones, catalog, Mmin=ATTICIVY_MMIN):
     activity_list = activityFromAtticIvy(result_file_path)
 
     # remove temp file directory
-    #shutil.rmtree(temp_dir)
+    shutil.rmtree(temp_dir)
 
     return activity_list
 

@@ -39,23 +39,23 @@ FAULT_FILE_DIR = 'fault_sources/DISS'
 FAULT_FILE = 'CSSTop_polyline.shp'
 FAULT_FILES = ('CSSTop_polyline.shp',)
 
-def loadFaultSourceLayer(cls, layer):
+def loadFaultSourceLayer(cls):
     """Load fault source layer from Shapefile. Add required feature attributes
     if they are missing.
 
     Input:
         path    Filename of Shapefile
     """
-    if layer is None:
-        fault_source_path = os.path.join(layers.DATA_DIR, 
-            FAULT_FILE_DIR, unicode(cls.comboBoxFaultInput.currentText()))
+    fault_source_path = os.path.join(layers.DATA_DIR, 
+        FAULT_FILE_DIR, unicode(cls.comboBoxFaultInput.currentText()))
 
-        if not os.path.isfile(fault_source_path):
-            utils.warning_box_missing_layer_file(fault_source_path)
-            return
+    if not os.path.isfile(fault_source_path):
+        utils.warning_box_missing_layer_file(fault_source_path)
+        return
 
-        temp_fault_source_layer = QgsVectorLayer(fault_source_path, 
-            "Fault Sources", "ogr")
+    temp_fault_source_layer = QgsVectorLayer(fault_source_path, 
+        "Fault Sources", "ogr")
 
-        layer = utils.shp2memory(temp_fault_source_layer, "Fault Sources")
-        QgsMapLayerRegistry.instance().addMapLayer(layer)
+    layer = utils.shp2memory(temp_fault_source_layer, "Fault Sources")
+    QgsMapLayerRegistry.instance().addMapLayer(layer)
+    return layer

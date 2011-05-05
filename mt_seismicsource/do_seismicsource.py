@@ -38,12 +38,11 @@ from qgis.core import *
 
 import QPCatalog
 
-#import areasource
-#import atticivy
-#import eqcatalog
-#import faultsource
-import algorithms
+from algorithms import atticivy
 import layers
+from layers import areasource
+from layers import faultsource
+from layers import eqcatalog
 import plots
 import utils
 
@@ -109,9 +108,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.catalog_layer = None
 
         # prepare data load combo boxes
-        self.comboBoxZoneInput.addItems(layers.areasource.ZONE_FILES)
-        self.comboBoxFaultInput.addItems(layers.faultsource.FAULT_FILES)
-        self.comboBoxEQCatalogInput.addItems(layers.eqcatalog.CATALOG_FILES)
+        self.comboBoxZoneInput.addItems(areasource.ZONE_FILES)
+        self.comboBoxFaultInput.addItems(faultsource.FAULT_FILES)
+        self.comboBoxEQCatalogInput.addItems(eqcatalog.CATALOG_FILES)
 
         self.progressBarLoadData.setValue(0)
 
@@ -150,12 +149,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
     def loadDefaultLayers(self):
 
-        layers.areasource.loadAreaSourceLayer(self, self.area_source_layer)
-        layers.faultsource.loadFaultSourceLayer(self, self.fault_source_layer)
-        layers.eqcatalog.loadEQCatalogLayer(self, self.catalog_layer)
-        #self.loadAreaSourceLayer()
-        #self.loadFaultSourceLayer()
-        #self.loadCatalogLayer()
+        self.area_source_layer = areasource.loadAreaSourceLayer(self)
+        self.fault_source_layer = faultsource.loadFaultSourceLayer(self)
+        self.catalog_layer = eqcatalog.loadEQCatalogLayer(self)
 
     def updateZoneValues(self):
         """Update a and b values for selected zones."""
@@ -364,7 +360,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         pr = self.area_source_layer.dataProvider()
         pr.select()
-        algorithms.atticivy.assignActivityAtticIvy(pr, self.catalog)
+        atticivy.assignActivityAtticIvy(pr, self.catalog)
 
         self.area_source_layer.blockSignals(False)
         self.area_source_layer.setModified(True, False)

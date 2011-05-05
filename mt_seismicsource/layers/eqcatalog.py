@@ -41,7 +41,7 @@ from mt_seismicsource import utils
 CATALOG_DIR = 'eq_catalog'
 CATALOG_FILES = ('cenec-zmap.dat', 'SHARE_20110311.dat.gz')
 
-def loadEQCatalogLayer(cls, layer):
+def loadEQCatalogLayer(cls):
     """Load EQ catalog layer from ASCII catalog file. 
     Add required feature attributes if they are missing.
 
@@ -50,69 +50,69 @@ def loadEQCatalogLayer(cls, layer):
     Input:
         path    Filename of catalog file
     """
-    if layer is None:
-        catalog_path = os.path.join(layers.DATA_DIR, CATALOG_DIR, 
-            unicode(cls.comboBoxEQCatalogInput.currentText()))
+    catalog_path = os.path.join(layers.DATA_DIR, CATALOG_DIR, 
+        unicode(cls.comboBoxEQCatalogInput.currentText()))
 
-        if not os.path.isfile(catalog_path):
-            utils.warning_box_missing_layer_file(catalog_path)
-            return
+    if not os.path.isfile(catalog_path):
+        utils.warning_box_missing_layer_file(catalog_path)
+        return
 
-        cls.catalog = QPCatalog.QPCatalog()
+    cls.catalog = QPCatalog.QPCatalog()
 
-        if catalog_path.endswith('.gz'):
-            cls.catalog.importZMAP(catalog_path, minimumDataset=True,
-                compression='gz')
-        else:
-            cls.catalog.importZMAP(catalog_path, minimumDataset=True)
+    if catalog_path.endswith('.gz'):
+        cls.catalog.importZMAP(catalog_path, minimumDataset=True,
+            compression='gz')
+    else:
+        cls.catalog.importZMAP(catalog_path, minimumDataset=True)
 
-        # cut catalog to years > 1900 (because of datetime)
-        # TODO(fab): change the datetime lib to mx.DateTime
-        cls.catalog.cut(mintime='1900-01-01', mintime_exclude=True)
-        cls.labelCatalogEvents.setText(
-            "Catalog events: %s" % cls.catalog.size())
+    # cut catalog to years > 1900 (because of datetime)
+    # TODO(fab): change the datetime lib to mx.DateTime
+    cls.catalog.cut(mintime='1900-01-01', mintime_exclude=True)
+    cls.labelCatalogEvents.setText(
+        "Catalog events: %s" % cls.catalog.size())
 
-        # cut with selected polygons
-        cls.catalog_selected = QPCatalog.QPCatalog()
-        cls.catalog_selected.merge(cls.catalog)
-        cls.labelSelectedEvents.setText(
-            "Selected events: %s" % cls.catalog_selected.size())
+    # cut with selected polygons
+    cls.catalog_selected = QPCatalog.QPCatalog()
+    cls.catalog_selected.merge(cls.catalog)
+    cls.labelSelectedEvents.setText(
+        "Selected events: %s" % cls.catalog_selected.size())
 
-        # create layer
-        layer = QgsVectorLayer("Point", "CENEC catalog", "memory")
-        pr = self.layer.dataProvider()
+    # create layer
+    layer = QgsVectorLayer("Point", "CENEC catalog", "memory")
+    pr = layer.dataProvider()
 
-        # add fields
-        pr.addAttributes([QgsField("magnitude", QVariant.Double),
-                          QgsField("depth",  QVariant.Double)])
+    # add fields
+    pr.addAttributes([QgsField("magnitude", QVariant.Double),
+                        QgsField("depth",  QVariant.Double)])
 
-        # add EQs as features
-        for curr_event in cls.catalog_selected.eventParameters.event:
-            curr_ori = curr_event.getPreferredOrigin()
+    # add EQs as features
+    for curr_event in cls.catalog_selected.eventParameters.event:
+        curr_ori = curr_event.getPreferredOrigin()
 
-            # skip events without magnitude
-            try:
-                curr_mag = curr_event.getPreferredMagnitude()
-            except IndexError:
-                continue
+        # skip events without magnitude
+        try:
+            curr_mag = curr_event.getPreferredMagnitude()
+        except IndexError:
+            continue
 
-            curr_lon = curr_ori.longitude.value
-            curr_lat = curr_ori.latitude.value
-            magnitude = curr_mag.mag.value
+        curr_lon = curr_ori.longitude.value
+        curr_lat = curr_ori.latitude.value
+        magnitude = curr_mag.mag.value
 
-            try:
-                depth = curr_ori.depth.value
-            except Exception:
-                depth = numpy.nan
+        try:
+            depth = curr_ori.depth.value
+        except Exception:
+            depth = numpy.nan
 
-            f = QgsFeature()
-            f.setGeometry(QgsGeometry.fromPoint(QgsPoint(curr_lon, curr_lat)))
-            f[0] = QVariant(magnitude)
-            f[1] = QVariant(depth)
-            pr.addFeatures([f])
+        f = QgsFeature()
+        f.setGeometry(QgsGeometry.fromPoint(QgsPoint(curr_lon, curr_lat)))
+        f[0] = QVariant(magnitude)
+        f[1] = QVariant(depth)
+        pr.addFeatures([f])
 
-        # update layer's extent when new features have been added
-        # because change of extent in provider is not 
-        # propagated to the layer
-        layer.updateExtents()
-        QgsMapLayerRegistry.instance().addMapLayer(layer)
+    # update layer's extent when new features have been added
+    # because change of extent in provider is not 
+    # propagated to the layer
+    layer.updateExtents()
+    QgsMapLayerRegistry.instance().addMapLayer(layer)
+    return layer

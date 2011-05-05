@@ -40,28 +40,28 @@ ZONE_FILE_DIR = 'area_sources/GEM1'
 ZONE_FILE = 'europe_source_model.shp'
 ZONE_FILES = ('europe_source_model.shp',)
 
-def loadAreaSourceLayer(cls, layer):
+def loadAreaSourceLayer(cls):
     """Load area source layer from Shapefile. Add required feature attributes
     if they are missing.
 
     Input:
         path    Filename of Shapefile
     """
-    if layer is None:
-        area_source_path = os.path.join(layers.DATA_DIR, 
-            ZONE_FILE_DIR, unicode(cls.comboBoxZoneInput.currentText()))
-        if not os.path.isfile(area_source_path):
-            utils.warning_box_missing_layer_file(area_source_path)
-            return
+    area_source_path = os.path.join(layers.DATA_DIR, 
+        ZONE_FILE_DIR, unicode(cls.comboBoxZoneInput.currentText()))
+    if not os.path.isfile(area_source_path):
+        utils.warning_box_missing_layer_file(area_source_path)
+        return
 
-        temp_area_source_layer = QgsVectorLayer(area_source_path, 
-            "Area Sources", "ogr")
+    temp_area_source_layer = QgsVectorLayer(area_source_path, 
+        "Area Sources", "ogr")
 
-        layer = utils.shp2memory(temp_area_source_layer, "Area Sources")
-        QgsMapLayerRegistry.instance().addMapLayer(layer)
+    layer = utils.shp2memory(temp_area_source_layer, "Area Sources")
+    QgsMapLayerRegistry.instance().addMapLayer(layer)
 
-        # check if all features are okay
-        _checkAreaSourceLayer(layer)
+    # check if all features are okay
+    _checkAreaSourceLayer(layer)
+    return layer
 
 def _checkAreaSourceLayer(layer):
     """Check if features in area source layer are without errors."""
