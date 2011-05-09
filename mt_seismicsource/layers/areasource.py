@@ -56,7 +56,12 @@ def loadAreaSourceLayer(cls):
     temp_area_source_layer = QgsVectorLayer(area_source_path, 
         "Area Sources", "ogr")
 
+    # PostGIS SRID 4326 is allocated for WGS84
+    crs = QgsCoordinateReferenceSystem(4326, 
+        QgsCoordinateReferenceSystem.PostgisCrsId)
+
     layer = utils.shp2memory(temp_area_source_layer, "Area Sources")
+    layer.setCrs(crs) 
 
     # check if all features are okay
     _checkAreaSourceLayer(layer)

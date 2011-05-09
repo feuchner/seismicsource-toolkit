@@ -60,6 +60,11 @@ def loadFaultSourceLayer(cls):
     temp_fault_source_layer = QgsVectorLayer(fault_source_path, 
         "Fault Sources", "ogr")
 
+    # PostGIS SRID 4326 is allocated for WGS84
+    crs = QgsCoordinateReferenceSystem(4326, 
+        QgsCoordinateReferenceSystem.PostgisCrsId)
+
     layer = utils.shp2memory(temp_fault_source_layer, "Fault Sources")
+    layer.setCrs(crs) 
     QgsMapLayerRegistry.instance().addMapLayer(layer)
     return layer

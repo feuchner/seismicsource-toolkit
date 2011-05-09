@@ -77,8 +77,13 @@ def loadEQCatalogLayer(cls):
     cls.labelSelectedEvents.setText(
         "Selected events: %s" % cls.catalog_selected.size())
 
+    # PostGIS SRID 4326 is allocated for WGS84
+    crs = QgsCoordinateReferenceSystem(4326, 
+        QgsCoordinateReferenceSystem.PostgisCrsId)
+
     # create layer
     layer = QgsVectorLayer("Point", "CENEC catalog", "memory")
+    layer.setCrs(crs) 
     pr = layer.dataProvider()
 
     # add fields
