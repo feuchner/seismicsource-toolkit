@@ -106,6 +106,8 @@ def assignActivityAtticIvy(provider, catalog):
         error_str = "cannot update attribute values, %s" % (e)
         raise RuntimeError, error_str
 
+    return None
+
 def computeActivityAtticIvy(zones, catalog, Mmin=ATTICIVY_MMIN):
     """Computes a-and b values using Roger Musson's AtticIvy code for
     a set of source zone polygons.

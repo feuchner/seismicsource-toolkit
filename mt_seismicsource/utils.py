@@ -85,6 +85,7 @@ def walkValidPolygonFeatures(provider):
             yield(feature_idx-1, feature)
 
 def verticesOuterFromQGSPolygon(feature):
+    """Return list of (lon, lat) vertices from QGis polygon feature."""
     geom = feature.geometry().asPolygon()
     if len(geom) == 0:
         return None
@@ -104,7 +105,7 @@ def polygonsQGS2Shapely(polygons, getVertices=False):
 
     for feature in polygons:
 
-        vertices = utils.verticesOuterFromQGSPolygon(feature)
+        vertices = verticesOuterFromQGSPolygon(feature)
         if vertices is None:
             continue
 

@@ -89,6 +89,7 @@ AREA_SOURCE_ATTRIBUTES_ALL = (AREA_SOURCE_ATTRIBUTES_MINMAXMAG,
 
 # mu, shear modulus, or rigidity (same for all faults in crust) CONSTANT
 # minimum magnitude (fixed, 5.0) CONSTANT
+# annual fault slip rate (fixed, 1.0) CONSTANT NOTE: real value has to be obtained!
 
 # SLIPRATEMA (maximum slip rate, attribute in fault polygon shapefile)
 # fault rupture area (not an attribute, area of fault polygon)
@@ -102,14 +103,20 @@ AREA_SOURCE_ATTRIBUTES_ALL = (AREA_SOURCE_ATTRIBUTES_MINMAXMAG,
 # ratio: SLIPRATEMA / fault length
 # - if it can be determined automatically, it's implicit, otherwise store it
 
-FAULT_SOURCE_ATTR_MOMENTRATE = {'name': 'momentrate', 'type': QVariant.Double}
+# FAULT_SOURCE_ATTR_MOMENTRATE = {'name': 'momentrate', 'type': QVariant.Double}
 FAULT_SOURCE_ATTR_ACTIVITYRATE = {'name': 'activirate', 
+    'type': QVariant.String}
+FAULT_SOURCE_ATTR_ACTIVITYRATE_A = {'name': 'activity_a', 
     'type': QVariant.Double}
 FAULT_SOURCE_ATTR_SLIPRATE_MAX = {'name': 'SLIPRATEMA', 
     'type': QVariant.Double}
 FAULT_SOURCE_ATTR_MAGNITUDE_MAX = {'name': 'MAXMAG', 'type': QVariant.Double}
 
-FAULT_SOURCE_ATTRIBUTES_RECURRENCE = (FAULT_SOURCE_ATTR_MOMENTRATE,
-    FAULT_SOURCE_ATTR_ACTIVITYRATE, FAULT_SOURCE_ATTR_SLIPRATE_MAX,
-    FAULT_SOURCE_ATTR_MAGNITUDE_MAX)
+FAULT_SOURCE_ATTRIBUTES_RECURRENCE = (
+    FAULT_SOURCE_ATTR_ACTIVITYRATE, FAULT_SOURCE_ATTR_ACTIVITYRATE_A,
+    FAULT_SOURCE_ATTR_SLIPRATE_MAX, FAULT_SOURCE_ATTR_MAGNITUDE_MAX)
 
+FAULT_SOURCE_ATTRIBUTES_RECURRENCE_COMPUTE = (FAULT_SOURCE_ATTR_ACTIVITYRATE,
+    FAULT_SOURCE_ATTR_ACTIVITYRATE_A)
+
+    

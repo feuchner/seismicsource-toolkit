@@ -39,6 +39,7 @@ from qgis.core import *
 import QPCatalog
 
 from algorithms import atticivy
+from algorithms import recurrence
 import layers
 from layers import areasource
 from layers import faultsource
@@ -96,6 +97,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         # Button: compute activity (AtticIvy)
         QObject.connect(self.btnAtticIvy, SIGNAL("clicked()"), 
             self.computeAtticIvy)
+
+        # Button: compute recurrence
+        QObject.connect(self.btnRecurrence, SIGNAL("clicked()"), 
+            self.computeRecurrence)
 
         # FMD plot window
         self.fmd_canvas = None
@@ -357,10 +362,30 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         pr = self.area_source_layer.dataProvider()
         pr.select()
-        atticivy.assignActivityAtticIvy(pr, self.catalog)
+        atticivy_result = atticivy.assignActivityAtticIvy(pr, self.catalog)
 
         self.activityLED.setColor(QColor(0, 255, 0))
         self.activityLEDLabel.setText('Idle')
         self.btnAtticIvy.setEnabled(True)
+
+        # QCoreApplication.processEvents()
+
+    def computeRecurrence(self):
+        """Compute recurrence with Bungum code."""
+
+        self.recurrenceLED.setColor(QColor(255, 0, 0))
+        self.recurrenceLEDLabel.setText('Computing...')
+        self.btnRecurrence.setEnabled(False)
+
+        pr = self.fault_source_layer.dataProvider()
+        pr.select()
+        recurrence_result = recurrence.assignRecurrence(pr)
+
+        self.labelTotalMoment.setText("Total moment: %s" % recurrence_result)
+        self.recurrenceLED.setColor(QColor(0, 255, 0))
+        self.recurrenceLEDLabel.setText('Idle')
+        self.btnRecurrence.setEnabled(True)
+
+        
 
         # QCoreApplication.processEvents()

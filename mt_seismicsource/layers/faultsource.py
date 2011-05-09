@@ -35,9 +35,13 @@ from mt_seismicsource import layers
 from mt_seismicsource import features
 from mt_seismicsource import utils
 
-FAULT_FILE_DIR = 'fault_sources/DISS'
-FAULT_FILE = 'CSSTop_polyline.shp'
-FAULT_FILES = ('CSSTop_polyline.shp',)
+#FAULT_FILE_DIR = 'fault_sources/DISS'
+#FAULT_FILE = 'CSSTop_polyline.shp'
+#FAULT_FILES = ('CSSTop_polyline.shp',)
+
+FAULT_FILE_DIR = 'fault_sources/DISS-3.2-2011-04-19'
+FAULT_FILE = 'CSSources_region.shp'
+FAULT_FILES = ('CSSources_region.shp',)
 
 def loadFaultSourceLayer(cls):
     """Load fault source layer from Shapefile. Add required feature attributes
