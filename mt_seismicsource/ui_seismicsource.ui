@@ -388,7 +388,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>Total moment:</string>
+       <string>Total moment release rate:</string>
       </property>
      </widget>
     </widget>

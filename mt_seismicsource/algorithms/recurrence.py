@@ -156,7 +156,7 @@ def computeRecurrence(provider_fault, provider_area=None, catalog=None):
     """
 
     result_values = []
-    total_seismic_moment = 0.0
+    total_seismic_moment_rate = 0.0
 
     # loop over fault polygons
     for zone_idx, zone in utils.walkValidPolygonFeatures(provider_fault):
@@ -196,7 +196,7 @@ def computeRecurrence(provider_fault, provider_area=None, catalog=None):
         poly_center = fault_poly[0].centroid
 
         # get coordinates of polygon centre
-        area_metres = poly_area_deg * numpy.power((40000 * 1000 / 360.0), 2) * \
+        area_metres = poly_area_deg * numpy.power((40000 * 1000 / 360.0), 2) *\
             numpy.cos(float(poly_center.y))
 
         # equidistant magnitude array on which activity rates are computed
@@ -210,17 +210,19 @@ def computeRecurrence(provider_fault, provider_area=None, catalog=None):
             slipratema, b_value, area_metres)
 
         # compute contribution to total seismic moment
-        total_seismic_moment += SHEAR_MODULUS * slipratema * area_metres
+        seismic_moment_rate = SHEAR_MODULUS * slipratema * area_metres
+        total_seismic_moment_rate += seismic_moment_rate
 
         # serialize activity rate FMD
         # TODO(fab): formatting of floating point numbers
         for value_pair_idx in xrange(mag_arr.shape[0]):
-            zone_data_string = "%s %3.1f %e" % (zone_data_string, 
+            zone_data_string = "%s %.1f %.2e" % (zone_data_string, 
                 mag_arr[value_pair_idx], cumulative_number[value_pair_idx])
         
-        result_values.append([zone_data_string.lstrip(), extrapolated_value])
+        result_values.append([zone_data_string.lstrip(), seismic_moment_rate,
+            extrapolated_value])
 
-    return (total_seismic_moment, result_values)
+    return (total_seismic_moment_rate, result_values)
 
 def cumulative_occurrence_model_2(mag_arr, maxmag, slipratema, b_value, 
     area_metres):
