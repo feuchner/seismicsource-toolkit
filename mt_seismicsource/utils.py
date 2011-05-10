@@ -156,6 +156,17 @@ def getAttributeIndex(provider, attributes, create=True):
 
     return attribute_map
 
+def distrostring2plotdata(distrostring):
+    """Get discrete distribution from serialization."""
+
+    value_arr = distrostring.split()
+    abscissae = [float(x) for x in value_arr[::2]]
+    ordinates = [float(x) for x in value_arr[1::2]]
+
+    data = numpy.vstack((numpy.array(abscissae), numpy.array(ordinates)))
+
+    return data
+
 def shp2memory(layer, name):
     """Convert QGis layer from shapefile to QGis layer in memory.
     Returns layer from memory provider.

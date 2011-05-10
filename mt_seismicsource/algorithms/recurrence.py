@@ -89,8 +89,6 @@ def assignRecurrence(provider_fault, provider_area=None, catalog=None):
     provider_fault.rewind()
     recurrence = computeRecurrence(provider_fault, provider_area, catalog)
 
-    QMessageBox.information(None, "Recurrence", "%s" % repr(recurrence))
-
     # assemble value dict
     values = {}
     provider_fault.rewind()

@@ -37,6 +37,7 @@ from PyQt4.QtGui import *
 from qgis.core import *
 
 import QPCatalog
+import qpplot
 
 from algorithms import atticivy
 from algorithms import recurrence
@@ -55,9 +56,14 @@ BACKGROUND_FILE = 'world.shp'
 
 MIN_EVENTS_FOR_GR = 10
 
-(ZONE_TABLE_ID_IDX, ZONE_TABLE_NAME_IDX, ZONE_TABLE_EQCTR_IDX, 
-    ZONE_TABLE_BVALDEF_IDX, ZONE_TABLE_BVAL_IDX, 
-    ZONE_TABLE_AVAL_IDX) = range(6)
+(AREA_ZONE_TABLE_ID_IDX, AREA_ZONE_TABLE_NAME_IDX, AREA_ZONE_TABLE_EQCTR_IDX, 
+    AREA_ZONE_TABLE_BVALDEF_IDX, AREA_ZONE_TABLE_BVAL_IDX, 
+    AREA_ZONE_TABLE_AVAL_IDX) = range(6)
+
+(FAULT_ZONE_TABLE_ID_IDX, FAULT_ZONE_TABLE_NAME_IDX, 
+    FAULT_ZONE_TABLE_SLIPRATE_IDX, 
+    FAULT_ZONE_TABLE_ACTIVITY_IDX, 
+    FAULT_ZONE_TABLE_MOMENTRATE_IDX) = range(5)
 
 try:
     from matplotlib.backends.backend_qt4agg \
@@ -95,6 +101,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         # Button: FMD plot
         QObject.connect(self.btnDisplayFMD, SIGNAL("clicked()"), 
             self.updateFMD)
+
+        # Button: recurrence FMD plot
+        QObject.connect(self.btnDisplayRecurrence, SIGNAL("clicked()"), 
+            self.updateRecurrence)
 
         # Checkbox: Normalize FMD plot
         QObject.connect(self.checkBoxGRAnnualRate, 
@@ -185,17 +195,38 @@ class SeismicSource(QDialog, Ui_SeismicSource):
                 "Please select one zone in the area zone table")
 
         # get feature index of first selected row
-        feature_id = selected_features[ZONE_TABLE_ID_IDX].text()
+        feature_id = str(selected_features[AREA_ZONE_TABLE_ID_IDX].text())
         feature_idx = self.area_zone_feature_map[feature_id]
         feature = self.area_source_layer.selectedFeatures()[feature_idx]
 
         self._computeZoneFMD(feature)
         self._updateFMDDisplay()
 
+    def updateRecurrence(self):
+        """Update recurrence FMD display for one selected fault zone
+        in zone table."""
+
+        selected_features = self.zoneFaultTable.selectedItems()
+
+        if len(selected_features) == 0:
+            QMessageBox.warning(None, "No zone selected", 
+                "Please select one zone in the fault zone table")
+
+        # get feature index of first selected row
+        feature_id = str(selected_features[FAULT_ZONE_TABLE_ID_IDX].text())
+        feature_idx = self.fault_zone_feature_map[feature_id]
+        feature = self.fault_source_layer.selectedFeatures()[feature_idx]
+
+        self._updateRecurrenceDisplay(feature)
+
     def _updateFMDDisplay(self):
         if 'fmd' in self.figures:
             self._displayValues()
             self._plotFMD()
+
+    def _updateRecurrenceDisplay(self, feature):
+        self.figures['recurrence'] = {}
+        self._plotRecurrence(feature)
 
     def _computeFMD(self):
         self.figures['fmd'] = {}
@@ -209,7 +240,6 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             aValue = self.figures['fmd']['fmd'].GR['aValueNormalized']
         else:
             aValue = self.figures['fmd']['fmd'].GR['aValue']
-        # %.2f
         self.inputAValue.setValue(aValue)
         self.inputBValue.setValue(self.figures['fmd']['fmd'].GR['bValue'])
 
@@ -223,6 +253,30 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             normalize=self.checkBoxGRAnnualRate.isChecked())
 
         self.fmd_canvas = plots.FMDCanvas(self.figures['fmd']['fig'])
+        self.fmd_canvas.draw()
+
+        # FMD plot window, re-populate layout
+        window.layoutPlot.addWidget(self.fmd_canvas)
+        self.fmd_toolbar = self._createFMDToolbar(self.fmd_canvas, window)
+        window.layoutPlot.addWidget(self.fmd_toolbar)
+
+    def _plotRecurrence(self, feature):
+
+        window = self.createPlotWindow()
+
+        pr = self.fault_source_layer.dataProvider()
+        activity_idx = pr.fieldNameIndex('activirate')
+
+        distrostring = str(feature[activity_idx].toString())
+        distrodata = utils.distrostring2plotdata(distrostring)
+
+        # new recurrence FMD plot (returns figure)
+        plot = qpplot.FMDPlotRecurrence()
+        self.figures['recurrence']['fig'] = plot.plot(imgfile=None, 
+            data=distrodata)
+
+        self.fmd_canvas = plots.RecurrenceCanvas(
+            self.figures['recurrence']['fig'])
         self.fmd_canvas.draw()
 
         # FMD plot window, re-populate layout
@@ -303,38 +357,44 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
                 if attr_idx['ssid'] != -1:
                     feature_id = \
-                        feature.attributeMap()[attr_idx['ssid']].toString()
+                        str(feature.attributeMap()[attr_idx['ssid']].toString())
                 else:
-                    feature_id = feature.id()
+                    feature_id = str(feature.id())
 
                 if attr_idx['ssshortnam'] != -1:
                     feature_name = \
-                        feature.attributeMap()[attr_idx['ssshortnam']].toString()
+                feature.attributeMap()[attr_idx['ssshortnam']].toString()
                 else:
                     feature_name = "-"
 
                 if attr_idx['ssmfdvalb'] != -1:
                     feature_bdef = \
-                        feature.attributeMap()[attr_idx['ssmfdvalb']].toString()
+                feature.attributeMap()[attr_idx['ssmfdvalb']].toString()
                 else:
                     feature_bdef = "-"
 
-                self.zoneAreaTable.setItem(feature_idx, ZONE_TABLE_ID_IDX, 
+                self.zoneAreaTable.setItem(feature_idx, 
+                    AREA_ZONE_TABLE_ID_IDX,
                     QTableWidgetItem(QString("%s" % feature_id)))
 
-                self.zoneAreaTable.setItem(feature_idx, ZONE_TABLE_NAME_IDX, 
+                self.zoneAreaTable.setItem(feature_idx, 
+                    AREA_ZONE_TABLE_NAME_IDX, 
                     QTableWidgetItem(QString("%s" % feature_name)))
 
-                self.zoneAreaTable.setItem(feature_idx, ZONE_TABLE_EQCTR_IDX,
+                self.zoneAreaTable.setItem(feature_idx, 
+                    AREA_ZONE_TABLE_EQCTR_IDX,
                     QTableWidgetItem(QString("%s" % fmd.GR['magCtr'])))
 
-                self.zoneAreaTable.setItem(feature_idx, ZONE_TABLE_BVALDEF_IDX, 
+                self.zoneAreaTable.setItem(feature_idx, 
+                    AREA_ZONE_TABLE_BVALDEF_IDX,
                     QTableWidgetItem(QString("%s" % feature_bdef)))
 
-                self.zoneAreaTable.setItem(feature_idx, ZONE_TABLE_BVAL_IDX,
+                self.zoneAreaTable.setItem(feature_idx, 
+                    AREA_ZONE_TABLE_BVAL_IDX,
                     QTableWidgetItem(QString("%.2f" % fmd.GR['bValue'])))
 
-                self.zoneAreaTable.setItem(feature_idx, ZONE_TABLE_AVAL_IDX,
+                self.zoneAreaTable.setItem(feature_idx, 
+                    AREA_ZONE_TABLE_AVAL_IDX,
                     QTableWidgetItem(QString("%.2f" % fmd.GR['aValue'])))
 
                 self.area_zone_feature_map[feature_id] = feature_idx
@@ -365,45 +425,50 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             for feature_idx, feature in enumerate(
                 self.fault_source_layer.selectedFeatures()):
 
-                feature_id = feature.id()
+                feature_id = str(feature.id())
 
                 if attr_idx['IDSOURCE'] != -1:
                     feature_idsource = \
-                        feature.attributeMap()[attr_idx['IDSOURCE']].toString()
+                feature.attributeMap()[attr_idx['IDSOURCE']].toString()
                 else:
                     feature_idsource = "-"
 
                 if attr_idx['SLIPRATEMA'] != -1:
                     feature_slipratema = \
-                        feature.attributeMap()[attr_idx['SLIPRATEMA']].toString()
+                feature.attributeMap()[attr_idx['SLIPRATEMA']].toString()
                 else:
                     feature_slipratema = "-"
 
                 if attr_idx['activirate'] != -1:
                     feature_activirate = \
-                        feature.attributeMap()[attr_idx['activirate']].toString()
+                feature.attributeMap()[attr_idx['activirate']].toString()
                 else:
                     feature_activirate = "-"
 
                 if attr_idx['momentrate'] != -1:
                     feature_momentrate = \
-                        feature.attributeMap()[attr_idx['momentrate']].toString()
+                feature.attributeMap()[attr_idx['momentrate']].toString()
                 else:
                     feature_momentrate = "-"
 
-                self.zoneFaultTable.setItem(feature_idx, 0, 
+                self.zoneFaultTable.setItem(feature_idx, 
+                    FAULT_ZONE_TABLE_ID_IDX,
                     QTableWidgetItem(QString("%s" % feature_id)))
 
-                self.zoneFaultTable.setItem(feature_idx, 1, 
+                self.zoneFaultTable.setItem(feature_idx, 
+                    FAULT_ZONE_TABLE_NAME_IDX, 
                     QTableWidgetItem(QString("%s" % feature_idsource)))
 
-                self.zoneFaultTable.setItem(feature_idx, 2,
+                self.zoneFaultTable.setItem(feature_idx, 
+                    FAULT_ZONE_TABLE_SLIPRATE_IDX,
                     QTableWidgetItem(QString("%s" % feature_slipratema)))
 
-                self.zoneFaultTable.setItem(feature_idx, 3, 
+                self.zoneFaultTable.setItem(feature_idx, 
+                    FAULT_ZONE_TABLE_ACTIVITY_IDX, 
                     QTableWidgetItem(QString("%s" % feature_activirate)))
 
-                self.zoneFaultTable.setItem(feature_idx, 4,
+                self.zoneFaultTable.setItem(feature_idx, 
+                    FAULT_ZONE_TABLE_MOMENTRATE_IDX,
                     QTableWidgetItem(QString("%s" % feature_momentrate)))
 
                 self.fault_zone_feature_map[feature_id] = feature_idx
@@ -453,7 +518,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         pr.select()
         recurrence_result = recurrence.assignRecurrence(pr)
 
-        self.labelTotalMoment.setText("Total moment release rate: %4.2e" % recurrence_result)
+        self.labelTotalMoment.setText(
+            "Total moment release rate: %.2e" % recurrence_result)
         self.recurrenceLED.setColor(QColor(0, 255, 0))
         self.recurrenceLEDLabel.setText('Idle')
         self.btnRecurrence.setEnabled(True)

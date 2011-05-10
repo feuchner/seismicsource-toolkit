@@ -90,3 +90,20 @@ class FMDCanvas(MCanvas):
         self.fig.suptitle('FMD', fontproperties=fp)
 
         self.draw()
+
+class RecurrenceCanvas(MCanvas):
+    """Canvas for recurrence FMD plot."""
+
+    def __init__(self, fig=None, *args, **kwargs):
+        MCanvas.__init__(self, fig, *args, **kwargs)
+
+        if fig is not None:
+            self.update_figure(fig)
+
+    def update_figure(self, fig):
+        """Update canvas with plot of new recurrence FMD object."""
+
+        fp = FontManager.FontProperties()
+        self.fig.suptitle('Recurrence', fontproperties=fp)
+
+        self.draw()
