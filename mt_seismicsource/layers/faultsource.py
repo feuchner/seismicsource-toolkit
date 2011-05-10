@@ -43,6 +43,8 @@ FAULT_FILE_DIR = 'fault_sources/DISS-3.2-2011-04-19'
 FAULT_FILE = 'CSSources_region.shp'
 FAULT_FILES = ('CSSources_region.shp',)
 
+TEMP_FILENAME = 'fault-sources.shp'
+
 def loadFaultSourceLayer(cls):
     """Load fault source layer from Shapefile. Add required feature attributes
     if they are missing.
@@ -66,5 +68,9 @@ def loadFaultSourceLayer(cls):
 
     layer = utils.shp2memory(temp_fault_source_layer, "Fault Sources")
     layer.setCrs(crs) 
+
     QgsMapLayerRegistry.instance().addMapLayer(layer)
+    utils.writeLayerToShapefile(layer, os.path.join(layers.DATA_DIR, 
+        FAULT_FILE_DIR, TEMP_FILENAME), crs)
+
     return layer

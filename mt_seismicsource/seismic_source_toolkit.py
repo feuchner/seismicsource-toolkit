@@ -46,7 +46,7 @@ import do_sliver_analysis
 
 PLUGIN_MENU_TITLE = 'SHARE Seismic Source Toolkit'
 PLUGIN_TITLE_TOOLKIT = 'Seismic Source Toolkit'
-PLUGIN_TITLE_SLIVER_ANALYSIS = 'Silver Analysis'
+PLUGIN_TITLE_SLIVER_ANALYSIS = 'Sliver Analysis'
 
 class SeismicSourceToolkit(object):
     """Main class of the Seismic Source Toolkit plugin"""

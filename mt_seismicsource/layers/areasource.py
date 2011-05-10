@@ -40,6 +40,8 @@ ZONE_FILE_DIR = 'area_sources/GEM1'
 ZONE_FILE = 'europe_source_model.shp'
 ZONE_FILES = ('europe_source_model.shp',)
 
+TEMP_FILENAME = 'area-sources.shp'
+
 def loadAreaSourceLayer(cls):
     """Load area source layer from Shapefile. Add required feature attributes
     if they are missing.
@@ -70,6 +72,9 @@ def loadAreaSourceLayer(cls):
     createAttributes(layer)
 
     QgsMapLayerRegistry.instance().addMapLayer(layer)
+    utils.writeLayerToShapefile(layer, os.path.join(layers.DATA_DIR, 
+        ZONE_FILE_DIR, TEMP_FILENAME), crs)
+
     return layer
 
 def createAttributes(layer):

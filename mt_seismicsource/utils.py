@@ -40,6 +40,8 @@ from qgis.core import *
 
 import features
 
+SHAPEFILE_ENCODING = "UTF-8"
+
 # maximum likelihood a- and b-values, as implemented in ZMAP
 
 def assignActivityMaxLikelihood():
@@ -202,6 +204,12 @@ def shp2memory(layer, name):
 
     mem_layer.updateExtents()
     return mem_layer
+
+def writeLayerToShapefile(layer, path, crs, encoding=SHAPEFILE_ENCODING):
+    error = QgsVectorFileWriter.writeAsShapefile(layer, path, encoding, crs)
+    if error != QgsVectorFileWriter.NoError:
+        QMessageBox.error(None, "Error writing shapefile", 
+            "Cannot write layer to shapefile: %s" % path)
 
 def warning_box_missing_layer_file(filename):
     QMessageBox.warning(None, "File not found", 
