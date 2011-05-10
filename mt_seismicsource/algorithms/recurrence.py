@@ -99,7 +99,7 @@ def assignRecurrence(provider_fault, provider_area=None, catalog=None):
             features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE_COMPUTE):
             (curr_idx, curr_type) = attribute_map[attr_dict['name']]
             try:
-                attributes[curr_idx] = QVariant(recurrence[1][zone_idx][attr_idx])
+                attributes[curr_idx] = QVariant(recurrence[2][zone_idx][attr_idx])
             except Exception, e:
                 error_str = \
         "error in attribute: curr_idx: %s, zone_idx: %s, attr_idx: %s, %s" % (
@@ -114,7 +114,7 @@ def assignRecurrence(provider_fault, provider_area=None, catalog=None):
         error_str = "cannot update attribute values, %s" % (e)
         raise RuntimeError, error_str
 
-    return recurrence[0]
+    return recurrence[0:2]
 
 def computeRecurrence(provider_fault, provider_area=None, catalog=None):
     """Compute recurrence parameters according to Bungum paper. 
@@ -154,24 +154,27 @@ def computeRecurrence(provider_fault, provider_area=None, catalog=None):
     """
 
     result_values = []
-    total_seismic_moment_rate = 0.0
+    total_seismic_moment_rate_min = 0.0
+    total_seismic_moment_rate_max = 0.0
 
     # loop over fault polygons
     for zone_idx, zone in utils.walkValidPolygonFeatures(provider_fault):
 
-        zone_data_string = ""
+        zone_data_string_min = ""
+        zone_data_string_max = ""
 
         # get attribute values of zone:
-        # - MAXMAG, SLIPRATEMA
+        # - MAXMAG, SLIPRATEMI, SLIPRATEMA
         attribute_map = utils.getAttributeIndex(provider_fault, 
             features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE, create=True)
         
         # get maximum magnitude
-        # (curr_idx, curr_type) = attribute_map['MAXMAG']
         maxmag = zone[attribute_map['MAXMAG'][0]].toDouble()[0]
 
-        # get maximum of annual slip rate (parameter D ??)
-        # (curr_idx, curr_type) = attribute_map['SLIPRATEMA']
+        # get minimum of annual slip rate
+        slipratemi = zone[attribute_map['SLIPRATEMI'][0]].toDouble()[0]
+
+        # get maximum of annual slip rate
         slipratema = zone[attribute_map['SLIPRATEMA'][0]].toDouble()[0]
 
         # TODO(fab): 
@@ -194,36 +197,47 @@ def computeRecurrence(provider_fault, provider_area=None, catalog=None):
         poly_center = fault_poly[0].centroid
 
         # get coordinates of polygon centre
-        area_metres = poly_area_deg * numpy.power((40000 * 1000 / 360.0), 2) *\
+        area_metres = poly_area_deg * \
+            numpy.power((40000 * 1000 / 360.0), 2) * \
             numpy.cos(numpy.pi * float(poly_center.y) / 180.0)
 
         # equidistant magnitude array on which activity rates are computed
         # from global Mmin to zone-dependent Mmax
         mag_arr = numpy.arange(MAGNITUDE_MIN, maxmag, MAGNITUDE_BINNING)
 
-        cumulative_number = cumulative_occurrence_model_2(mag_arr, maxmag, 
-            slipratema, b_value, area_metres)
+        cumulative_number_min = cumulative_occurrence_model_2(mag_arr, maxmag, 
+            slipratemi, b_value, area_metres)
 
-        extrapolated_value = cumulative_occurrence_model_2(0.0, maxmag, 
+        cumulative_number_max = cumulative_occurrence_model_2(mag_arr, maxmag, 
             slipratema, b_value, area_metres)
 
         # compute contribution to total seismic moment
-        seismic_moment_rate = (1.0e8 * SHEAR_MODULUS) * \
+        seismic_moment_rate_min = (1.0e8 * SHEAR_MODULUS) * \
+            (slipratemi / 10.0) * (area_metres * 1.0e4)
+
+        seismic_moment_rate_max = (1.0e8 * SHEAR_MODULUS) * \
             (slipratema / 10.0) * (area_metres * 1.0e4)
-        total_seismic_moment_rate += seismic_moment_rate
+
+        total_seismic_moment_rate_min += seismic_moment_rate_min
+        total_seismic_moment_rate_max += seismic_moment_rate_max
 
         # serialize activity rate FMD
-        # TODO(fab): formatting of floating point numbers
         for value_pair_idx in xrange(mag_arr.shape[0]):
-            zone_data_string = "%s %.1f %.2e" % (zone_data_string, 
-                mag_arr[value_pair_idx], cumulative_number[value_pair_idx])
-        
-        result_values.append([zone_data_string.lstrip(), seismic_moment_rate,
-            extrapolated_value])
+            zone_data_string_min = "%s %.1f %.2e" % (zone_data_string_min, 
+                mag_arr[value_pair_idx], 
+                cumulative_number_min[value_pair_idx])
+            zone_data_string_max = "%s %.1f %.2e" % (zone_data_string_max, 
+                mag_arr[value_pair_idx], 
+                cumulative_number_max[value_pair_idx])
 
-    return (total_seismic_moment_rate, result_values)
+        result_values.append([zone_data_string_min.lstrip(), 
+            zone_data_string_max.lstrip(), seismic_moment_rate_min,
+            seismic_moment_rate_max])
 
-def cumulative_occurrence_model_2(mag_arr, maxmag, slipratema, b_value, 
+    return (total_seismic_moment_rate_min, total_seismic_moment_rate_max, 
+        result_values)
+
+def cumulative_occurrence_model_2(mag_arr, maxmag, sliprate, b_value, 
     area_metres):
     """Compute cumulative occurrence rate for given magnitude (model 2,
     eq. 7 in Bungum paper.
@@ -231,7 +245,7 @@ def cumulative_occurrence_model_2(mag_arr, maxmag, slipratema, b_value,
     Input:
         mag_arr     array of target magnitudes (CHANGE)
         maxmag      maximum magnitude of fault
-        slipratema  maximum annual slip rate (mm/yr) ?
+        sliprate    annual slip rate (mm/yr)
         b_value     b value of background seismicity
         area_metres fault area in metres
     
@@ -268,7 +282,7 @@ def cumulative_occurrence_model_2(mag_arr, maxmag, slipratema, b_value,
     f1 = (d_bar - b_bar) / b_bar
 
     # convert annual slip rate from mm/yr to cm/yr 
-    f2 = slipratema / (10 * beta)
+    f2 = sliprate / (10 * beta)
     f3 = numpy.exp(b_bar * (maxmag - mag_arr)) - 1
     f4 = numpy.exp(-0.5 * d_bar * maxmag)
 

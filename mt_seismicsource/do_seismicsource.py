@@ -61,9 +61,10 @@ MIN_EVENTS_FOR_GR = 10
     AREA_ZONE_TABLE_AVAL_IDX) = range(6)
 
 (FAULT_ZONE_TABLE_ID_IDX, FAULT_ZONE_TABLE_NAME_IDX, 
-    FAULT_ZONE_TABLE_SLIPRATE_IDX, 
-    FAULT_ZONE_TABLE_ACTIVITY_IDX, 
-    FAULT_ZONE_TABLE_MOMENTRATE_IDX) = range(5)
+    FAULT_ZONE_TABLE_ACTIVITY_MIN_IDX, 
+    FAULT_ZONE_TABLE_ACTIVITY_MAX_IDX, 
+    FAULT_ZONE_TABLE_MOMENTRATE_MIN_IDX,
+    FAULT_ZONE_TABLE_MOMENTRATE_MAX_IDX) = range(6)
 
 try:
     from matplotlib.backends.backend_qt4agg \
@@ -265,10 +266,15 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         window = self.createPlotWindow()
 
         pr = self.fault_source_layer.dataProvider()
-        activity_idx = pr.fieldNameIndex('activirate')
+        activity_min_idx = pr.fieldNameIndex('actrate_mi')
+        activity_max_idx = pr.fieldNameIndex('actrate_ma')
 
-        distrostring = str(feature[activity_idx].toString())
-        distrodata = utils.distrostring2plotdata(distrostring)
+        distrostring_min = str(feature[activity_min_idx].toString())
+        distrostring_max = str(feature[activity_max_idx].toString())
+        distrodata_min = utils.distrostring2plotdata(distrostring_min)
+        distrodata_max = utils.distrostring2plotdata(distrostring_max)
+
+        distrodata = numpy.vstack((distrodata_min, distrodata_max[1, :]))
 
         # new recurrence FMD plot (returns figure)
         plot = qpplot.FMDPlotRecurrence()
@@ -411,8 +417,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             self.zoneFaultTable.setRowCount(feature_count)
 
             # get attribute indexes
-            attr_idx = {'IDSOURCE': None, 'SLIPRATEMA': None, 
-                'activirate': None, 'momentrate': None}
+            attr_idx = {'IDSOURCE': None, 'actrate_mi': None, 
+                'actrate_ma': None, 'momrate_mi': None,
+                'momrate_ma': None}
             pr = self.fault_source_layer.dataProvider()
         
             # if attribute name is not found, -1 is returned
@@ -433,23 +440,29 @@ class SeismicSource(QDialog, Ui_SeismicSource):
                 else:
                     feature_idsource = "-"
 
-                if attr_idx['SLIPRATEMA'] != -1:
-                    feature_slipratema = \
-                feature.attributeMap()[attr_idx['SLIPRATEMA']].toString()
+                if attr_idx['actrate_mi'] != -1:
+                    feature_actrate_mi = \
+                feature.attributeMap()[attr_idx['actrate_mi']].toString()
                 else:
-                    feature_slipratema = "-"
+                    feature_actrate_mi = "-"
 
-                if attr_idx['activirate'] != -1:
-                    feature_activirate = \
-                feature.attributeMap()[attr_idx['activirate']].toString()
+                if attr_idx['actrate_ma'] != -1:
+                    feature_actrate_ma = \
+                feature.attributeMap()[attr_idx['actrate_ma']].toString()
                 else:
-                    feature_activirate = "-"
+                    feature_actrate_ma = "-"
 
-                if attr_idx['momentrate'] != -1:
-                    feature_momentrate = \
-                feature.attributeMap()[attr_idx['momentrate']].toString()
+                if attr_idx['momrate_mi'] != -1:
+                    feature_momrate_mi = \
+                feature.attributeMap()[attr_idx['momrate_mi']].toString()
                 else:
-                    feature_momentrate = "-"
+                    feature_momrate_mi = "-"
+
+                if attr_idx['momrate_ma'] != -1:
+                    feature_momrate_ma = \
+                feature.attributeMap()[attr_idx['momrate_ma']].toString()
+                else:
+                    feature_momrate_ma = "-"
 
                 self.zoneFaultTable.setItem(feature_idx, 
                     FAULT_ZONE_TABLE_ID_IDX,
@@ -460,16 +473,20 @@ class SeismicSource(QDialog, Ui_SeismicSource):
                     QTableWidgetItem(QString("%s" % feature_idsource)))
 
                 self.zoneFaultTable.setItem(feature_idx, 
-                    FAULT_ZONE_TABLE_SLIPRATE_IDX,
-                    QTableWidgetItem(QString("%s" % feature_slipratema)))
+                    FAULT_ZONE_TABLE_ACTIVITY_MIN_IDX,
+                    QTableWidgetItem(QString("%s" % feature_actrate_mi)))
 
                 self.zoneFaultTable.setItem(feature_idx, 
-                    FAULT_ZONE_TABLE_ACTIVITY_IDX, 
-                    QTableWidgetItem(QString("%s" % feature_activirate)))
+                    FAULT_ZONE_TABLE_ACTIVITY_MAX_IDX, 
+                    QTableWidgetItem(QString("%s" % feature_actrate_mi)))
 
                 self.zoneFaultTable.setItem(feature_idx, 
-                    FAULT_ZONE_TABLE_MOMENTRATE_IDX,
-                    QTableWidgetItem(QString("%s" % feature_momentrate)))
+                    FAULT_ZONE_TABLE_MOMENTRATE_MIN_IDX,
+                    QTableWidgetItem(QString("%s" % feature_momrate_mi)))
+
+                self.zoneFaultTable.setItem(feature_idx, 
+                    FAULT_ZONE_TABLE_MOMENTRATE_MAX_IDX,
+                    QTableWidgetItem(QString("%s" % feature_momrate_ma)))
 
                 self.fault_zone_feature_map[feature_id] = feature_idx
 
@@ -519,7 +536,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         recurrence_result = recurrence.assignRecurrence(pr)
 
         self.labelTotalMoment.setText(
-            "Total moment release rate: %.2e" % recurrence_result)
+            "Total moment release rate:\n %.2e (min) %.2e (max) " % (
+            recurrence_result))
         self.recurrenceLED.setColor(QColor(0, 255, 0))
         self.recurrenceLEDLabel.setText('Idle')
         self.btnRecurrence.setEnabled(True)

@@ -198,7 +198,7 @@
      <property name="geometry">
       <rect>
        <x>0</x>
-       <y>410</y>
+       <y>470</y>
        <width>299</width>
        <height>111</height>
       </rect>
@@ -336,7 +336,7 @@
        <x>0</x>
        <y>280</y>
        <width>299</width>
-       <height>121</height>
+       <height>171</height>
       </rect>
      </property>
      <property name="title">
@@ -384,7 +384,7 @@
         <x>10</x>
         <y>70</y>
         <width>271</width>
-        <height>21</height>
+        <height>51</height>
        </rect>
       </property>
       <property name="text">
@@ -395,7 +395,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>90</y>
+        <y>130</y>
         <width>161</width>
         <height>30</height>
        </rect>
@@ -422,7 +422,7 @@
       <x>0</x>
       <y>30</y>
       <width>491</width>
-      <height>321</height>
+      <height>301</height>
      </rect>
     </property>
     <property name="sortingEnabled">
@@ -501,7 +501,7 @@
    <property name="geometry">
     <rect>
      <x>320</x>
-     <y>420</y>
+     <y>370</y>
      <width>491</width>
      <height>351</height>
     </rect>
@@ -519,7 +519,7 @@
      <bool>true</bool>
     </property>
     <property name="columnCount">
-     <number>7</number>
+     <number>8</number>
     </property>
     <column>
      <property name="text">
@@ -533,17 +533,22 @@
     </column>
     <column>
      <property name="text">
-      <string>Slip Rate</string>
+      <string>ActR Min</string>
      </property>
     </column>
     <column>
      <property name="text">
-      <string>Activity</string>
+      <string>ActR Max</string>
      </property>
     </column>
     <column>
      <property name="text">
-      <string>Moment Rate</string>
+      <string>MomR Min</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>MomR Max</string>
      </property>
     </column>
     <column/>
