@@ -84,9 +84,13 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         QObject.connect(self.btnLoadData, SIGNAL("clicked()"), 
             self.loadDataLayers)
 
-        # Button: compute area zone values
+        # Button: display area zone values
         QObject.connect(self.btnComputeAreaZoneValues, SIGNAL("clicked()"), 
             self.updateAreaZoneValues)
+
+        # Button: display fault zone values
+        QObject.connect(self.btnComputeFaultZoneValues, SIGNAL("clicked()"), 
+            self.updateFaultZoneValues)
 
         # Button: FMD plot
         QObject.connect(self.btnDisplayFMD, SIGNAL("clicked()"), 
@@ -166,6 +170,11 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         # self._filterEventsFromSelection()
         self._updateAreaZoneTable()
 
+    def updateFaultZoneValues(self):
+        """Update table display for selected fault zones."""
+
+        self._updateFaultZoneTable()
+
     def updateFMD(self):
         """Update FMD display for one selected area zone in zone table."""
 
@@ -177,7 +186,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         # get feature index of first selected row
         feature_id = selected_features[ZONE_TABLE_ID_IDX].text()
-        feature_idx = self.feature_map[feature_id]
+        feature_idx = self.area_zone_feature_map[feature_id]
         feature = self.area_source_layer.selectedFeatures()[feature_idx]
 
         self._computeZoneFMD(feature)
@@ -285,7 +294,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
                 attr_idx[curr_attr] = pr.fieldNameIndex(curr_attr)
 
             # create mapping from feature id to index
-            self.feature_map = {}
+            self.area_zone_feature_map = {}
 
             for feature_idx, feature in enumerate(
                 self.area_source_layer.selectedFeatures()):
@@ -328,8 +337,76 @@ class SeismicSource(QDialog, Ui_SeismicSource):
                 self.zoneAreaTable.setItem(feature_idx, ZONE_TABLE_AVAL_IDX,
                     QTableWidgetItem(QString("%.2f" % fmd.GR['aValue'])))
 
-                self.feature_map[feature_id] = feature_idx
+                self.area_zone_feature_map[feature_id] = feature_idx
 
+
+    def _updateFaultZoneTable(self):
+        """Update table of fault zones."""
+
+        # reset table rows to number of zones
+        feature_count = len(self.fault_source_layer.selectedFeatures())
+        self.zoneFaultTable.clearContents()
+
+        if feature_count > 0:
+            self.zoneFaultTable.setRowCount(feature_count)
+
+            # get attribute indexes
+            attr_idx = {'IDSOURCE': None, 'SLIPRATEMA': None, 
+                'activirate': None, 'momentrate': None}
+            pr = self.fault_source_layer.dataProvider()
+        
+            # if attribute name is not found, -1 is returned
+            for curr_attr in attr_idx:
+                attr_idx[curr_attr] = pr.fieldNameIndex(curr_attr)
+
+            # create mapping from feature id to index
+            self.fault_zone_feature_map = {}
+
+            for feature_idx, feature in enumerate(
+                self.fault_source_layer.selectedFeatures()):
+
+                feature_id = feature.id()
+
+                if attr_idx['IDSOURCE'] != -1:
+                    feature_idsource = \
+                        feature.attributeMap()[attr_idx['IDSOURCE']].toString()
+                else:
+                    feature_idsource = "-"
+
+                if attr_idx['SLIPRATEMA'] != -1:
+                    feature_slipratema = \
+                        feature.attributeMap()[attr_idx['SLIPRATEMA']].toString()
+                else:
+                    feature_slipratema = "-"
+
+                if attr_idx['activirate'] != -1:
+                    feature_activirate = \
+                        feature.attributeMap()[attr_idx['activirate']].toString()
+                else:
+                    feature_activirate = "-"
+
+                if attr_idx['momentrate'] != -1:
+                    feature_momentrate = \
+                        feature.attributeMap()[attr_idx['momentrate']].toString()
+                else:
+                    feature_momentrate = "-"
+
+                self.zoneFaultTable.setItem(feature_idx, 0, 
+                    QTableWidgetItem(QString("%s" % feature_id)))
+
+                self.zoneFaultTable.setItem(feature_idx, 1, 
+                    QTableWidgetItem(QString("%s" % feature_idsource)))
+
+                self.zoneFaultTable.setItem(feature_idx, 2,
+                    QTableWidgetItem(QString("%s" % feature_slipratema)))
+
+                self.zoneFaultTable.setItem(feature_idx, 3, 
+                    QTableWidgetItem(QString("%s" % feature_activirate)))
+
+                self.zoneFaultTable.setItem(feature_idx, 4,
+                    QTableWidgetItem(QString("%s" % feature_momentrate)))
+
+                self.fault_zone_feature_map[feature_id] = feature_idx
 
     def _computeZoneFMD(self, feature):
         """Compute FMD for selected feature."""
