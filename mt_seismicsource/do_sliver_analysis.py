@@ -67,195 +67,306 @@ class SliverAnalysis(QDialog, Ui_SliverAnalysis):
 
         # Button: analyze zones
         QObject.connect(self.btnAnalyzeSlivers, SIGNAL("clicked()"), 
-            self._analyze_buffer_based)
+            self.analyzeZones)
+
+    def analyzeZones(self):
+        """Check if selected layer is a polygon layer."""
+
+        # TODO(fab): check if it's a polygon layer
+        # TODO(fab): select analysis method from UI 
+        self._analyze_buffer_based()
 
     def _analyze_buffer_based(self):
         """Almost brute-force nearest neighbor analysis, using
         buffer around reference zones."""
 
-        if len(self.zone_layer.selectedFeatures()) == 0:
-            QMessageBox.warning(None, "No source zone selected", 
-                "Please select at least one source zone")
-            return
+        #if len(self.zone_layer.selectedFeatures()) == 0:
+            #QMessageBox.warning(None, "No source zone selected", 
+                #"Please select at least one source zone")
+            #return
 
         self.min_distance = self.inputAnalyzeSlivers.value()
         self.zone_buffer = self.inputAnalyzeBuffer.value()
 
-        # get feature IDs for selected source zone polygons
-        selected_zones_ids = [feature.id() for feature in \
-            self.zone_layer.selectedFeatures()]
+        # convert _all_ QGis polygons of source zone layer to Shapely
+        provider_all = self.zone_layer.dataProvider()
+        provider_all.select()
 
-        # convert all QGis polygons of source zone layer to Shapely
-        source_zones_shapely = []
-        selected_zones_indices = []
+        (all_zones, all_vertices) = utils.polygonsQGS2Shapely(provider_all,
+            getVertices=True)
+        feature_cnt = len(all_zones)
 
-        prz = self.zone_layer.dataProvider()
-        prz.select()
+        # get indices of reference zones: selected ones, or all
+        if len(self.zone_layer.selectedFeatures()) > 0:
 
-        feature_cnt = 0
-        for feature in prz:
+            # zones selected, use them as reference zones
+            reference_zones = self.zone_layer.selectedFeatures()
+            selected_ref_zone_indices = utils.getSelectedRefZoneIndices(
+                reference_zones)
+        else:
 
-            vertices = utils.verticesOuterFromQGSPolygon(feature)
-            if vertices is None:
-                continue
-
-            if feature.id() in selected_zones_ids:
-                selected_zones_indices.append(feature_cnt)
-
-            shapely_polygon = shapely.geometry.Polygon(vertices)
-            source_zones_shapely.append(shapely_polygon)
-
-            feature_cnt += 1
-
-        # get neighboring zones for each reference zone
-        # - add margin ("buffer") to zone outline
-        # - select zones that overlap with that larger zone
-        test_zone_indices = []
-        for ref_zone_idx in selected_zones_indices:
-
-            # build buffer around zone
-            buffered_zone = source_zones_shapely[ref_zone_idx].buffer(
-                self.zone_buffer)
-
-            for test_zone_idx, test_zone in enumerate(source_zones_shapely):
-
-                if ref_zone_idx == test_zone_idx:
-                    continue
-
-                if buffered_zone.intersects(test_zone):
-                    test_zone_indices.append(test_zone_idx)
-            
-        # remove duplicates in test_zone_indices
-        test_zone_indices = list(set(test_zone_indices))
-
-        #QMessageBox.information(None, "Neighboring zones", "%s" % (test_zone_indices))
-
-        # get vertices for reference zone and neighboring zones
-
-        # point array
-        # 0 - point ID
-        # 1 - zone ID
-        # 2 - lon
-        # 3 - lat
-        points = []
-        reference_vertex_indices = []
-
-        # extract vertices from reference and test source polygons
-        point_cnt = 0
-        involved_zones_indices = selected_zones_indices
-        involved_zones_indices.extend(test_zone_indices)
-        involved_zones_indices = list(set(involved_zones_indices))
-
-        #QMessageBox.information(None, "Involved zones", "%s" % (involved_zones_indices))
-
-        for curr_zone_idx, curr_zone in enumerate(source_zones_shapely):
-
-            if curr_zone_idx in involved_zones_indices: 
-                coords = curr_zone.exterior.coords
-
-                #QMessageBox.information(None, "Coords", 
-                    #"Zone: %s, coords: %s" % (curr_zone_idx, coords))
-
-                if curr_zone_idx in selected_zones_indices:
-                    addRefZone = True
-                else:
-                    addRefZone = False
-
-                if len(coords) > 3:
-                    for (vertex_lon, vertex_lat) in list(coords)[0:-1]:
-                        points.append([float(point_cnt), float(curr_zone_idx),
-                            vertex_lon, vertex_lat])
-
-                        if addRefZone:
-                            reference_vertex_indices.append(point_cnt)
-
-                        point_cnt += 1
-
-        points_arr = numpy.array(points, dtype=float)
-        del points
-        
-        # get nearest neighbors
-        # neighbors array holds (9 cols):
-        #  0: distance
-        #  1: first point id
-        #  2: polygon id
-        #  3: first point lon
-        #  4: first point lat
-        #  5: second point id
-        #  6: polygon id
-        #  7: second point lon
-        #  8: second point lat
-
-        maxNeighborCount = len(reference_vertex_indices) * point_cnt
-
-        neighbor_cnt = 0
-        neighbors = numpy.ones((maxNeighborCount, 
-            ANALYSIS_TABLE_COLUMN_COUNT), dtype=float) * numpy.nan
-
+            # no zones selected, use all zones
+            provider_all.rewind()
+            reference_zones = provider_all
+            selected_ref_zone_indices = range(feature_cnt)
+       
         self._replaceAnalysisLayer()
         pra = self.analysis_layer.dataProvider()
-        for reference_point_idx in reference_vertex_indices:
 
-            reference_point = shapely.geometry.Point(
-                (points_arr[reference_point_idx, 2], 
-                 points_arr[reference_point_idx, 3]))
+        # loop over reference zone indices
+        distances = []
 
-            for test_point_idx in xrange(points_arr.shape[0]):
+        tot_ref_vertex_indices = []
+        tot_ref_vertices = []
 
-                # skip, if same point or points are in same polygon
-                if reference_point_idx == test_point_idx or \
-                    points_arr[reference_point_idx, 1] == \
-                        points_arr[test_point_idx, 1]:
+        for curr_ref_zone_idx in selected_ref_zone_indices:
+
+            curr_ref_vertex_indices = []
+            curr_ref_vertices = []
+
+            # loop over vertices of reference zones
+            curr_ref_zone = source_zones_shapely[curr_ref_zone_idx]
+            vertices = curr_ref_zone.exterior.coords
+            for vertex in list(vertices)[0:-1]:
+
+                # TODO(fab): if vertex is not yet in list of reference vertices,
+                # find its index, add index to list
+                if vertex not in tot_ref_vertex_indices:
+                    curr_ref_vertex_indices.append(vertex)
+
+            # add reference vertices of current zone to overall list
+            tot_ref_vertex_indices.extend(curr_ref_vertex_indices)
+
+            # remove possible duplicates
+            tot_ref_vertex_indices = list(set(tot_ref_vertex_indices))
+
+            # get neighboring zones for current reference zone
+            # - add margin ("buffer") to zone outline
+            # - select zones that overlap with that larger zone
+            buffered_zone = curr_ref_zone.buffer(self.zone_buffer)
+
+            test_zone_indices = []
+
+            curr_test_vertex_indices = []
+            curr_test_vertices = []
+            for curr_test_zone_idx, test_zone in enumerate(all_zones):
+
+                # skip if same zone
+                if curr_ref_zone_idx == curr_test_zone_idx:
                     continue
 
-                # get distance
-                test_point = shapely.geometry.Point(
-                    (points_arr[test_point_idx, 2], 
-                     points_arr[test_point_idx, 3]))
+                curr_test_zone = source_zones_shapely[curr_test_zone_idx]
+                if buffered_zone.intersects(curr_test_zone):
+                    test_zone_indices.append(curr_test_zone_idx)
+                
+                    # loop over vertices
+                    vertices = curr_test_zone.exterior.coords
+                    for vertex in list(vertices)[0:-1]:
 
-                distance = reference_point.distance(test_point)
+                        # if vertex in buffer, add to test vertices
+                        if buffered_zone.intersects(vertex):
+                    
+                            # TODO(fab): check if test vertex is identical to one of the
+                            # reference vertices
+                            if vertex not in curr_ref_vertex_indices:
+                                curr_test_vertex_indices.add(vertex)
+            
+            # compute distances for reference and test vertices
+            for curr_ref_vertex_idx in curr_ref_vertex_indices:
 
-                # if points are the same, distance is zero, or distance is greater
-                # than the margin, ignore
-                if reference_point == test_point or \
-                    distance == 0.0 or \
-                    distance > self.min_distance:
-                    continue
+                curr_ref_vertex = all_vertices[curr_ref_vertex_idx]
 
-                neighbors[neighbor_cnt, 0] = distance
-                neighbors[neighbor_cnt, 1] = reference_point_idx
-                neighbors[neighbor_cnt, 2] = points_arr[reference_point_idx, 1]
-                neighbors[neighbor_cnt, 3] = points_arr[reference_point_idx, 2]
-                neighbors[neighbor_cnt, 4] = points_arr[reference_point_idx, 3]
-                neighbors[neighbor_cnt, 5] = test_point_idx
-                neighbors[neighbor_cnt, 6] = points_arr[test_point_idx, 1]
-                neighbors[neighbor_cnt, 7] = points_arr[test_point_idx, 2]
-                neighbors[neighbor_cnt, 8] = points_arr[test_point_idx, 3]
- 
-                # add point pair to analysis layer
-                if test_point_idx == 0:
-                    pra.addFeatures([self._new_point_feature_from_coord(
-                        points_arr[reference_point_idx, 2], 
-                        points_arr[reference_point_idx, 3])])
-
+                # add ref point to analysis layer
                 pra.addFeatures([self._new_point_feature_from_coord(
-                    points_arr[test_point_idx, 2], 
-                    points_arr[test_point_idx, 3])])
+                    curr_ref_vertex.coords[0], 
+                    curr_ref_vertex.coords[1])])
 
-                neighbor_cnt += 1
+                for curr_test_vertex_idx in curr_test_vertex_indices:
 
-        del points_arr
+                    # get distance, add to distance list
+                    # distance list holds (9 cols):
+                    #  0: distance
+                    #  1: first point id
+                    #  2: polygon id
+                    #  3: first point lon
+                    #  4: first point lat
+                    #  5: second point id
+                    #  6: polygon id
+                    #  7: second point lon
+                    #  8: second point lat
+                    
+                    curr_test_vertex = all_vertices[curr_test_vertex_idx]
+                    distance = curr_ref_vertex.distance(curr_test_vertex)
 
-        # reshape array
-        neighbors_trunc = neighbors[0:neighbor_cnt, :]
+                    # if points are the same, distance is zero, or distance is greater
+                    # than the margin, ignore
+                    if curr_ref_vertex == curr_test_vertex or \
+                        distance == 0.0 or \
+                        distance > self.min_distance:
+                        continue
 
-        # sort array (distance)
-        dist_indices = numpy.argsort(neighbors_trunc[:, 0], axis=0)
+                    # TODO(fab): get test zone indices
+                    distance_list = [ 
+                        distance,
+                        float(curr_ref_vertex_idx),
+                        float(curr_ref_zone_idx),
+                        curr_ref_vertex.coords[0],
+                        curr_ref_vertex.coords[1],
+                        float(curr_test_vertex_idx),
+                        float(1),
+                        curr_test_vertex.coords[0],
+                        curr_test_vertex.coords[1]]
 
-        neighbors_trunc = neighbors_trunc[dist_indices.T]
+                    distances.add(distance_list)
 
-        # write to table
-        self._display_table(neighbors_trunc)
+                    # add test point to analysis layer
+                    pra.addFeatures([self._new_point_feature_from_coord(
+                        curr_test_vertex.coords[0], 
+                        curr_test_vertex.coords[1])])
+
+            distance_arr = numpy.array(distances, dtype=float)
+            del distances
+
+             # sort array (distance)
+            dist_indices = numpy.argsort(distance_arr[:, 0], axis=0)
+            distance_arr = distance_arr[dist_indices.T]
+
+            # write to table
+            self._display_table(distance_arr)
+
+            # ----------------------------------------------------------------
+
+            ## remove duplicates in test_zone_indices
+            #test_zone_indices = list(set(test_zone_indices))
+
+            ##QMessageBox.information(None, "Neighboring zones", "%s" % (test_zone_indices))
+
+            ## get vertices for reference zone and neighboring zones
+
+            ## point array
+            ## 0 - point ID
+            ## 1 - zone ID
+            ## 2 - lon
+            ## 3 - lat
+            #points = []
+            #reference_vertex_indices = []
+
+            ## extract vertices from reference and test source polygons
+            #point_cnt = 0
+            #involved_zones_indices = selected_zones_indices
+            #involved_zones_indices.extend(test_zone_indices)
+            #involved_zones_indices = list(set(involved_zones_indices))
+
+            ##QMessageBox.information(None, "Involved zones", "%s" % (involved_zones_indices))
+
+            #for curr_zone_idx, curr_zone in enumerate(source_zones_shapely):
+
+                #if curr_zone_idx in involved_zones_indices: 
+                    #coords = curr_zone.exterior.coords
+
+                    ##QMessageBox.information(None, "Coords", 
+                        ##"Zone: %s, coords: %s" % (curr_zone_idx, coords))
+
+                    #if curr_zone_idx in selected_zones_indices:
+                        #addRefZone = True
+                    #else:
+                        #addRefZone = False
+
+                    #if len(coords) > 3:
+                        #for (vertex_lon, vertex_lat) in list(coords)[0:-1]:
+                            #points.append([float(point_cnt), float(curr_zone_idx),
+                                #vertex_lon, vertex_lat])
+
+                            #if addRefZone:
+                                #reference_vertex_indices.append(point_cnt)
+
+                            #point_cnt += 1
+
+            #points_arr = numpy.array(points, dtype=float)
+            #del points
+            
+            ## get nearest neighbors
+            ## neighbors array holds (9 cols):
+            ##  0: distance
+            ##  1: first point id
+            ##  2: polygon id
+            ##  3: first point lon
+            ##  4: first point lat
+            ##  5: second point id
+            ##  6: polygon id
+            ##  7: second point lon
+            ##  8: second point lat
+
+            #maxNeighborCount = len(reference_vertex_indices) * point_cnt
+
+            #neighbor_cnt = 0
+            #neighbors = numpy.ones((maxNeighborCount, 
+                #ANALYSIS_TABLE_COLUMN_COUNT), dtype=float) * numpy.nan
+
+            #self._replaceAnalysisLayer()
+            #pra = self.analysis_layer.dataProvider()
+            #for reference_point_idx in reference_vertex_indices:
+
+                #reference_point = shapely.geometry.Point(
+                    #(points_arr[reference_point_idx, 2], 
+                    #points_arr[reference_point_idx, 3]))
+
+                #for test_point_idx in xrange(points_arr.shape[0]):
+
+                    ## skip, if same point or points are in same polygon
+                    #if reference_point_idx == test_point_idx or \
+                        #points_arr[reference_point_idx, 1] == \
+                            #points_arr[test_point_idx, 1]:
+                        #continue
+
+                    ## get distance
+                    #test_point = shapely.geometry.Point(
+                        #(points_arr[test_point_idx, 2], 
+                        #points_arr[test_point_idx, 3]))
+
+                    #distance = reference_point.distance(test_point)
+
+                    ## if points are the same, distance is zero, or distance is greater
+                    ## than the margin, ignore
+                    #if reference_point == test_point or \
+                        #distance == 0.0 or \
+                        #distance > self.min_distance:
+                        #continue
+
+                    #neighbors[neighbor_cnt, 0] = distance
+                    #neighbors[neighbor_cnt, 1] = reference_point_idx
+                    #neighbors[neighbor_cnt, 2] = points_arr[reference_point_idx, 1]
+                    #neighbors[neighbor_cnt, 3] = points_arr[reference_point_idx, 2]
+                    #neighbors[neighbor_cnt, 4] = points_arr[reference_point_idx, 3]
+                    #neighbors[neighbor_cnt, 5] = test_point_idx
+                    #neighbors[neighbor_cnt, 6] = points_arr[test_point_idx, 1]
+                    #neighbors[neighbor_cnt, 7] = points_arr[test_point_idx, 2]
+                    #neighbors[neighbor_cnt, 8] = points_arr[test_point_idx, 3]
+    
+                    ## add point pair to analysis layer
+                    #if test_point_idx == 0:
+                        #pra.addFeatures([self._new_point_feature_from_coord(
+                            #points_arr[reference_point_idx, 2], 
+                            #points_arr[reference_point_idx, 3])])
+
+                    #pra.addFeatures([self._new_point_feature_from_coord(
+                        #points_arr[test_point_idx, 2], 
+                        #points_arr[test_point_idx, 3])])
+
+                    #neighbor_cnt += 1
+
+            #del points_arr
+
+        ## reshape array
+        #neighbors_trunc = neighbors[0:neighbor_cnt, :]
+
+        ## sort array (distance)
+        #dist_indices = numpy.argsort(neighbors_trunc[:, 0], axis=0)
+
+        #neighbors_trunc = neighbors_trunc[dist_indices.T]
+
+        ## write to table
+        #self._display_table(neighbors_trunc)
 
     def _analyze_distance_based(self):
         """Almost brute-force nearest neighbor analysis, using distance matrix
