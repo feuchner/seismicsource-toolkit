@@ -84,9 +84,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         QObject.connect(self.btnLoadData, SIGNAL("clicked()"), 
             self.loadDataLayers)
 
-        # Button: compute zone values
-        QObject.connect(self.btnComputeZoneValues, SIGNAL("clicked()"), 
-            self.updateZoneValues)
+        # Button: compute area zone values
+        QObject.connect(self.btnComputeAreaZoneValues, SIGNAL("clicked()"), 
+            self.updateAreaZoneValues)
 
         # Button: FMD plot
         QObject.connect(self.btnDisplayFMD, SIGNAL("clicked()"), 
@@ -160,20 +160,20 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.fault_source_layer = faultsource.loadFaultSourceLayer(self)
         self.catalog_layer = eqcatalog.loadEQCatalogLayer(self)
 
-    def updateZoneValues(self):
-        """Update a and b values for selected zones."""
+    def updateAreaZoneValues(self):
+        """Update a and b values for selected area zones."""
 
         # self._filterEventsFromSelection()
-        self._updateZoneTable()
+        self._updateAreaZoneTable()
 
     def updateFMD(self):
-        """Update FMD display for one selected zone in zone table."""
+        """Update FMD display for one selected area zone in zone table."""
 
-        selected_features = self.zoneTable.selectedItems()
+        selected_features = self.zoneAreaTable.selectedItems()
 
         if len(selected_features) == 0:
             QMessageBox.warning(None, "No zone selected", 
-                "Please select one zone in the zone table")
+                "Please select one zone in the area zone table")
 
         # get feature index of first selected row
         feature_id = selected_features[ZONE_TABLE_ID_IDX].text()
@@ -261,20 +261,20 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.catalog_selected.merge(self.catalog)
         self.catalog_selected.cut(geometry=geometry)
 
-        self.labelSelectedZones.setText(
-            "Selected zones: %s" % len(features_selected))
+        self.labelSelectedAreaZones.setText(
+            "Selected area zones: %s" % len(features_selected))
         self.labelSelectedEvents.setText(
             "Selected events: %s" % self.catalog_selected.size())
 
-    def _updateZoneTable(self):
-        """Update table of source zones with computed values."""
+    def _updateAreaZoneTable(self):
+        """Update table of area source zones with computed values."""
 
         # reset table rows to number of zones
         feature_count = len(self.area_source_layer.selectedFeatures())
-        self.zoneTable.clearContents()
+        self.zoneAreaTable.clearContents()
 
         if feature_count > 0:
-            self.zoneTable.setRowCount(feature_count)
+            self.zoneAreaTable.setRowCount(feature_count)
 
             # get attribute indexes
             attr_idx = {'ssid': None, 'ssshortnam': None, 'ssmfdvalb': None}
@@ -310,22 +310,22 @@ class SeismicSource(QDialog, Ui_SeismicSource):
                 else:
                     feature_bdef = "-"
 
-                self.zoneTable.setItem(feature_idx, ZONE_TABLE_ID_IDX, 
+                self.zoneAreaTable.setItem(feature_idx, ZONE_TABLE_ID_IDX, 
                     QTableWidgetItem(QString("%s" % feature_id)))
 
-                self.zoneTable.setItem(feature_idx, ZONE_TABLE_NAME_IDX, 
+                self.zoneAreaTable.setItem(feature_idx, ZONE_TABLE_NAME_IDX, 
                     QTableWidgetItem(QString("%s" % feature_name)))
 
-                self.zoneTable.setItem(feature_idx, ZONE_TABLE_EQCTR_IDX,
+                self.zoneAreaTable.setItem(feature_idx, ZONE_TABLE_EQCTR_IDX,
                     QTableWidgetItem(QString("%s" % fmd.GR['magCtr'])))
 
-                self.zoneTable.setItem(feature_idx, ZONE_TABLE_BVALDEF_IDX, 
+                self.zoneAreaTable.setItem(feature_idx, ZONE_TABLE_BVALDEF_IDX, 
                     QTableWidgetItem(QString("%s" % feature_bdef)))
 
-                self.zoneTable.setItem(feature_idx, ZONE_TABLE_BVAL_IDX,
+                self.zoneAreaTable.setItem(feature_idx, ZONE_TABLE_BVAL_IDX,
                     QTableWidgetItem(QString("%.2f" % fmd.GR['bValue'])))
 
-                self.zoneTable.setItem(feature_idx, ZONE_TABLE_AVAL_IDX,
+                self.zoneAreaTable.setItem(feature_idx, ZONE_TABLE_AVAL_IDX,
                     QTableWidgetItem(QString("%.2f" % fmd.GR['aValue'])))
 
                 self.feature_map[feature_id] = feature_idx

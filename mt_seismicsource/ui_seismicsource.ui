@@ -394,7 +394,7 @@
     </widget>
    </widget>
   </widget>
-  <widget class="QWidget" name="widgetZoneTable" native="true">
+  <widget class="QWidget" name="widgetAreaZoneTable" native="true">
    <property name="geometry">
     <rect>
      <x>320</x>
@@ -403,7 +403,7 @@
      <height>351</height>
     </rect>
    </property>
-   <widget class="QTableWidget" name="zoneTable">
+   <widget class="QTableWidget" name="zoneAreaTable">
     <property name="geometry">
      <rect>
       <x>0</x>
@@ -451,7 +451,7 @@
     <column/>
     <column/>
    </widget>
-   <widget class="QLabel" name="labelZoneTable">
+   <widget class="QLabel" name="labelAreaZoneTable">
     <property name="geometry">
      <rect>
       <x>0</x>
@@ -470,7 +470,7 @@
      <string>Selected Area Zones</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="btnComputeZoneValues">
+   <widget class="QPushButton" name="btnComputeAreaZoneValues">
     <property name="geometry">
      <rect>
       <x>250</x>
@@ -480,7 +480,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Compute Values</string>
+     <string>Display Values</string>
     </property>
    </widget>
   </widget>
@@ -506,7 +506,7 @@
      <bool>true</bool>
     </property>
     <property name="columnCount">
-     <number>8</number>
+     <number>7</number>
     </property>
     <column>
      <property name="text">
@@ -520,22 +520,17 @@
     </column>
     <column>
      <property name="text">
-      <string>EQ Cnt</string>
+      <string>Slip Rate</string>
      </property>
     </column>
     <column>
      <property name="text">
-      <string>b val Def</string>
+      <string>Activity</string>
      </property>
     </column>
     <column>
      <property name="text">
-      <string>b value</string>
-     </property>
-    </column>
-    <column>
-     <property name="text">
-      <string>a value</string>
+      <string>Moment Rate</string>
      </property>
     </column>
     <column/>
@@ -570,7 +565,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Compute Values</string>
+     <string>Display Values</string>
     </property>
    </widget>
   </widget>
