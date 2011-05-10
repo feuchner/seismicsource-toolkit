@@ -40,6 +40,7 @@ import QPCatalog
 
 from algorithms import atticivy
 from algorithms import recurrence
+import do_plotwindow
 import layers
 from layers import areasource
 from layers import faultsource
@@ -77,6 +78,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.setupUi(self)
 
         self.figures = {}
+        self.plot_windows = []
 
         # Button: load data
         QObject.connect(self.btnLoadData, SIGNAL("clicked()"), 
@@ -204,11 +206,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
     def _plotFMD(self):
 
-        # remove widgets from layout
-        self.layoutPlotFMD.removeWidget(self.fmd_toolbar)
-        self.layoutPlotFMD.removeWidget(self.fmd_canvas)
-        del self.fmd_canvas
-        del self.fmd_toolbar
+        window = self.createPlotWindow()
 
         # new FMD plot (returns figure)
         self.figures['fmd']['fig'] = self.figures['fmd']['fmd'].plot(
@@ -219,10 +217,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.fmd_canvas.draw()
 
         # FMD plot window, re-populate layout
-        self.layoutPlotFMD.addWidget(self.fmd_canvas)
-        self.fmd_toolbar = self._createFMDToolbar(self.fmd_canvas, 
-            self.widgetPlotFMD)
-        self.layoutPlotFMD.addWidget(self.fmd_toolbar)
+        window.layoutPlot.addWidget(self.fmd_canvas)
+        self.fmd_toolbar = self._createFMDToolbar(self.fmd_canvas, window)
+        window.layoutPlot.addWidget(self.fmd_toolbar)
 
     def _createFMDToolbar(self, canvas, widget):
         toolbar = NavigationToolbar(canvas, widget)
@@ -368,8 +365,6 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.activityLEDLabel.setText('Idle')
         self.btnAtticIvy.setEnabled(True)
 
-        # QCoreApplication.processEvents()
-
     def computeRecurrence(self):
         """Compute recurrence with Bungum code."""
 
@@ -386,6 +381,12 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.recurrenceLEDLabel.setText('Idle')
         self.btnRecurrence.setEnabled(True)
 
-        
-
-        # QCoreApplication.processEvents()
+    def createPlotWindow(self):
+        """Create new plot window dialog."""
+ 
+        plot_window = do_plotwindow.PlotWindow(self.iface)
+        plot_window.setModal(False)
+        plot_window.show()
+        plot_window.raise_()
+        self.plot_windows.append(plot_window)
+        return plot_window
