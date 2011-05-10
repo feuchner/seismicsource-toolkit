@@ -47,7 +47,7 @@ MAGNITUDE_MIN = 5.0
 # magnitude binning of result FMD
 MAGNITUDE_BINNING = 0.1
 
-# shear modulus (mu, rigidity) for all faults
+# shear modulus (mu, rigidity) for all faults, in GPa
 SHEAR_MODULUS = 3.0e07
 
 # parameter c in Bungum paper, Table 1, line 7
@@ -197,10 +197,13 @@ def computeRecurrence(provider_fault, provider_area=None, catalog=None):
 
         # get coordinates of polygon centre
         area_metres = poly_area_deg * numpy.power((40000 * 1000 / 360.0), 2) *\
-            numpy.cos(float(poly_center.y))
+            numpy.cos(numpy.pi * float(poly_center.y) / 180.0)
 
         # equidistant magnitude array on which activity rates are computed
         # from global Mmin to zone-dependent Mmax
+        # TODO(fab): THIS IS A WRONG APPROACH
+        # we have to loop over fault lengths until we reach Mmax given in the
+        # fault shapefile
         mag_arr = numpy.arange(MAGNITUDE_MIN, maxmag, MAGNITUDE_BINNING)
 
         cumulative_number = cumulative_occurrence_model_2(mag_arr, maxmag, 
@@ -210,7 +213,8 @@ def computeRecurrence(provider_fault, provider_area=None, catalog=None):
             slipratema, b_value, area_metres)
 
         # compute contribution to total seismic moment
-        seismic_moment_rate = SHEAR_MODULUS * slipratema * area_metres
+        seismic_moment_rate = (1.0e8 * SHEAR_MODULUS) * \
+            (slipratema / 10.0) * (area_metres * 1.0e4)
         total_seismic_moment_rate += seismic_moment_rate
 
         # serialize activity rate FMD
@@ -227,10 +231,23 @@ def computeRecurrence(provider_fault, provider_area=None, catalog=None):
 def cumulative_occurrence_model_2(mag_arr, maxmag, slipratema, b_value, 
     area_metres):
     """Compute cumulative occurrence rate for given magnitude (model 2,
-    eq. 7 in Bungum paper."""
+    eq. 7 in Bungum paper.
+
+    Input:
+        mag_arr     array of target magnitudes (CHANGE)
+        maxmag      maximum magnitude of fault
+        slipratema  maximum annual slip rate (mm/yr) ?
+        b_value     b value of background seismicity
+        area_metres fault area in metres
+    
+    """
 
     # re-scaled parameters, as given for eq. 5 in Bungum paper
+    # b value of background seismicity
     b_bar = b_value * numpy.log(10.0)
+
+    # d coefficient from scaling ratio of seismic moment to
+    # moment magnitude
     d_bar = D_BUNGUM * numpy.log(10.0)
     
     # alpha is the ratio of total displacement across the fault 
@@ -241,13 +258,21 @@ def cumulative_occurrence_model_2(mag_arr, maxmag, slipratema, b_value,
     # this with fault area (which we get from geometry), 
     # and fixed fault length/width ratio
     beta_numerator = alpha * C_BUNGUM
-    beta_denominator = SHEAR_MODULUS * numpy.sqrt(
-        area_metres / FAULT_ASPECT_RATIO)
+
+    # convert shear modulus from GPa (10^9 N/m^2, 10^9 kg/(m * s^2)) 
+    # to dyn/cm^2, 1 dyn = 1 g * cm/s^2 = 10^-5 N
+    # 1 GPa = 10^9 kg/(m * s^2) = 10^12 g/(m * s^2) = 10^10 g/(cm *s^2) 
+    # = 10^10 dyn/cm^2
+    # convert area from square metres to square centimetres
+    beta_denominator = 1.0e10 * SHEAR_MODULUS * numpy.sqrt(
+        area_metres * 100 * 100/ FAULT_ASPECT_RATIO)
     beta = numpy.sqrt(beta_numerator / beta_denominator)
 
     # factors in Bungum eq. 7
     f1 = (d_bar - b_bar) / b_bar
-    f2 = slipratema / beta
+
+    # convert annual slip rate from mm/yr to cm/yr 
+    f2 = slipratema / (10 * beta)
     f3 = numpy.exp(b_bar * (maxmag - mag_arr)) - 1
     f4 = numpy.exp(-0.5 * d_bar * maxmag)
 
