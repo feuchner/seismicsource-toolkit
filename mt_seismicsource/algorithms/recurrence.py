@@ -257,7 +257,7 @@ def cumulative_occurrence_model_2(mag_arr, maxmag, slipratema, b_value,
     # Original equation has W (fault width) in denominator, we replace 
     # this with fault area (which we get from geometry), 
     # and fixed fault length/width ratio
-    beta_numerator = alpha * C_BUNGUM
+    beta_numerator = alpha * numpy.power(10, C_BUNGUM)
 
     # convert shear modulus from GPa (10^9 N/m^2, 10^9 kg/(m * s^2)) 
     # to dyn/cm^2, 1 dyn = 1 g * cm/s^2 = 10^-5 N
