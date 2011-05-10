@@ -394,39 +394,6 @@
     </widget>
    </widget>
   </widget>
-  <widget class="QWidget" name="widgetPlotFMD" native="true">
-   <property name="geometry">
-    <rect>
-     <x>320</x>
-     <y>370</y>
-     <width>450</width>
-     <height>401</height>
-    </rect>
-   </property>
-   <property name="minimumSize">
-    <size>
-     <width>300</width>
-     <height>350</height>
-    </size>
-   </property>
-   <property name="maximumSize">
-    <size>
-     <width>450</width>
-     <height>450</height>
-    </size>
-   </property>
-   <widget class="QWidget" name="verticalLayoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>451</width>
-      <height>401</height>
-     </rect>
-    </property>
-    <layout class="QVBoxLayout" name="layoutPlotFMD"/>
-   </widget>
-  </widget>
   <widget class="QWidget" name="widgetZoneTable" native="true">
    <property name="geometry">
     <rect>
