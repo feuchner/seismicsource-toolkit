@@ -201,9 +201,6 @@ def computeRecurrence(provider_fault, provider_area=None, catalog=None):
 
         # equidistant magnitude array on which activity rates are computed
         # from global Mmin to zone-dependent Mmax
-        # TODO(fab): THIS IS A WRONG APPROACH
-        # we have to loop over fault lengths until we reach Mmax given in the
-        # fault shapefile
         mag_arr = numpy.arange(MAGNITUDE_MIN, maxmag, MAGNITUDE_BINNING)
 
         cumulative_number = cumulative_occurrence_model_2(mag_arr, maxmag, 
