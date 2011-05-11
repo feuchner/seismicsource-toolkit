@@ -39,7 +39,10 @@ from mt_seismicsource import utils
 
 
 CATALOG_DIR = 'eq_catalog'
-CATALOG_FILES = ('cenec-zmap.dat', 'SHARE_20110311.dat.gz')
+CATALOG_FILES = (
+    'SHEEC-declustered-2011-05-02.zmap.dat.gz', 
+    'cenec-zmap.dat', 
+    'SHARE_20110311.dat.gz')
 
 def loadEQCatalogLayer(cls):
     """Load EQ catalog layer from ASCII catalog file. 
@@ -67,7 +70,7 @@ def loadEQCatalogLayer(cls):
 
     # cut catalog to years > 1900 (because of datetime)
     # TODO(fab): change the datetime lib to mx.DateTime
-    cls.catalog.cut(mintime='1900-01-01', mintime_exclude=True)
+    # cls.catalog.cut(mintime='1900-01-01', mintime_exclude=True)
     cls.labelCatalogEvents.setText(
         "Catalog events: %s" % cls.catalog.size())
 
