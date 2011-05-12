@@ -40,7 +40,6 @@ from mt_seismicsource import utils
 #FAULT_FILES = ('CSSTop_polyline.shp',)
 
 FAULT_FILE_DIR = 'fault_sources/DISS-3.2-2011-04-19'
-FAULT_FILE = 'CSSources_region.shp'
 FAULT_FILES = ('CSSources_region.shp',)
 
 TEMP_FILENAME = 'fault-sources.shp'

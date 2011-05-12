@@ -36,9 +36,8 @@ from mt_seismicsource import layers
 from mt_seismicsource import features
 from mt_seismicsource import utils
 
-ZONE_FILE_DIR = 'area_sources/GEM1'
-ZONE_FILE = 'europe_source_model.shp'
-ZONE_FILES = ('europe_source_model.shp',)
+ZONE_FILE_DIR = 'area_sources'
+ZONE_FILES = ('share-v2.0-301110.shp', 'GEM1_europe_source_model.shp',)
 
 TEMP_FILENAME = 'area-sources.shp'
 

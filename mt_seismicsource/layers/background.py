@@ -74,13 +74,8 @@ def loadBackgroundZoneLayer(cls):
     # read data dicts from files
     background_completeness = readBackgroundCompleteness(
         background_completeness_path)
-
-    QMessageBox.information(None, "Completeness", "%s" % background_completeness)
-
     background_zones = readBackgroundZones(background_zone_path)
-    
-    QMessageBox.information(None, "Zones", "%s" % background_zones)
-
+   
     # PostGIS SRID 4326 is allocated for WGS84
     crs = QgsCoordinateReferenceSystem(4326, 
         QgsCoordinateReferenceSystem.PostgisCrsId)
