@@ -120,6 +120,30 @@ def polygonsQGS2Shapely(polygons, getVertices=False):
 
     return (polygons_shapely, vertices_shapely)
 
+def findBackgroundZone(zone, provider_back):
+    """Find background zone in which centroid of a given other zone lies."""
+    
+    bg_zone = None
+
+    # convert test zone polygon to Shapely
+    poly, vertices = polygonsQGS2Shapely((zone,))
+    poly_center = poly[0].centroid
+
+    # TODO(fab): this can probably be made more efficient
+    # loop over background zones
+    provider_back.select()
+    provider_back.rewind()
+    for bgz in provider_back:
+
+        # convert background zone polygon to Shapely
+        bg_poly, vertices = polygonsQGS2Shapely((bgz,))
+
+        if poly_center.within(bg_poly[0]):
+            bg_zone = bgz
+            break
+
+    return bg_zone
+
 def getSelectedRefZoneIndices(reference_zones):
     """Get indices of selected zones from list of all source zones.
     reference_zones is list of selected QGis features."""
@@ -219,8 +243,8 @@ def shp2memory(layer, name):
 def writeLayerToShapefile(layer, path, crs, encoding=SHAPEFILE_ENCODING):
     error = QgsVectorFileWriter.writeAsShapefile(layer, path, encoding, crs)
     if error != QgsVectorFileWriter.NoError:
-        QMessageBox.error(None, "Error writing shapefile", 
-            "Cannot write layer to shapefile: %s" % path)
+        QMessageBox.warning(None, "Error writing shapefile", 
+            "Error %s: Cannot write layer to shapefile: %s" % (error, path))
 
 def warning_box_missing_layer_file(filename):
     QMessageBox.warning(None, "File not found", 

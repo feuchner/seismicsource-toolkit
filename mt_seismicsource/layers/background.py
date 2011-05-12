@@ -35,7 +35,6 @@ from qgis.core import *
 import QPCatalog
 
 from mt_seismicsource import layers
-from mt_seismicsource import features
 from mt_seismicsource import utils
 
 BACKGROUND_DIR = 'background_zones'
@@ -91,7 +90,7 @@ def loadBackgroundZoneLayer(cls):
                       QgsField("descr", QVariant.String),
                       QgsField("eqcount", QVariant.Int),
                       QgsField("mmax", QVariant.Double),
-                      QgsField("mchist", QVariant.String)])
+                      QgsField("mcdist", QVariant.String)])
 
     # add zones as features
     for zone_id, zone in background_zones.items():
@@ -105,7 +104,7 @@ def loadBackgroundZoneLayer(cls):
         f[1] = QVariant(background_completeness[zone_id]['descr'])
         f[2] = QVariant(background_completeness[zone_id]['eqcount'])
         f[3] = QVariant(zone['mmax'])
-        f[4] = QVariant(background_completeness[zone_id]['mchist'])
+        f[4] = QVariant(background_completeness[zone_id]['mcdist'])
 
         pr.addFeatures([f])
 
@@ -127,7 +126,7 @@ def readBackgroundCompleteness(path):
         ID
         descr
         eqcount
-        mchist
+        mcdist
     """
 
     completeness = {}
@@ -160,7 +159,7 @@ def readBackgroundCompleteness(path):
                     break
 
             completeness[zone_id] = {'descr': zone_descr,  
-                'eqcount': zone_eqcount, 'mchist': zone_mchist.lstrip()}
+                'eqcount': zone_eqcount, 'mcdist': zone_mchist.lstrip()}
 
     return completeness
 

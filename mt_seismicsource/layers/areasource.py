@@ -37,9 +37,12 @@ from mt_seismicsource import features
 from mt_seismicsource import utils
 
 ZONE_FILE_DIR = 'area_sources'
-ZONE_FILES = ('share-v2.0-301110.shp', 'GEM1_europe_source_model.shp',)
+ZONE_FILES = ('share-v2.0-301110.shp', 'GEM1_europe_source_model.shp')
 
-TEMP_FILENAME = 'area-sources.shp'
+TEMP_FILENAME = 'area-source-zones.shp'
+
+COPY_ATTRIBUTES = (features.AREA_SOURCE_ATTR_MMAX,
+    features.AREA_SOURCE_ATTR_MCDIST)
 
 def loadAreaSourceLayer(cls):
     """Load area source layer from Shapefile. Add required feature attributes
@@ -64,8 +67,8 @@ def loadAreaSourceLayer(cls):
     # check if all features are okay
     _checkAreaSourceLayer(layer)
 
-    # create feature attributes
-    createAttributes(layer)
+    # assign attributes from background zones
+    assignAttributesFromBackgroundZones(layer, cls.background_zone_layer)
 
     QgsMapLayerRegistry.instance().addMapLayer(layer)
     utils.writeLayerToShapefile(layer, os.path.join(layers.DATA_DIR, 
@@ -73,19 +76,86 @@ def loadAreaSourceLayer(cls):
 
     return layer
 
-def createAttributes(layer):
-    """Create attributes for area source layer."""
+def assignAttributesFromBackgroundZones(layer, background_layer):
+    """Copy attributes from background zone layer."""
     provider = layer.dataProvider()
+    provider_back = background_layer.dataProvider()
+
+    # create missing attributes
     for attribute_list in features.AREA_SOURCE_ATTRIBUTES_ALL:
-        attribute_map = utils.getAttributeIndex(provider, attribute_list, 
-            create=True)
+        utils.getAttributeIndex(provider, attribute_list, create=True)
+
+    values = {}
+
+    # get mmax and mcdist for all zones
+    background_attrs = getAttributesFromBackgroundZones(provider, 
+        provider_back)
+
+    attribute_map = utils.getAttributeIndex(provider, COPY_ATTRIBUTES)
+
+    provider.select()
+    provider.rewind()
+    for zone_idx, zone in utils.walkValidPolygonFeatures(provider):
+
+        attributes = {}
+        for attr_idx, attr_dict in enumerate(COPY_ATTRIBUTES):
+            (curr_idx, curr_type) = attribute_map[attr_dict['name']]
+            try:
+                attributes[curr_idx] = QVariant(
+                    background_attrs[zone_idx][attr_idx])
+            except Exception, e:
+                error_str = \
+        "error in attribute: curr_idx: %s, zone_idx: %s, attr_idx: %s, %s" % (
+                    curr_idx, zone_idx, attr_idx, e)
+                raise RuntimeError, error_str
+
+        values[zone.id()] = attributes
+
+    try:
+        provider.changeAttributeValues(values)
+    except Exception, e:
+        error_str = "cannot update attribute values, %s" % (e)
+        raise RuntimeError, error_str
+
+def getAttributesFromBackgroundZones(provider, provider_back):
+    """Get mmax and mcdist from background for all zones."""
+
+    background_attrs = []
+
+    attribute_map = utils.getAttributeIndex(provider_back, COPY_ATTRIBUTES)
+
+    provider.select()
+    provider.rewind()
+    for zone_idx, zone in utils.walkValidPolygonFeatures(provider):
+
+        # identify matching background zone
+        background_zone = utils.findBackgroundZone(zone, provider_back)
+
+        if background_zone is not None:
+            mmax = background_zone[attribute_map['mmax'][0]].toDouble()[0]
+            mcdist = str(
+                background_zone[attribute_map['mcdist'][0]].toString())
+            zone_data = [mmax, mcdist]
+        else:
+            zone_data = [None, None]
+
+        background_attrs.append(zone_data)
+
+    return background_attrs
 
 def _checkAreaSourceLayer(layer):
-    """Check if features in area source layer are without errors."""
+    """Check if features in area source layer are without errors.
 
+    Input:
+        layer       polygon layer
+    """
+
+    provider = layer.dataProvider()
+    provider.select()
+    provider.rewind()
     broken_features = []
-    for feature_idx, feature in enumerate(layer):
 
+    for feature_idx, feature in enumerate(provider):
         try:
             qgis_geometry_aspolygon = feature.geometry().asPolygon()
         except Exception:
