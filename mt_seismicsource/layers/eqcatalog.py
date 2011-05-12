@@ -49,9 +49,6 @@ def loadEQCatalogLayer(cls):
     Add required feature attributes if they are missing.
 
     TODO(fab): load catalog from Python pickle of compact catalog format.
-
-    Input:
-        path    Filename of catalog file
     """
     catalog_path = os.path.join(layers.DATA_DIR, CATALOG_DIR, 
         unicode(cls.comboBoxEQCatalogInput.currentText()))
@@ -85,13 +82,13 @@ def loadEQCatalogLayer(cls):
         QgsCoordinateReferenceSystem.PostgisCrsId)
 
     # create layer
-    layer = QgsVectorLayer("Point", "CENEC catalog", "memory")
+    layer = QgsVectorLayer("Point", "EQ catalog", "memory")
     layer.setCrs(crs) 
     pr = layer.dataProvider()
 
     # add fields
     pr.addAttributes([QgsField("magnitude", QVariant.Double),
-                        QgsField("depth",  QVariant.Double)])
+                      QgsField("depth",  QVariant.Double)])
 
     # add EQs as features
     for curr_event in cls.catalog_selected.eventParameters.event:

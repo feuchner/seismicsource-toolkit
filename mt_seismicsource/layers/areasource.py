@@ -45,9 +45,6 @@ TEMP_FILENAME = 'area-sources.shp'
 def loadAreaSourceLayer(cls):
     """Load area source layer from Shapefile. Add required feature attributes
     if they are missing.
-
-    Input:
-        path    Filename of Shapefile
     """
     area_source_path = os.path.join(layers.DATA_DIR, 
         ZONE_FILE_DIR, unicode(cls.comboBoxZoneInput.currentText()))

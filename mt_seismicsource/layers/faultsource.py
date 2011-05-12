@@ -48,9 +48,6 @@ TEMP_FILENAME = 'fault-sources.shp'
 def loadFaultSourceLayer(cls):
     """Load fault source layer from Shapefile. Add required feature attributes
     if they are missing.
-
-    Input:
-        path    Filename of Shapefile
     """
     fault_source_path = os.path.join(layers.DATA_DIR, 
         FAULT_FILE_DIR, unicode(cls.comboBoxFaultInput.currentText()))

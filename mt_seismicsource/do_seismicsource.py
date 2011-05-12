@@ -44,6 +44,7 @@ from algorithms import recurrence
 import do_plotwindow
 import layers
 from layers import areasource
+from layers import background
 from layers import faultsource
 from layers import eqcatalog
 import plots
@@ -125,6 +126,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         # layers
         self.background_layer = None
+
+        self.background_zone_layer = None
         self.area_source_layer = None
         self.fault_source_layer = None
         self.catalog_layer = None
@@ -171,6 +174,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
     def loadDefaultLayers(self):
 
+        self.background_zone_layer = background.loadBackgroundZoneLayer(self)
         self.area_source_layer = areasource.loadAreaSourceLayer(self)
         self.fault_source_layer = faultsource.loadFaultSourceLayer(self)
         self.catalog_layer = eqcatalog.loadEQCatalogLayer(self)
