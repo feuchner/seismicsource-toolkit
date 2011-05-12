@@ -91,11 +91,12 @@ def loadBackgroundZoneLayer(cls):
     pr = layer.dataProvider()
 
     # add attributes
-    # - ID, Description, Mmax, completeness magnitude history
+    # - ID, Description, no of EQs, Mmax, completeness magnitude history
     pr.addAttributes([QgsField("ID", QVariant.String),
-                      QgsField("descr",  QVariant.String),
+                      QgsField("descr", QVariant.String),
+                      QgsField("eqcount", QVariant.Int),
                       QgsField("mmax", QVariant.Double),
-                      QgsField("mchist",  QVariant.String)])
+                      QgsField("mchist", QVariant.String)])
 
     # add zones as features
     for zone_id, zone in background_zones.items():
@@ -107,8 +108,9 @@ def loadBackgroundZoneLayer(cls):
         
         f[0] = QVariant(zone_id)
         f[1] = QVariant(background_completeness[zone_id]['descr'])
-        f[2] = QVariant(zone['mmax'])
-        f[3] = QVariant(background_completeness[zone_id]['mchist'])
+        f[2] = QVariant(background_completeness[zone_id]['eqcount'])
+        f[3] = QVariant(zone['mmax'])
+        f[4] = QVariant(background_completeness[zone_id]['mchist'])
 
         pr.addFeatures([f])
 
@@ -151,14 +153,16 @@ def readBackgroundCompleteness(path):
             zone_descr = line[1].strip()
             zone_eqcount = int(line[2].strip())
 
-            # number of (year, Mc) pairs
-            zone_mchist = ""
+            # max. number of (Mc, year) pairs
             mc_pair_count = len(line) - START_COL_COMPLETENESS + 1
-
+            zone_mchist = ""
             for idx in xrange(mc_pair_count):
-                zone_mchist = "%s %s %s" % (zone_mchist, 
-                    COMPLETENESS_REF_MAGNITUDES[idx], 
-                    line[START_COL_COMPLETENESS - 1 + idx])
+                curr_year = line[START_COL_COMPLETENESS - 1 + idx]
+                if len(curr_year.strip()) > 0:
+                    zone_mchist = "%s %s %s" % (zone_mchist, 
+                        COMPLETENESS_REF_MAGNITUDES[idx], curr_year.strip())
+                else:
+                    break
 
             completeness[zone_id] = {'descr': zone_descr,  
                 'eqcount': zone_eqcount, 'mchist': zone_mchist.lstrip()}
@@ -235,8 +239,9 @@ def readBackgroundZones(path):
                 dataLineMode = False
                 zoneStartMode = True
         
-        if zone_idx + 1 != zone_count:
+        if zone_idx != zone_count:
             QMessageBox.warning(None, "Zone count", 
-                "Zone count mismatch: %s, %s" % (zone_idx+1, zone_count))
+                "Zone count mismatch in zone file: found %s, expected %s" % (
+                    zone_idx, zone_count))
 
     return zones
