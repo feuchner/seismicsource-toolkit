@@ -50,19 +50,30 @@ ATTICIVY_CATALOG_FILE = 'AtticIvy-Catalog.dat'
 # remove '.inp' extension of zone file name and add '_out.txt'
 ATTICIVY_RESULT_FILE = '%s_out.txt' % ATTICIVY_ZONE_FILE[0:-4]
 
-ATTICIVY_MISSING_ZONE_PARAMETERS = """# Mmax.....:  2
+# third commandline parameter: number of bootstrap iterations
+# 0: use default (1000 iterations)
+ATTICIVY_BOOTSTRAP_ITERATIONS = 0
+
+ATTICIVY_MISSING_ZONE_PARAMETERS_MMAX = """# Mmax.....:  2
  5.5   0.5
  6.5   0.5
-# Periods..:  4
+"""
+
+ATTICIVY_MISSING_ZONE_PARAMETERS_MCDIST = """# Periods..:  4
  3.5 1970
  4.0 1750
  4.5 1700
  6.5 1300
-A prior and weight
+"""
+
+ATTICIVY_MISSING_ZONE_PARAMETERS_PRIORS = """A prior and weight
  0.0   0.0
 B prior and weight
  1.0  50.0
 """
+
+ZONE_ATTRIBUTES = (features.AREA_SOURCE_ATTR_MMAX,
+    features.AREA_SOURCE_ATTR_MCDIST)
 
 def assignActivityAtticIvy(provider, catalog):
     """Compute activity with Roger Musson's AtticIvy code and assign a and
@@ -141,7 +152,8 @@ def computeActivityAtticIvy(zones, catalog, Mmin=ATTICIVY_MMIN):
     os.chmod(os.path.join(temp_dir, exec_file), stat.S_IXUSR)
 
     retcode = subprocess.call([exec_file, ATTICIVY_ZONE_FILE, 
-        ATTICIVY_CATALOG_FILE], cwd=temp_dir)
+        ATTICIVY_CATALOG_FILE, str(ATTICIVY_BOOTSTRAP_ITERATIONS)], 
+        cwd=temp_dir)
     
     if retcode != 0:
         QMessageBox.warning(None, "AtticIvy Error", 
@@ -152,7 +164,7 @@ def computeActivityAtticIvy(zones, catalog, Mmin=ATTICIVY_MMIN):
     activity_list = activityFromAtticIvy(result_file_path)
 
     # remove temp file directory
-    shutil.rmtree(temp_dir)
+    #shutil.rmtree(temp_dir)
 
     return activity_list
 
@@ -162,6 +174,9 @@ def writeZones2AtticIvy(zones, path, Mmin):
     Input:
         zones   QGis layer provider for zone features
     """
+
+    # get attribute indices for mmax and mcdist
+    attribute_map = utils.getAttributeIndex(zones, ZONE_ATTRIBUTES)
 
     # open file for writing
     with open(path, 'w') as fh:
@@ -183,8 +198,46 @@ def writeZones2AtticIvy(zones, path, Mmin):
             for vertex in vertices:
                 fh.write('%s , %s\n' % (vertex[1], vertex[0]))
 
-            # TODO(fab): use real parameters
-            fh.write(ATTICIVY_MISSING_ZONE_PARAMETERS)
+            # add mmax from area source zone
+            mmax = curr_zone[attribute_map['mmax'][0]]
+            # TODO(fab): missing values can be 0.0
+            if mmax is not None:
+                mmax = mmax.toDouble()[0]
+                mmax_str = "# Mmax.....:  1\n %.1f   1.0\n" % mmax
+            else:
+                mmax_str = ATTICIVY_MISSING_ZONE_PARAMETERS_MMAX
+                mmax = 6.5
+
+            fh.write(mmax_str)
+
+            # add mcdist from area source zone
+            mcdist = curr_zone[attribute_map['mcdist'][0]]
+            # TODO(fab): missing values can be 0.0
+            if mcdist is not None:
+
+                mcdist = str(mcdist.toString())
+                mcdist_arr = mcdist.strip().split()
+                mcdist_mag = mcdist_arr[::2]
+                mcdist_year = mcdist_arr[1::2]
+                mcdist_entries = len(mcdist_arr)/2
+
+                # TODO(fab): fix to see if showstopper goes away
+                #mcdist_str = "# Periods..:%3i\n" % mcdist_entries
+                mcdist_str = "# Periods..:%3i\n" % (mcdist_entries + 1)
+                for idx in xrange(mcdist_entries):
+                    mcdist_str += " %.1f %s\n" % (
+                        float(mcdist_mag[idx].strip()), 
+                        mcdist_year[idx].strip())
+
+                # TODO(fab): fix to see if showstopper goes away
+                mcdist_str += " %.1f 1000\n" % (mmax)
+            else:
+                mcdist_str = ATTICIVY_MISSING_ZONE_PARAMETERS_MCDIST
+
+            fh.write(mcdist_str)
+
+            # a/b priors: default setting
+            fh.write(ATTICIVY_MISSING_ZONE_PARAMETERS_PRIORS)
 
 def activityFromAtticIvy(path):
     """Read output from AtticIvy program. Returns list of 
