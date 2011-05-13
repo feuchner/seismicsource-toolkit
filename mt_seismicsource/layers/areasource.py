@@ -92,7 +92,7 @@ def assignAttributesFromBackgroundZones(layer, background_layer):
     background_attrs = getAttributesFromBackgroundZones(provider, 
         provider_back)
 
-    QMessageBox.information(None, "Attr", "%s" % background_attrs)
+    #QMessageBox.information(None, "Attr", "%s" % background_attrs)
 
     attribute_map = utils.getAttributeIndex(provider, COPY_ATTRIBUTES)
 
@@ -122,7 +122,7 @@ def assignAttributesFromBackgroundZones(layer, background_layer):
         if skipZone is False:
             values[zone.id()] = attributes
 
-    QMessageBox.information(None, "values", "%s" % values)
+    #QMessageBox.information(None, "values", "%s" % values)
 
     try:
         provider.changeAttributeValues(values)

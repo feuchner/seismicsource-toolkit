@@ -54,7 +54,7 @@ ATTICIVY_RESULT_FILE = '%s_out.txt' % ATTICIVY_ZONE_FILE[0:-4]
 # 0: use default (1000 iterations)
 ATTICIVY_BOOTSTRAP_ITERATIONS = 0
 
-ATTICIVY_EMPTY_ZONE = """# Mmax.....: 0
+ATTICIVY_EMPTY_ZONE_MMAX = """# Mmax.....: 0
 # Mmax.....: 0
 """
 
@@ -180,6 +180,8 @@ def writeZones2AtticIvy(zones, path, Mmin):
     """
 
     # get attribute indices for mmax and mcdist
+    zones.select()
+    zones.rewind()
     attribute_map = utils.getAttributeIndex(zones, ZONE_ATTRIBUTES)
 
     # open file for writing
@@ -191,7 +193,9 @@ def writeZones2AtticIvy(zones, path, Mmin):
             checkGeometry=True))
         
         # loop over zones
-        for curr_zone_idx, curr_zone in enumerate(zones):
+        zones.select()
+        zones.rewind()
+        for curr_zone_idx, curr_zone in utils.walkValidPolygonFeatures(zones):
 
             # get geometry
             vertices = utils.verticesOuterFromQGSPolygon(curr_zone)
@@ -202,22 +206,15 @@ def writeZones2AtticIvy(zones, path, Mmin):
             for vertex in vertices:
                 fh.write('%s , %s\n' % (vertex[1], vertex[0]))
 
-            # add mmax from area source zone
-            mmax = curr_zone[attribute_map['mmax'][0]]
-            # TODO(fab): missing values can be 0.0
-            if mmax is not None:
+            try:
+                # add mmax from area source zone
+                mmax = curr_zone[attribute_map['mmax'][0]]
                 mmax = mmax.toDouble()[0]
                 mmax_str = "# Mmax.....:  1\n %.1f   1.0\n" % mmax
-            else:
-                mmax_str = ATTICIVY_MISSING_ZONE_PARAMETERS_MMAX
-                mmax = 6.5
+                fh.write(mmax_str)
 
-            fh.write(mmax_str)
-
-            # add mcdist from area source zone
-            mcdist = curr_zone[attribute_map['mcdist'][0]]
-            # TODO(fab): missing values can be 0.0
-            if mcdist is not None:
+                # assume that mcdist is also valid if mmax is valid
+                mcdist = curr_zone[attribute_map['mcdist'][0]]
 
                 mcdist = str(mcdist.toString())
                 mcdist_arr = mcdist.strip().split()
@@ -225,23 +222,22 @@ def writeZones2AtticIvy(zones, path, Mmin):
                 mcdist_year = mcdist_arr[1::2]
                 mcdist_entries = len(mcdist_arr)/2
 
-                # TODO(fab): fix to see if showstopper goes away
-                #mcdist_str = "# Periods..:%3i\n" % mcdist_entries
-                mcdist_str = "# Periods..:%3i\n" % (mcdist_entries + 1)
+                mcdist_str = "# Periods..:%3i\n" % mcdist_entries
                 for idx in xrange(mcdist_entries):
                     mcdist_str += " %.1f %s\n" % (
                         float(mcdist_mag[idx].strip()), 
                         mcdist_year[idx].strip())
+                fh.write(mcdist_str)
 
-                # TODO(fab): fix to see if showstopper goes away
-                mcdist_str += " %.1f 1000\n" % (mmax)
-            else:
-                mcdist_str = ATTICIVY_MISSING_ZONE_PARAMETERS_MCDIST
+                # a/b priors: default setting
+                fh.write(ATTICIVY_MISSING_ZONE_PARAMETERS_PRIORS)
 
-            fh.write(mcdist_str)
+            except Exception:
 
-            # a/b priors: default setting
-            fh.write(ATTICIVY_MISSING_ZONE_PARAMETERS_PRIORS)
+                # if mmax is not set properly, write special lines for zone
+                # and proceed to next zone
+                fh.write(ATTICIVY_EMPTY_ZONE_MMAX)
+                continue
 
 def activityFromAtticIvy(path):
     """Read output from AtticIvy program. Returns list of 
