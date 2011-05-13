@@ -37,7 +37,8 @@ from mt_seismicsource import features
 from mt_seismicsource import utils
 
 ZONE_FILE_DIR = 'area_sources'
-ZONE_FILES = ('share-v2.0-301110.shp', 'GEM1_europe_source_model.shp')
+ZONE_FILES = ('share-v2.01-150411.shp', 'share-v2.0-301110.shp', 
+    'GEM1_europe_source_model.shp')
 
 TEMP_FILENAME = 'area-source-zones.shp'
 
@@ -91,6 +92,8 @@ def assignAttributesFromBackgroundZones(layer, background_layer):
     background_attrs = getAttributesFromBackgroundZones(provider, 
         provider_back)
 
+    QMessageBox.information(None, "Attr", "%s" % background_attrs)
+
     attribute_map = utils.getAttributeIndex(provider, COPY_ATTRIBUTES)
 
     provider.select()
@@ -98,18 +101,28 @@ def assignAttributesFromBackgroundZones(layer, background_layer):
     for zone_idx, zone in utils.walkValidPolygonFeatures(provider):
 
         attributes = {}
+        skipZone = False
         for attr_idx, attr_dict in enumerate(COPY_ATTRIBUTES):
             (curr_idx, curr_type) = attribute_map[attr_dict['name']]
+
+            # if one of the attribute values is None, skip zone
+            if background_attrs[zone_idx][attr_idx] is None:
+                skipZone = True
+                break
+                
             try:
-                attributes[curr_idx] = QVariant(
-                    background_attrs[zone_idx][attr_idx])
+                # attributes are of type QVariant
+                attributes[curr_idx] = background_attrs[zone_idx][attr_idx]
             except Exception, e:
                 error_str = \
         "error in attribute: curr_idx: %s, zone_idx: %s, attr_idx: %s, %s" % (
                     curr_idx, zone_idx, attr_idx, e)
                 raise RuntimeError, error_str
+        
+        if skipZone is False:
+            values[zone.id()] = attributes
 
-        values[zone.id()] = attributes
+    QMessageBox.information(None, "values", "%s" % values)
 
     try:
         provider.changeAttributeValues(values)
@@ -132,9 +145,9 @@ def getAttributesFromBackgroundZones(provider, provider_back):
         background_zone = utils.findBackgroundZone(zone, provider_back)
 
         if background_zone is not None:
-            mmax = background_zone[attribute_map['mmax'][0]].toDouble()[0]
-            mcdist = str(
-                background_zone[attribute_map['mcdist'][0]].toString())
+            # leave values as QVariant
+            mmax = background_zone[attribute_map['mmax'][0]]
+            mcdist = background_zone[attribute_map['mcdist'][0]]
             zone_data = [mmax, mcdist]
         else:
             zone_data = [None, None]

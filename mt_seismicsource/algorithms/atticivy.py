@@ -54,6 +54,10 @@ ATTICIVY_RESULT_FILE = '%s_out.txt' % ATTICIVY_ZONE_FILE[0:-4]
 # 0: use default (1000 iterations)
 ATTICIVY_BOOTSTRAP_ITERATIONS = 0
 
+ATTICIVY_EMPTY_ZONE = """# Mmax.....: 0
+# Mmax.....: 0
+"""
+
 ATTICIVY_MISSING_ZONE_PARAMETERS_MMAX = """# Mmax.....:  2
  5.5   0.5
  6.5   0.5
