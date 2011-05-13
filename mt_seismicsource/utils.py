@@ -61,17 +61,32 @@ def computeActivityMaxLikelihood(zones, catalog):
 
 # Misc. QGis/Shapely featutes
 
-def featureCount(layer_provider, checkGeometry=False):
-    if checkGeometry is False:
-        return layer_provider.featureCount()
+def featureCount(layer, checkGeometry=False):
+    """Get number of features in layer provider, or selected features.
+
+    layer: can be of type QGis provider, or of type list
+    """
+
+    if isinstance(layer, list):
+        if checkGeometry is False:
+            return len(layer)
+        else:
+            counter = 0
+            for feature in layer:
+                if verticesOuterFromQGSPolygon(feature) is not None:
+                    counter += 1
+            return counter
     else:
-        counter = 0
-        layer_provider.rewind()
-        for feature in layer_provider:
-            if verticesOuterFromQGSPolygon(feature) is not None:
-                counter += 1
-        layer_provider.rewind()
-        return counter
+        if checkGeometry is False:
+            return layer.featureCount()
+        else:
+            counter = 0
+            layer.rewind()
+            for feature in layer:
+                if verticesOuterFromQGSPolygon(feature) is not None:
+                    counter += 1
+            layer.rewind()
+            return counter
 
 def walkValidPolygonFeatures(provider):
     """Generator that yields index and feature for polygon layer, skips

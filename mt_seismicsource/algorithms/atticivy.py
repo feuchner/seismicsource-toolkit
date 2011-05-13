@@ -79,28 +79,27 @@ B prior and weight
 ZONE_ATTRIBUTES = (features.AREA_SOURCE_ATTR_MMAX,
     features.AREA_SOURCE_ATTR_MCDIST)
 
-def assignActivityAtticIvy(provider, catalog):
+def assignActivityAtticIvy(layer, catalog):
     """Compute activity with Roger Musson's AtticIvy code and assign a and
     b values to each area source zone.
 
     Input:
-        provider    QGis layer provider for zone features
+        layer       QGis layer with area zone features
         catalog     earthquake catalog as QuakePy object
     """
 
     # get attribute indexes
-    provider.select()
+    provider = layer.dataProvider()
+    fts = layer.selectedFeatures()
+
     attribute_map = utils.getAttributeIndex(provider, 
         features.AREA_SOURCE_ATTRIBUTES_AB_RM, create=True)
 
-    provider.rewind()
-    activity = computeActivityAtticIvy(provider, catalog)
+    activity = computeActivityAtticIvy(layer, catalog)
 
     # assemble value dict
     values = {}
-    provider.rewind()
-    for zone_idx, zone in utils.walkValidPolygonFeatures(provider):
-
+    for zone_idx, zone in enumerate(fts):
         attributes = {}
         for attr_idx, attr_dict in enumerate(
             features.AREA_SOURCE_ATTRIBUTES_AB_RM):
@@ -123,18 +122,20 @@ def assignActivityAtticIvy(provider, catalog):
 
     return None
 
-def computeActivityAtticIvy(zones, catalog, Mmin=ATTICIVY_MMIN):
+def computeActivityAtticIvy(layer, catalog, Mmin=ATTICIVY_MMIN):
     """Computes a-and b values using Roger Musson's AtticIvy code for
     a set of source zone polygons.
     
     Input: 
-        zones       QGis layer provider for zone features
+        layer       QGis layer for zone features
         catalog     earthquake catalog as QuakePy object
 
     Output: 
         list of (a, b) pairs
     """
     
+    fts = layer.selectedFeatures()
+
     # create temp dir for computation
     temp_dir_base = os.path.dirname(__file__)
     temp_dir = tempfile.mkdtemp(dir=temp_dir_base)
@@ -142,7 +143,7 @@ def computeActivityAtticIvy(zones, catalog, Mmin=ATTICIVY_MMIN):
     # NOTE: cannot use full file names, since they can be only 30 chars long
     # write zone data to temp file in AtticIvy format
     zone_file_path = os.path.join(temp_dir, ATTICIVY_ZONE_FILE)
-    writeZones2AtticIvy(zones, zone_file_path, Mmin)
+    writeZones2AtticIvy(layer, zone_file_path, Mmin)
 
     # write catalog to temp file in AtticIvy format
     catalog_file_path = os.path.join(temp_dir, ATTICIVY_CATALOG_FILE)
@@ -172,30 +173,29 @@ def computeActivityAtticIvy(zones, catalog, Mmin=ATTICIVY_MMIN):
 
     return activity_list
 
-def writeZones2AtticIvy(zones, path, Mmin):
+def writeZones2AtticIvy(layer, path, Mmin):
     """Write AtticIvy zone file.
 
     Input:
-        zones   QGis layer provider for zone features
+        layer   QGis layer for zone features
     """
 
+    provider = layer.dataProvider()
+    fts = layer.selectedFeatures()
+
     # get attribute indices for mmax and mcdist
-    zones.select()
-    zones.rewind()
-    attribute_map = utils.getAttributeIndex(zones, ZONE_ATTRIBUTES)
+    attribute_map = utils.getAttributeIndex(provider, ZONE_ATTRIBUTES)
 
     # open file for writing
     with open(path, 'w') as fh:
 
         # write header
         fh.write('Mmin.......:%3.1f\n' % ATTICIVY_MMIN)
-        fh.write('# zones....:%3i\n' % utils.featureCount(zones, 
+        fh.write('# zones....:%3i\n' % utils.featureCount(fts, 
             checkGeometry=True))
         
         # loop over zones
-        zones.select()
-        zones.rewind()
-        for curr_zone_idx, curr_zone in utils.walkValidPolygonFeatures(zones):
+        for curr_zone_idx, curr_zone in enumerate(fts):
 
             # get geometry
             vertices = utils.verticesOuterFromQGSPolygon(curr_zone)

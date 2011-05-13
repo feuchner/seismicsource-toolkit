@@ -520,9 +520,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.activityLEDLabel.setText('Computing...')
         self.btnAtticIvy.setEnabled(False)
 
-        pr = self.area_source_layer.dataProvider()
-        pr.select()
-        atticivy_result = atticivy.assignActivityAtticIvy(pr, self.catalog)
+        #pr = self.area_source_layer.dataProvider()
+        #pr.select()
+        atticivy_result = atticivy.assignActivityAtticIvy(
+            self.area_source_layer, self.catalog)
 
         self.activityLED.setColor(QColor(0, 255, 0))
         self.activityLEDLabel.setText('Idle')
