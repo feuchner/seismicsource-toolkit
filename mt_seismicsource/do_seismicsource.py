@@ -516,12 +516,14 @@ class SeismicSource(QDialog, Ui_SeismicSource):
     def computeAtticIvy(self):
         """Compute activity with AtticIvy code."""
 
+        if not utils.check_at_least_one_feature_selected(
+            self.area_source_layer):
+            return
+
         self.activityLED.setColor(QColor(255, 0, 0))
         self.activityLEDLabel.setText('Computing...')
         self.btnAtticIvy.setEnabled(False)
 
-        #pr = self.area_source_layer.dataProvider()
-        #pr.select()
         atticivy_result = atticivy.assignActivityAtticIvy(
             self.area_source_layer, self.catalog)
 
@@ -531,6 +533,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
     def computeRecurrence(self):
         """Compute recurrence with Bungum code."""
+
+        if not utils.check_at_least_one_feature_selected(
+            self.fault_source_layer):
+            return
 
         self.recurrenceLED.setColor(QColor(255, 0, 0))
         self.recurrenceLEDLabel.setText('Computing...')

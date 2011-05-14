@@ -261,6 +261,28 @@ def writeLayerToShapefile(layer, path, crs, encoding=SHAPEFILE_ENCODING):
         QMessageBox.warning(None, "Error writing shapefile", 
             "Error %s: Cannot write layer to shapefile: %s" % (error, path))
 
+def check_only_one_feature_selected(layer):
+    """Display a warning box if no feature or more than one feature
+    is selected."""
+    feature_count = featureCount(layer.selectedFeatures())
+    if feature_count == 0:
+        warning_box_no_feature_selected()
+        return False
+    elif feature_count > 0:
+        warning_box_more_than_one_feature_selected()
+        return False
+    else:
+        return True
+
+def check_at_least_one_feature_selected(layer):
+    """Display a warning box if no feature is selected."""
+    feature_count = featureCount(layer.selectedFeatures())
+    if feature_count == 0:
+        warning_box_no_feature_selected()
+        return False
+    else:
+        return True
+
 def warning_box_missing_layer_file(filename):
     QMessageBox.warning(None, "File not found", 
         "Layer file not found: %s" % os.path.basename(filename))
@@ -269,3 +291,13 @@ def warning_box_broken_area_features(broken_features):
      QMessageBox.warning(None, "Broken features", 
         "IDs of broken features:\n %s" % " ".join(
         [str(x) for x in broken_features]))
+
+def warning_box_no_feature_selected():
+    QMessageBox.warning(None, "No feature selected", 
+    "Please select a feature")
+
+def warning_box_more_than_one_feature_selected():
+    QMessageBox.warning(None, "Too many features selected", 
+    "Please select one and only one feature")
+
+
