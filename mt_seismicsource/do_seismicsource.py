@@ -40,6 +40,7 @@ import QPCatalog
 import qpplot
 
 from algorithms import atticivy
+#from algorithms import momentrate
 from algorithms import recurrence
 import do_plotwindow
 import layers
@@ -57,9 +58,8 @@ BACKGROUND_FILE = 'world.shp'
 
 MIN_EVENTS_FOR_GR = 10
 
-(AREA_ZONE_TABLE_ID_IDX, AREA_ZONE_TABLE_NAME_IDX, AREA_ZONE_TABLE_EQCTR_IDX, 
-    AREA_ZONE_TABLE_BVALDEF_IDX, AREA_ZONE_TABLE_BVAL_IDX, 
-    AREA_ZONE_TABLE_AVAL_IDX) = range(6)
+(MOMENT_TABLE_EQ_IDX, MOMENT_TABLE_SEISMICITY_IDX,
+    MOMENT_TABLE_STRAIN_IDX) = range(3)
 
 (FAULT_ZONE_TABLE_ID_IDX, FAULT_ZONE_TABLE_NAME_IDX, 
     FAULT_ZONE_TABLE_ACTIVITY_MIN_IDX, 
@@ -92,9 +92,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         QObject.connect(self.btnLoadData, SIGNAL("clicked()"), 
             self.loadDataLayers)
 
-        # Button: display area zone values
-        QObject.connect(self.btnComputeAreaZoneValues, SIGNAL("clicked()"), 
-            self.updateAreaZoneValues)
+        # Button: compute moment rate
+        QObject.connect(self.btnComputeMomentRate, SIGNAL("clicked()"), 
+            self.updateMomentRateValues)
 
         # Button: display fault zone values
         QObject.connect(self.btnComputeFaultZoneValues, SIGNAL("clicked()"), 
@@ -179,11 +179,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.fault_source_layer = faultsource.loadFaultSourceLayer(self)
         self.catalog_layer = eqcatalog.loadEQCatalogLayer(self)
 
-    def updateAreaZoneValues(self):
-        """Update a and b values for selected area zones."""
-
-        # self._filterEventsFromSelection()
-        self._updateAreaZoneTable()
+    def updateMomentRateValues(self):
+        """Update values in moment rate table/plot, if other area zone has
+        been selected, or zone attributes have been changed."""
+        pass
 
     def updateFaultZoneValues(self):
         """Update table display for selected fault zones."""
@@ -193,7 +192,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
     def updateFMD(self):
         """Update FMD display for one selected area zone in zone table."""
 
-        selected_features = self.zoneAreaTable.selectedItems()
+        # selected_features = self.zoneAreaTable.selectedItems()
 
         if len(selected_features) == 0:
             QMessageBox.warning(None, "No zone selected", 
@@ -338,77 +337,6 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             "Selected area zones: %s" % len(features_selected))
         self.labelSelectedEvents.setText(
             "Selected events: %s" % self.catalog_selected.size())
-
-    def _updateAreaZoneTable(self):
-        """Update table of area source zones with computed values."""
-
-        # reset table rows to number of zones
-        feature_count = len(self.area_source_layer.selectedFeatures())
-        self.zoneAreaTable.clearContents()
-
-        if feature_count > 0:
-            self.zoneAreaTable.setRowCount(feature_count)
-
-            # get attribute indexes
-            attr_idx = {'ssid': None, 'ssshortnam': None, 'ssmfdvalb': None}
-            pr = self.area_source_layer.dataProvider()
-        
-            # if attribute name is not found, -1 is returned
-            for curr_attr in attr_idx:
-                attr_idx[curr_attr] = pr.fieldNameIndex(curr_attr)
-
-            # create mapping from feature id to index
-            self.area_zone_feature_map = {}
-
-            for feature_idx, feature in enumerate(
-                self.area_source_layer.selectedFeatures()):
-
-                fmd = self._computeZoneFMD(feature)
-
-                if attr_idx['ssid'] != -1:
-                    feature_id = \
-                        str(feature.attributeMap()[attr_idx['ssid']].toString())
-                else:
-                    feature_id = str(feature.id())
-
-                if attr_idx['ssshortnam'] != -1:
-                    feature_name = \
-                feature.attributeMap()[attr_idx['ssshortnam']].toString()
-                else:
-                    feature_name = "-"
-
-                if attr_idx['ssmfdvalb'] != -1:
-                    feature_bdef = \
-                feature.attributeMap()[attr_idx['ssmfdvalb']].toString()
-                else:
-                    feature_bdef = "-"
-
-                self.zoneAreaTable.setItem(feature_idx, 
-                    AREA_ZONE_TABLE_ID_IDX,
-                    QTableWidgetItem(QString("%s" % feature_id)))
-
-                self.zoneAreaTable.setItem(feature_idx, 
-                    AREA_ZONE_TABLE_NAME_IDX, 
-                    QTableWidgetItem(QString("%s" % feature_name)))
-
-                self.zoneAreaTable.setItem(feature_idx, 
-                    AREA_ZONE_TABLE_EQCTR_IDX,
-                    QTableWidgetItem(QString("%s" % fmd.GR['magCtr'])))
-
-                self.zoneAreaTable.setItem(feature_idx, 
-                    AREA_ZONE_TABLE_BVALDEF_IDX,
-                    QTableWidgetItem(QString("%s" % feature_bdef)))
-
-                self.zoneAreaTable.setItem(feature_idx, 
-                    AREA_ZONE_TABLE_BVAL_IDX,
-                    QTableWidgetItem(QString("%.2f" % fmd.GR['bValue'])))
-
-                self.zoneAreaTable.setItem(feature_idx, 
-                    AREA_ZONE_TABLE_AVAL_IDX,
-                    QTableWidgetItem(QString("%.2f" % fmd.GR['aValue'])))
-
-                self.area_zone_feature_map[feature_id] = feature_idx
-
 
     def _updateFaultZoneTable(self):
         """Update table of fault zones."""
