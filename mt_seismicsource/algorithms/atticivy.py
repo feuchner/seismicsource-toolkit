@@ -101,18 +101,22 @@ def assignActivityAtticIvy(layer, catalog):
     values = {}
     for zone_idx, zone in enumerate(fts):
         attributes = {}
+        skipZone = False
         for attr_idx, attr_dict in enumerate(
             features.AREA_SOURCE_ATTRIBUTES_AB_RM):
             (curr_idx, curr_type) = attribute_map[attr_dict['name']]
             try:
                 attributes[curr_idx] = QVariant(activity[zone_idx][attr_idx])
             except Exception, e:
-                error_str = \
-        "error in attribute: curr_idx: %s, zone_idx: %s, attr_idx: %s, %s" % (
-                    curr_idx, zone_idx, attr_idx, e)
-                raise RuntimeError, error_str
+                skipZone = True
+                break
+                #error_str = \
+        #"error in attribute: seq_idx: %s, zone_idx: %s, attr_idx: %s, %s" % (
+                    #curr_idx, zone_idx, attr_idx, e)
+                #raise RuntimeError, error_str
 
-        values[zone.id()] = attributes
+        if skipZone is False:
+            values[zone.id()] = attributes
 
     try:
         provider.changeAttributeValues(values)
