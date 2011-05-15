@@ -125,6 +125,11 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.fmd_canvas = None
         self.fmd_toolbar = None
 
+        # Moment rate comparison plot window
+        self.fig_moment_rate_comparison = None
+        self.canvas_moment_rate_comparison = None
+        self.toolbar_moment_rate_comparison = None
+
         # layers
         self.background_layer = None
 
@@ -265,7 +270,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             imgfile=None, fmdtype='cumulative', 
             normalize=self.checkBoxGRAnnualRate.isChecked())
 
-        self.fmd_canvas = plots.FMDCanvas(self.figures['fmd']['fig'])
+        self.fmd_canvas = plots.PlotCanvas(self.figures['fmd']['fig'], 
+            title="FMD")
         self.fmd_canvas.draw()
 
         # FMD plot window, re-populate layout
@@ -293,8 +299,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.figures['recurrence']['fig'] = plot.plot(imgfile=None, 
             data=distrodata)
 
-        self.fmd_canvas = plots.RecurrenceCanvas(
-            self.figures['recurrence']['fig'])
+        self.fmd_canvas = plots.PlotCanvas(self.figures['recurrence']['fig'],
+            title="Recurrence")
         self.fmd_canvas.draw()
 
         # FMD plot window, re-populate layout
@@ -584,7 +590,22 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             "%s" % moment_rates['strain'])))
 
     def _updateMomentRatePlot(self, moment_rates):
-        pass
+
+        # TODO(fab): remove old plot canvas
+
+        # new moment rate plot
+        self.fig_moment_rate_comparison = plots.MomentRateComparisonPlot()
+        self.fig_moment_rate_comparison = self.fig_moment_rate_comparison.plot(
+            imgfile=None, data=moment_rates)
+
+        self.canvas_moment_rate_comparison = plots.PlotCanvas(self.fig_moment_rate_comparison, 
+            title="Seismic Moment Rates")
+        self.canvas_moment_rate_comparison.draw()
+
+        # plot widget
+        self.layoutPlotMomentRate.addWidget(self.canvas_moment_rate_comparison)
+        #self.fmd_toolbar = self._createFMDToolbar(self.canvas_moment_rate_comparison, window)
+        #window.layoutPlot.addWidget(self.fmd_toolbar)
 
     def createPlotWindow(self):
         """Create new plot window dialog."""

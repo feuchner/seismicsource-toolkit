@@ -35,7 +35,7 @@ from PyQt4.QtGui import *
 
 from qgis.core import *
 
-# import QPCatalog
+import qpplot
 
 try:
     from matplotlib.backends.backend_qt4agg \
@@ -73,37 +73,60 @@ class MCanvas(FigureCanvas):
     def compute_initial_figure(self):
         pass
 
+class PlotCanvas(MCanvas):
+    """Canvas for 2-d plots."""
 
-class FMDCanvas(MCanvas):
-    """Canvas for FMD plot."""
-
-    def __init__(self, fig=None, *args, **kwargs):
+    def __init__(self, fig=None, title=None, *args, **kwargs):
         MCanvas.__init__(self, fig, *args, **kwargs)
 
         if fig is not None:
-            self.update_figure(fig)
+            self.update_figure(fig, title)
 
-    def update_figure(self, fig):
+    def update_figure(self, fig, title=None):
         """Update canvas with plot of new FMD object."""
 
         fp = FontManager.FontProperties()
-        self.fig.suptitle('FMD', fontproperties=fp)
+
+        if title is not None:
+            self.fig.suptitle(title, fontproperties=fp)
 
         self.draw()
 
-class RecurrenceCanvas(MCanvas):
-    """Canvas for recurrence FMD plot."""
+class MomentRateComparisonPlot(qpplot.QPPlot):
+    """Plot for comparing several computations of seismic moment rate."""
 
-    def __init__(self, fig=None, *args, **kwargs):
-        MCanvas.__init__(self, fig, *args, **kwargs)
+    def plot( self, imgfile, data, **kwargs ):
+        """Plot cumulative occurrence rate vs. magnitude.
 
-        if fig is not None:
-            self.update_figure(fig)
+        Input:
+            data        dict of abscissa values (or lists of abscissa values)
+                        key 'eq': from EQs
+                        key 'activity': from activity (RM code, AtticIvy)
+                        key 'strain': from strain
+        """
+        if 'backend' in kwargs and kwargs['backend'] != self.backend:
+            self.__init__(backend=kwargs['backend'])
+    
+        self.pyplot.clf()
+        
+        symbol_style = 'ks' # black solid square
+        
+        ax = self.figure.add_subplot(111)
 
-    def update_figure(self, fig):
-        """Update canvas with plot of new recurrence FMD object."""
+        for key_idx, key in enumerate(('eq', 'activity', 'strain')):
 
-        fp = FontManager.FontProperties()
-        self.fig.suptitle('Recurrence', fontproperties=fp)
+            if isinstance(data[key], list):
+                ordinate_length = len(data[key])
+                abscissa = data[key]
+            else:
+                ordinate_length = 1
+                abscissa = [data[key], ]
 
-        self.draw()
+            ordinate = [key_idx+1] * ordinate_length
+            self.pyplot.plot( abscissa, ordinate, symbol_style )
+
+        # TODO(fab): set x, y axis range
+        self.pyplot.xlabel( 'Annual Seismic Moment Rate' )
+        #self.pyplot.ylabel( '' )
+
+        return self.return_image(imgfile)
