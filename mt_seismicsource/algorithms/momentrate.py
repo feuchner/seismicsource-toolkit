@@ -63,3 +63,23 @@ def magnitude2moment(magnitudes):
     # ln(M_0) = C + D * M 
     moments = numpy.array(magnitudes) * CONST_KANAMORI_D + CONST_KANAMORI_C
     return moments.tolist()
+
+def momentrateFromActivity(activity_a, activity_b):
+    """Compute seismic moment rate from pairs of activity (a, b) values.
+
+    Input:
+        activity_a      list of activity a values
+        activity_b      list of activity b values
+
+    Output:
+        momentrates     list of moment rates
+    """
+
+    momentrates = []
+
+    a = numpy.array(activity_a)
+    b = numpy.array(activity_b)
+
+    mr = a + b
+
+    return mr.tolist()

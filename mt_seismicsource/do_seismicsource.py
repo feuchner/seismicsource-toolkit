@@ -48,6 +48,7 @@ from layers import areasource
 from layers import background
 from layers import faultsource
 from layers import eqcatalog
+import features
 import plots
 import utils
 
@@ -499,15 +500,17 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         Output:
             moment_rates    dict of computed moment rates
         """
-        moment_rates = {}
 
-        ## from EQs
+        provider = self.area_source_layer.dataProvider()
+        moment_rates = {}
 
         # get Shapely polygon from feature geometry
         poly, vertices = utils.polygonsQGS2Shapely((feature,))
 
         # get polygon area in square kilometres
         area_sqkm = utils.polygonAreaFromWGS84(poly[0]) * 1.0e-6
+
+        ## moment rate from EQs
 
         # get quakes from catalog (cut with polygon)
         curr_cat = QPCatalog.QPCatalog()
@@ -527,21 +530,49 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         moment_rates['eq'] = moment.sum() / (
             area_sqkm * eqcatalog.CATALOG_TIME_SPAN)
 
-        ## from activity (RM)
+        ## moment rate from activity (RM)
 
-        ## from geodesy (strain)
+        # get attribute index of AtticIvy result
+        attribute_map = utils.getAttributeIndex(provider, 
+            (features.AREA_SOURCE_ATTR_ACTIVITY_RM, ))
+        attribute_name = features.AREA_SOURCE_ATTR_ACTIVITY_RM['name']
+        attribute_idx = attribute_map[attribute_name][0]
+
+        # get RM (weight, a, b) values from feature attribute
+        activity_str = str(feature[attribute_idx].toString())
+        activity_arr = activity_str.strip().split()
+
+        # ignore weights
+        activity_a = [float(x) for x in activity_arr[1::3]]
+        activity_b = [float(x) for x in activity_arr[2::3]]
+
+        momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
+            activity_a, activity_b)) / (
+            area_sqkm * eqcatalog.CATALOG_TIME_SPAN)
+
+        moment_rates['activity'] = momentrates_arr.tolist()
+
+        ## moment rate from geodesy (strain)
 
         return moment_rates
 
     def _updateMomentRateTable(self, moment_rates):
         self.momentRateTable.clearContents()
 
-        # from EQs
+        ## from EQs
         self.momentRateTable.setItem(0, 0, QTableWidgetItem(QString(
             "%.2e" % moment_rates['eq'])))
 
         ## from activity (RM)
-        self.momentRateTable.setItem(0, 1, QTableWidgetItem(QString("--")))
+        
+        # get maximum likelihood value from central line of table
+        
+        ml_idx = len(moment_rates['activity']) / 2
+        mr_ml = moment_rates['activity'][ml_idx]
+        QMessageBox.information(None, "Foo", "%s %s %s" % (
+            ml_idx, mr_ml, moment_rates['activity']))
+        self.momentRateTable.setItem(0, 1, QTableWidgetItem(QString(
+            "%.2e" % mr_ml)))
 
         ## from geodesy (strain)
         self.momentRateTable.setItem(0, 2, QTableWidgetItem(QString("--")))
