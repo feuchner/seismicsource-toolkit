@@ -25,21 +25,8 @@ Author: Fabian Euchner, fabian@sed.ethz.ch
 ############################################################################
 
 import numpy
-import os
-import shutil
-import stat
-import subprocess
-import tempfile
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-
-from qgis.core import *
-
-from mt_seismicsource import features
-from mt_seismicsource import utils
-
-# Kanamori formula as given in Bungum paper (Table 1, line 7)
+# Kanamori equation as given in Bungum paper (Table 1, line 7)
 # See: Bungum (2007) Computers & Geosciences, 33, 808--820
 #      doi:10.1016/j.cageo.2006.10.011
 CONST_KANAMORI_C = 16.05
@@ -47,6 +34,8 @@ CONST_KANAMORI_D = 1.5
 
 # shear modulus (mu, rigidity) for all faults, in GPa
 SHEAR_MODULUS = 3.0e07
+
+MMIN_MOMENTRATE_FROM_ACTIVITY = 5.0
 
 def magnitude2moment(magnitudes):
     """Compute seismic moment from magnitudes (Mw), acoording to Kanamori
@@ -64,22 +53,26 @@ def magnitude2moment(magnitudes):
     moments = numpy.array(magnitudes) * CONST_KANAMORI_D + CONST_KANAMORI_C
     return moments.tolist()
 
-def momentrateFromActivity(activity_a, activity_b):
+def momentrateFromActivity(activity_a, activity_b, mmax):
     """Compute seismic moment rate from pairs of activity (a, b) values.
 
     Input:
         activity_a      list of activity a values
         activity_b      list of activity b values
+        mmax            maximum magnitude
 
     Output:
-        momentrates     list of moment rates
+        mr               list of moment rates
     """
-
-    momentrates = []
 
     a = numpy.array(activity_a)
     b = numpy.array(activity_b)
 
-    mr = a + b
+    a_incremental = a + numpy.log10(b * numpy.log(10.0))
+
+    moment_rate_factor = numpy.power(10, a_incremental + 9.05) / (1.5 - b)
+    moment_rate_s1 = numpy.power(10, mmax * (1.5 - b))
+    moment_rate_s2 = numpy.power(10, MMIN_MOMENTRATE_FROM_ACTIVITY * (1.5 - b))
+    mr = moment_rate_factor * (moment_rate_s1 - moment_rate_s2)
 
     return mr.tolist()

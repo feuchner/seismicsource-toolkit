@@ -534,20 +534,24 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         # get attribute index of AtticIvy result
         attribute_map = utils.getAttributeIndex(provider, 
-            (features.AREA_SOURCE_ATTR_ACTIVITY_RM, ))
-        attribute_name = features.AREA_SOURCE_ATTR_ACTIVITY_RM['name']
-        attribute_idx = attribute_map[attribute_name][0]
+            (features.AREA_SOURCE_ATTR_ACTIVITY_RM, 
+             features.AREA_SOURCE_ATTR_MMAX))
+        attribute_act_name = features.AREA_SOURCE_ATTR_ACTIVITY_RM['name']
+        attribute_act_idx = attribute_map[attribute_act_name][0]
+        attribute_mmax_name = features.AREA_SOURCE_ATTR_MMAX['name']
+        attribute_mmax_idx = attribute_map[attribute_mmax_name][0]
 
         # get RM (weight, a, b) values from feature attribute
-        activity_str = str(feature[attribute_idx].toString())
+        activity_str = str(feature[attribute_act_idx].toString())
         activity_arr = activity_str.strip().split()
 
         # ignore weights
         activity_a = [float(x) for x in activity_arr[1::3]]
         activity_b = [float(x) for x in activity_arr[2::3]]
+        mmax = float(feature[attribute_mmax_idx].toDouble()[0])
 
         momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
-            activity_a, activity_b)) / (
+            activity_a, activity_b, mmax)) / (
             area_sqkm * eqcatalog.CATALOG_TIME_SPAN)
 
         moment_rates['activity'] = momentrates_arr.tolist()
@@ -566,11 +570,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         ## from activity (RM)
         
         # get maximum likelihood value from central line of table
-        
         ml_idx = len(moment_rates['activity']) / 2
         mr_ml = moment_rates['activity'][ml_idx]
-        QMessageBox.information(None, "Foo", "%s %s %s" % (
-            ml_idx, mr_ml, moment_rates['activity']))
         self.momentRateTable.setItem(0, 1, QTableWidgetItem(QString(
             "%.2e" % mr_ml)))
 
