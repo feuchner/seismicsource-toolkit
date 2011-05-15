@@ -558,6 +558,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         ## moment rate from geodesy (strain)
 
+        # cut polygon out of strain raster data set
+        # add up values of nodes
+        moment_rates['strain'] = numpy.nan
+
         return moment_rates
 
     def _updateMomentRateTable(self, moment_rates):
@@ -576,7 +580,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             "%.2e" % mr_ml)))
 
         ## from geodesy (strain)
-        self.momentRateTable.setItem(0, 2, QTableWidgetItem(QString("--")))
+        self.momentRateTable.setItem(0, 2, QTableWidgetItem(QString(
+            "%s" % moment_rates['strain'])))
 
     def _updateMomentRatePlot(self, moment_rates):
         pass
