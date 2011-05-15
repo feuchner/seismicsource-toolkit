@@ -44,6 +44,8 @@ CATALOG_FILES = (
     'cenec-zmap.dat', 
     'SHARE_20110311.dat.gz')
 
+CATALOG_TIME_SPAN = 1006.0
+
 def loadEQCatalogLayer(cls):
     """Load EQ catalog layer from ASCII catalog file. 
     Add required feature attributes if they are missing.

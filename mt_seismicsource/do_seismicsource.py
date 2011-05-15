@@ -40,7 +40,7 @@ import QPCatalog
 import qpplot
 
 from algorithms import atticivy
-#from algorithms import momentrate
+from algorithms import momentrate
 from algorithms import recurrence
 import do_plotwindow
 import layers
@@ -182,7 +182,15 @@ class SeismicSource(QDialog, Ui_SeismicSource):
     def updateMomentRateValues(self):
         """Update values in moment rate table/plot, if other area zone has
         been selected, or zone attributes have been changed."""
-        pass
+
+        if not utils.check_only_one_feature_selected(self.area_source_layer):
+            return
+
+        selected_feature = self.area_source_layer.selectedFeatures()[0]
+
+        moment_rates = self._updateMomentRates(selected_feature)
+        self._updateMomentRateTable(moment_rates)
+        self._updateMomentRatePlot(moment_rates)
 
     def updateFaultZoneValues(self):
         """Update table display for selected fault zones."""
@@ -480,6 +488,66 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.recurrenceLED.setColor(QColor(0, 255, 0))
         self.recurrenceLEDLabel.setText('Idle')
         self.btnRecurrence.setEnabled(True)
+
+    def _updateMomentRates(self, feature):
+        """Update or compute moment rates for selected feature of area source
+        zone layer.
+
+        Input:
+            feature     QGis polygon feature from area source layer
+        
+        Output:
+            moment_rates    dict of computed moment rates
+        """
+        moment_rates = {}
+
+        ## from EQs
+
+        # get Shapely polygon from feature geometry
+        poly, vertices = utils.polygonsQGS2Shapely((feature,))
+
+        # get polygon area in square kilometres
+        area_sqkm = utils.polygonAreaFromWGS84(poly[0]) * 1.0e-6
+
+        # get quakes from catalog (cut with polygon)
+        curr_cat = QPCatalog.QPCatalog()
+        curr_cat.merge(self.catalog)
+        curr_cat.cut(geometry=poly[0])
+
+        # sum up moment from quakes (converted from Mw with Kanamori eq.)
+        magnitudes =[]
+        for ev in curr_cat.eventParameters.event:
+            mag = ev.getPreferredMagnitude()
+            magnitudes.append(mag.mag.value)
+
+        moment = numpy.array(momentrate.magnitude2moment(magnitudes))
+
+        # scale moment: per year and area (in km^2)
+        # TODO(fab): compute real catalog time span
+        moment_rates['eq'] = moment.sum() / (
+            area_sqkm * eqcatalog.CATALOG_TIME_SPAN)
+
+        ## from activity (RM)
+
+        ## from geodesy (strain)
+
+        return moment_rates
+
+    def _updateMomentRateTable(self, moment_rates):
+        self.momentRateTable.clearContents()
+
+        # from EQs
+        self.momentRateTable.setItem(0, 0, QTableWidgetItem(QString(
+            "%.2e" % moment_rates['eq'])))
+
+        ## from activity (RM)
+        self.momentRateTable.setItem(0, 1, QTableWidgetItem(QString("--")))
+
+        ## from geodesy (strain)
+        self.momentRateTable.setItem(0, 2, QTableWidgetItem(QString("--")))
+
+    def _updateMomentRatePlot(self, moment_rates):
+        pass
 
     def createPlotWindow(self):
         """Create new plot window dialog."""

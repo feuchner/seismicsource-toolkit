@@ -42,6 +42,8 @@ import features
 
 SHAPEFILE_ENCODING = "UTF-8"
 
+EARTH_CIRCUMFERENCE_EQUATORIAL_KM = 40075.017
+
 # maximum likelihood a- and b-values, as implemented in ZMAP
 
 def assignActivityMaxLikelihood():
@@ -255,6 +257,26 @@ def shp2memory(layer, name):
     mem_layer.updateExtents()
     return mem_layer
 
+def polygonAreaFromWGS84(polygon):
+    """Compute area of polygon given in WGS84 lon/lat converted
+    to square metres.
+
+    Input:
+        polygon     Shapely polygon
+
+    Output:
+        area        Polygon area in square metres
+    """
+    poly_area_deg = polygon.area
+    poly_center = polygon.centroid
+
+    # get coordinates of polygon centre
+    area = poly_area_deg * \
+        numpy.power((EARTH_CIRCUMFERENCE_EQUATORIAL_KM * 1000 / 360.0), 2) * \
+        numpy.cos(numpy.pi * float(poly_center.y) / 180.0)
+
+    return area
+
 def writeLayerToShapefile(layer, path, crs, encoding=SHAPEFILE_ENCODING):
     error = QgsVectorFileWriter.writeAsShapefile(layer, path, encoding, crs)
     if error != QgsVectorFileWriter.NoError:
@@ -268,7 +290,7 @@ def check_only_one_feature_selected(layer):
     if feature_count == 0:
         warning_box_no_feature_selected()
         return False
-    elif feature_count > 0:
+    elif feature_count > 1:
         warning_box_more_than_one_feature_selected()
         return False
     else:
