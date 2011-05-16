@@ -276,7 +276,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         # FMD plot window, re-populate layout
         window.layoutPlot.addWidget(self.fmd_canvas)
-        self.fmd_toolbar = self._createFMDToolbar(self.fmd_canvas, window)
+        self.fmd_toolbar = plots.createToolbar(self.fmd_canvas, window)
         window.layoutPlot.addWidget(self.fmd_toolbar)
 
     def _plotRecurrence(self, feature):
@@ -305,14 +305,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         # FMD plot window, re-populate layout
         window.layoutPlot.addWidget(self.fmd_canvas)
-        self.fmd_toolbar = self._createFMDToolbar(self.fmd_canvas, window)
+        self.fmd_toolbar = plots.createToolbar(self.fmd_canvas, window)
         window.layoutPlot.addWidget(self.fmd_toolbar)
-
-    def _createFMDToolbar(self, canvas, widget):
-        toolbar = NavigationToolbar(canvas, widget)
-        lstActions = toolbar.actions()
-        toolbar.removeAction(lstActions[7])
-        return toolbar
         
     def _filterEventsFromSelection(self):
         """Select events from EQ catalog that are within selected polygons
@@ -592,7 +586,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
     def _updateMomentRatePlot(self, moment_rates):
 
         # remove old plot widgets from layout
-        #self.layoutPlotMomentRate.removeWidget(self.canvas_moment_rate_comparison)
+        if self.toolbar_moment_rate_comparison is not None:
+            self.layoutPlotMomentRate.removeWidget(
+                self.toolbar_moment_rate_comparison)
+
         if self.canvas_moment_rate_comparison is not None:
             self.layoutPlotMomentRate.removeWidget(
                 self.canvas_moment_rate_comparison)
@@ -610,8 +607,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         # plot widget
         self.layoutPlotMomentRate.addWidget(self.canvas_moment_rate_comparison)
-        #self.fmd_toolbar = self._createFMDToolbar(self.canvas_moment_rate_comparison, window)
-        #window.layoutPlot.addWidget(self.fmd_toolbar)
+        self.toolbar_moment_rate_comparison = plots.createToolbar(
+            self.canvas_moment_rate_comparison, self.widgetMomentRate)
+        self.layoutPlotMomentRate.addWidget(
+            self.toolbar_moment_rate_comparison)
 
     def createPlotWindow(self):
         """Create new plot window dialog."""

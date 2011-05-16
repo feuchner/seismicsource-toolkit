@@ -126,7 +126,16 @@ class MomentRateComparisonPlot(qpplot.QPPlot):
             self.pyplot.plot( abscissa, ordinate, symbol_style )
 
         # TODO(fab): set x, y axis range
+        self.pyplot.ylim(0, key_idx+1)
+
+        # TODO(fab): formatting of y axis labels/caption
         self.pyplot.xlabel( 'Annual Seismic Moment Rate' )
         #self.pyplot.ylabel( '' )
 
         return self.return_image(imgfile)
+
+def createToolbar(canvas, widget):
+    toolbar = NavigationToolbar(canvas, widget)
+    lstActions = toolbar.actions()
+    toolbar.removeAction(lstActions[7])
+    return toolbar
