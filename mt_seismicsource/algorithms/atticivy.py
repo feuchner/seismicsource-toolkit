@@ -173,7 +173,7 @@ def computeActivityAtticIvy(layer, catalog, Mmin=ATTICIVY_MMIN):
     activity_list = activityFromAtticIvy(result_file_path)
 
     # remove temp file directory
-    #shutil.rmtree(temp_dir)
+    shutil.rmtree(temp_dir)
 
     return activity_list
 
