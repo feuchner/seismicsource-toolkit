@@ -53,7 +53,7 @@ def loadStrainRateData():
         for lon_idx in xrange(LON_BINS):
             for lat_idx in xrange(LAT_BINS):
 
-                line = fh.read()
+                line = fh.readline()
                 line_arr = [float(x.strip()) for x in line.strip().split()]
                 strain_values.append(line_arr)
 

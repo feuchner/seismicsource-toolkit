@@ -25,6 +25,7 @@ Author: Fabian Euchner, fabian@sed.ethz.ch
 ############################################################################
 
 import numpy
+import shapely.geometry
 
 # Kanamori equation as given in Bungum paper (Table 1, line 7)
 # See: Bungum (2007) Computers & Geosciences, 33, 808--820
@@ -76,3 +77,29 @@ def momentrateFromActivity(activity_a, activity_b, mmax):
     mr = moment_rate_factor * (moment_rate_s1 - moment_rate_s2)
 
     return mr.tolist()
+
+def momentrateFromStrainRate(poly, strain):
+    """Compute seismic moment rate from strain rate data set.
+
+    Input:
+        poly            Area zone geometry as Shapely polygon
+        strain          Strain rate dataset as list of lists
+                        [ [lon, lat, value], ...]
+
+    Output:
+        strainrate      strain rate summed over area zone
+    """
+
+    strainrate = 0.0
+
+    for (lon, lat, value) in strain:
+
+        # make Shapely point from lon, lat
+        point = shapely.geometry.Point((lon, lat))
+
+        # check if in area zone polygon
+        # if positive, sum up strain rate contribution
+        if poly.intersects(point) and value > 0.0:
+            strainrate += value
+
+    return strainrate
