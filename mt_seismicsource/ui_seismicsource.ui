@@ -413,7 +413,7 @@
      <x>320</x>
      <y>10</y>
      <width>491</width>
-     <height>351</height>
+     <height>551</height>
     </rect>
    </property>
    <widget class="QGroupBox" name="groupBoxMomentRate">
@@ -422,7 +422,7 @@
       <x>0</x>
       <y>0</y>
       <width>491</width>
-      <height>351</height>
+      <height>551</height>
      </rect>
     </property>
     <property name="title">
@@ -472,7 +472,7 @@
        <x>0</x>
        <y>140</y>
        <width>481</width>
-       <height>211</height>
+       <height>401</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="layoutPlotMomentRate"/>
@@ -509,9 +509,9 @@
    <property name="geometry">
     <rect>
      <x>320</x>
-     <y>370</y>
+     <y>570</y>
      <width>491</width>
-     <height>351</height>
+     <height>201</height>
     </rect>
    </property>
    <widget class="QTableWidget" name="zoneFaultTable">
@@ -520,7 +520,7 @@
       <x>0</x>
       <y>30</y>
       <width>491</width>
-      <height>321</height>
+      <height>161</height>
      </rect>
     </property>
     <property name="sortingEnabled">

@@ -591,14 +591,20 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
     def _updateMomentRatePlot(self, moment_rates):
 
-        # TODO(fab): remove old plot canvas
+        # remove old plot widgets from layout
+        #self.layoutPlotMomentRate.removeWidget(self.canvas_moment_rate_comparison)
+        if self.canvas_moment_rate_comparison is not None:
+            self.layoutPlotMomentRate.removeWidget(
+                self.canvas_moment_rate_comparison)
 
         # new moment rate plot
         self.fig_moment_rate_comparison = plots.MomentRateComparisonPlot()
-        self.fig_moment_rate_comparison = self.fig_moment_rate_comparison.plot(
-            imgfile=None, data=moment_rates)
+        self.fig_moment_rate_comparison = \
+            self.fig_moment_rate_comparison.plot(imgfile=None, 
+                data=moment_rates)
 
-        self.canvas_moment_rate_comparison = plots.PlotCanvas(self.fig_moment_rate_comparison, 
+        self.canvas_moment_rate_comparison = plots.PlotCanvas(
+            self.fig_moment_rate_comparison, 
             title="Seismic Moment Rates")
         self.canvas_moment_rate_comparison.draw()
 
