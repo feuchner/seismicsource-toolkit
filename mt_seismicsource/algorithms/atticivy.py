@@ -156,11 +156,14 @@ def computeActivityAtticIvy(layer, catalog, Mmin=ATTICIVY_MMIN):
     # start AtticIvy computation (subprocess)
     exec_file = os.path.basename(ATTICIVY_EXECUTABLE)
 
-    # copy executable to temp dir, set executable permissions
+    # copy executable to temp dir
     shutil.copy(ATTICIVY_EXECUTABLE, temp_dir)
-    os.chmod(os.path.join(temp_dir, exec_file), stat.S_IXUSR)
 
-    retcode = subprocess.call([exec_file, ATTICIVY_ZONE_FILE, 
+    #QMessageBox.information(None, "AtticIvy command line", 
+        #"%s: %s %s %s" % (temp_dir, "./%s" % exec_file, ATTICIVY_ZONE_FILE, 
+        #ATTICIVY_CATALOG_FILE))
+
+    retcode = subprocess.call(["./%s" % exec_file, ATTICIVY_ZONE_FILE, 
         ATTICIVY_CATALOG_FILE, str(ATTICIVY_BOOTSTRAP_ITERATIONS)], 
         cwd=temp_dir)
     
@@ -173,7 +176,7 @@ def computeActivityAtticIvy(layer, catalog, Mmin=ATTICIVY_MMIN):
     activity_list = activityFromAtticIvy(result_file_path)
 
     # remove temp file directory
-    #shutil.rmtree(temp_dir)
+    shutil.rmtree(temp_dir)
 
     return activity_list
 

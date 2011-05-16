@@ -45,8 +45,8 @@ def loadStrainRateData():
     strain_values = []
 
     path = os.path.join(layers.DATA_DIR, STRAIN_DATA_DIR, STRAIN_DATA_FILE)
-    LON_BINS = (LON_RANGE[1] - LON_RANGE[0]) / LON_RANGE[2]
-    LAT_BINS = (LAT_RANGE[1] - LAT_RANGE[0]) / LAT_RANGE[2]
+    LON_BINS = int((LON_RANGE[1] - LON_RANGE[0]) / LON_RANGE[2])
+    LAT_BINS = int((LAT_RANGE[1] - LAT_RANGE[0]) / LAT_RANGE[2])
 
     with open(path, 'r') as fh:
 
