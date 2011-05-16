@@ -33,7 +33,7 @@ CONST_KANAMORI_C = 16.05
 CONST_KANAMORI_D = 1.5
 
 # shear modulus (mu, rigidity) for all faults, in GPa
-SHEAR_MODULUS = 3.0e07
+SHEAR_MODULUS = 3.0e10
 
 MMIN_MOMENTRATE_FROM_ACTIVITY = 5.0
 

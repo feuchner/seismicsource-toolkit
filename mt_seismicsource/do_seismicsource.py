@@ -42,6 +42,7 @@ import qpplot
 from algorithms import atticivy
 from algorithms import momentrate
 from algorithms import recurrence
+from algorithms import strain
 import do_plotwindow
 import layers
 from layers import areasource
@@ -132,11 +133,13 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         # layers
         self.background_layer = None
-
         self.background_zone_layer = None
         self.area_source_layer = None
         self.fault_source_layer = None
         self.catalog_layer = None
+        
+        # additional datasets
+        self.data_strain_rate = None
 
         # prepare data load combo boxes
         self.comboBoxZoneInput.addItems(areasource.ZONE_FILES)
@@ -159,6 +162,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         self.loadBackgroundLayer()
         self.loadDefaultLayers()
+
+        self.loadAdditionalData()
 
         self.progressBarLoadData.setRange(0, 100)
         self.progressBarLoadData.setValue(100)
@@ -184,6 +189,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.area_source_layer = areasource.loadAreaSourceLayer(self)
         self.fault_source_layer = faultsource.loadFaultSourceLayer(self)
         self.catalog_layer = eqcatalog.loadEQCatalogLayer(self)
+
+    def loadAdditionalData(self):
+        self.data_strain_rate = strain.loadStrainRateData()
 
     def updateMomentRateValues(self):
         """Update values in moment rate table/plot, if other area zone has
