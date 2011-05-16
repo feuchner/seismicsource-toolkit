@@ -159,7 +159,11 @@ def computeActivityAtticIvy(layer, catalog, Mmin=ATTICIVY_MMIN):
     # copy executable to temp dir
     shutil.copy(ATTICIVY_EXECUTABLE, temp_dir)
 
-    retcode = subprocess.call([exec_file, ATTICIVY_ZONE_FILE, 
+    #QMessageBox.information(None, "AtticIvy command line", 
+        #"%s: %s %s %s" % (temp_dir, "./%s" % exec_file, ATTICIVY_ZONE_FILE, 
+        #ATTICIVY_CATALOG_FILE))
+
+    retcode = subprocess.call(["./%s" % exec_file, ATTICIVY_ZONE_FILE, 
         ATTICIVY_CATALOG_FILE, str(ATTICIVY_BOOTSTRAP_ITERATIONS)], 
         cwd=temp_dir)
     
