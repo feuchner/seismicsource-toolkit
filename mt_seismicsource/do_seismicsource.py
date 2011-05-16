@@ -559,20 +559,18 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         activity_b = [float(x) for x in activity_arr[2::3]]
         mmax = float(feature[attribute_mmax_idx].toDouble()[0])
 
+        # multiply computed value with area in square kilometres
         momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
-            activity_a, activity_b, mmax)) / (
-            area_sqkm * eqcatalog.CATALOG_TIME_SPAN)
+            activity_a, activity_b, mmax)) * area_sqkm / (
+                eqcatalog.CATALOG_TIME_SPAN)
 
         moment_rates['activity'] = momentrates_arr.tolist()
 
         ## moment rate from geodesy (strain)
-
-        # cut polygon out of strain raster data set
-        # add up values of nodes
         momentrate_strain = momentrate.momentrateFromStrainRate(poly[0], 
             self.data_strain_rate)
         moment_rates['strain'] = momentrate_strain / (
-            area_sqkm * eqcatalog.CATALOG_TIME_SPAN)
+            eqcatalog.CATALOG_TIME_SPAN)
 
         return moment_rates
 

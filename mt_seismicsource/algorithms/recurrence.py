@@ -248,9 +248,9 @@ def cumulative_occurrence_model_2(mag_arr, maxmag, sliprate, b_value,
     # and fault length. Use fixed parameter value.
     alpha = ALPHA_BUNGUM
 
-    beta_numerator = alpha * numpy.power(10, momentrate.CONST_KANAMORI_C)
+    beta_numerator = alpha * numpy.power(10, momentrate.CONST_KANAMORI_C_CGS)
 
-    # convert shear modulus from GPa (10^9 N/m^2, 10^9 kg/(m * s^2)) 
+    # convert shear modulus from Pa (N/m^2, kg/(m * s^2)) 
     # to dyn/cm^2, 1 dyn = 1 g * cm/s^2 = 10^-5 N
     # 1 GPa = 10^9 kg/(m * s^2) = 10^12 g/(m * s^2) = 10^10 g/(cm *s^2) 
     # = 10^10 dyn/cm^2
@@ -260,7 +260,7 @@ def cumulative_occurrence_model_2(mag_arr, maxmag, sliprate, b_value,
     # this with fault area (which we get from geometry), 
     # and fixed fault length/width ratio
     beta_denominator = 1.0e10 * momentrate.SHEAR_MODULUS * numpy.sqrt(
-        area_metres * 100 * 100/ FAULT_ASPECT_RATIO)
+        area_metres * 100 * 100 / FAULT_ASPECT_RATIO)
     beta = numpy.sqrt(beta_numerator / beta_denominator)
 
     # factors in Bungum eq. 7

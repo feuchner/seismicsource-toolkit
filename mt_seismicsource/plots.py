@@ -123,10 +123,11 @@ class MomentRateComparisonPlot(qpplot.QPPlot):
                 abscissa = [data[key], ]
 
             ordinate = [key_idx+1] * ordinate_length
-            self.pyplot.plot( abscissa, ordinate, symbol_style )
+            #self.pyplot.plot( abscissa, ordinate, symbol_style )
+            self.pyplot.semilogx( abscissa, ordinate, symbol_style )
 
         # TODO(fab): set x, y axis range
-        self.pyplot.ylim(0, key_idx+1)
+        self.pyplot.ylim(0.5, key_idx+1.5)
 
         # TODO(fab): formatting of y axis labels/caption
         self.pyplot.xlabel( 'Annual Seismic Moment Rate' )

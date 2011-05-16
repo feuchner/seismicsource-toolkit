@@ -27,14 +27,27 @@ Author: Fabian Euchner, fabian@sed.ethz.ch
 import numpy
 import shapely.geometry
 
-# Kanamori equation as given in Bungum paper (Table 1, line 7)
-# See: Bungum (2007) Computers & Geosciences, 33, 808--820
-#      doi:10.1016/j.cageo.2006.10.011
-CONST_KANAMORI_C = 16.05
+# Kanamori equation
+# lg(M_0) = 1.5 * m_W + 9.05
+# M_0 is in SI units: Nm = kg * m^2 / s 
+CONST_KANAMORI_C = 9.05
 CONST_KANAMORI_D = 1.5
 
-# shear modulus (mu, rigidity) for all faults, in GPa
+# Kanamori equation in CGS units, as given in Bungum paper (Table 1, line 7)
+# See: Bungum (2007) Computers & Geosciences, 33, 808--820
+#      doi:10.1016/j.cageo.2006.10.011
+# lg(M_0_CGS) = 1.5 * m_W + 16.05
+# M_0 is in CGS units: g * cm^2 / s = 10^-7 Nm
+CONST_KANAMORI_C_CGS = 16.05
+
+# shear modulus (mu, rigidity) for all faults, in Pa
 SHEAR_MODULUS = 3.0e10
+
+# cz factor according to Bird & Liu paper
+# Bird & Liu, 2007, SRL, 78(1), 37
+# use continental, strike-slip
+# unit: km
+CZ_FACTOR = 8.6
 
 MMIN_MOMENTRATE_FROM_ACTIVITY = 5.0
 
@@ -49,9 +62,10 @@ def magnitude2moment(magnitudes):
         moments         list of seismic moment values
     """
 
-    # computes natural logarithm of moment rate
-    # ln(M_0) = C + D * M 
-    moments = numpy.array(magnitudes) * CONST_KANAMORI_D + CONST_KANAMORI_C
+    # computes moment rate in Nm
+    # M_0 = 10**(C + D * M) 
+    moments = numpy.power(10, 
+        numpy.array(magnitudes) * CONST_KANAMORI_D + CONST_KANAMORI_C)
     return moments.tolist()
 
 def momentrateFromActivity(activity_a, activity_b, mmax):
@@ -71,7 +85,8 @@ def momentrateFromActivity(activity_a, activity_b, mmax):
 
     a_incremental = a + numpy.log10(b * numpy.log(10.0))
 
-    moment_rate_factor = numpy.power(10, a_incremental + 9.05) / (1.5 - b)
+    moment_rate_factor = numpy.power(10, 
+        a_incremental + CONST_KANAMORI_C) / (1.5 - b)
     moment_rate_s1 = numpy.power(10, mmax * (1.5 - b))
     moment_rate_s2 = numpy.power(10, MMIN_MOMENTRATE_FROM_ACTIVITY * (1.5 - b))
     mr = moment_rate_factor * (moment_rate_s1 - moment_rate_s2)
@@ -102,4 +117,11 @@ def momentrateFromStrainRate(poly, strain):
         if poly.intersects(point) and value > 0.0:
             strainrate += value
 
-    return strainrate
+    # Bird & Liu eq. 7B
+    # Note: unit of values in Barba dataset is s^-1
+    # computed strain rate has unit
+    # km * Pa / s = 1000 m * N / (m^2 * s) = 1000 (Nm/s) per m^2
+    # TODO(fab): double-check this !!
+    # convert to strain rate per square kilometre: multiply with 10^-6
+    # return 1000 * CZ_FACTOR * SHEAR_MODULUS * strainrate * 1.0e-6
+    return 1000 * CZ_FACTOR * SHEAR_MODULUS * strainrate
