@@ -109,8 +109,16 @@ class MomentRateComparisonPlot(qpplot.QPPlot):
     
         self.pyplot.clf()
         
-        symbol_style = 'ks' # black solid square
-        
+        symbol_style = {'eq': 'ks',        # black solid square
+                        'activity': 'ro',  # red circle
+                        'strain': 'b^'     # blue triangle
+                       }
+
+        description = {'eq': 'from earthquakes',
+                       'activity': 'from activity',
+                       'strain': 'from strain rates'
+                      }
+
         ax = self.figure.add_subplot(111)
 
         for key_idx, key in enumerate(('eq', 'activity', 'strain')):
@@ -123,8 +131,11 @@ class MomentRateComparisonPlot(qpplot.QPPlot):
                 abscissa = [data[key], ]
 
             ordinate = [key_idx+1] * ordinate_length
-            #self.pyplot.plot( abscissa, ordinate, symbol_style )
-            self.pyplot.semilogx( abscissa, ordinate, symbol_style )
+            self.pyplot.semilogx(abscissa, ordinate, symbol_style[key])
+
+            # plot description
+            self.pyplot.annotate(description[key], 
+                (min(abscissa), key_idx+1.2))
 
         # TODO(fab): set x, y axis range
         self.pyplot.ylim(0.5, key_idx+1.5)
