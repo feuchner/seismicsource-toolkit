@@ -204,20 +204,21 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self._updateFaultZoneTable()
 
     def updateFMD(self):
-        """Update FMD display for one selected area zone in zone table."""
+        """Update FMD display for one selected area zone from
+        area zone layer."""
 
         # selected_features = self.zoneAreaTable.selectedItems()
+        if not utils.check_only_one_feature_selected(self.area_source_layer):
+            return
 
-        if len(selected_features) == 0:
-            QMessageBox.warning(None, "No zone selected", 
-                "Please select one zone in the area zone table")
+        selected_feature = self.area_source_layer.selectedFeatures()[0]
 
         # get feature index of first selected row
-        feature_id = str(selected_features[AREA_ZONE_TABLE_ID_IDX].text())
-        feature_idx = self.area_zone_feature_map[feature_id]
-        feature = self.area_source_layer.selectedFeatures()[feature_idx]
+        #feature_id = str(selected_features[AREA_ZONE_TABLE_ID_IDX].text())
+        #feature_idx = self.area_zone_feature_map[feature_id]
+        #feature = self.area_source_layer.selectedFeatures()[feature_idx]
 
-        self._computeZoneFMD(feature)
+        self._computeZoneFMD(selected_feature)
         self._updateFMDDisplay()
 
     def updateRecurrence(self):
