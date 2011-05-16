@@ -102,10 +102,11 @@ def momentrateFromStrainRate(poly, strain):
                         [ [lon, lat, value], ...]
 
     Output:
-        strainrate      strain rate summed over area zone
+        momentrate      moment rate computed from strain rate summed 
+                        over area zone
     """
 
-    strainrate = 0.0
+    momentrate = 0.0
 
     for (lon, lat, value) in strain:
 
@@ -115,7 +116,7 @@ def momentrateFromStrainRate(poly, strain):
         # check if in area zone polygon
         # if positive, sum up strain rate contribution
         if poly.intersects(point) and value > 0.0:
-            strainrate += value
+            momentrate += value
 
     # Bird & Liu eq. 7B
     # Note: unit of values in Barba dataset is s^-1
@@ -124,4 +125,21 @@ def momentrateFromStrainRate(poly, strain):
     # TODO(fab): double-check this !!
     # convert to strain rate per square kilometre: multiply with 10^-6
     # return 1000 * CZ_FACTOR * SHEAR_MODULUS * strainrate * 1.0e-6
-    return 1000 * CZ_FACTOR * SHEAR_MODULUS * strainrate
+    return 1000 * CZ_FACTOR * SHEAR_MODULUS * momentrate
+
+def momentrateFromSlipRate(poly, slip):
+    """Compute seismic moment rate from slip rate computed with recurrence
+    module.
+
+    Input:
+        poly            Fault zone geometry as Shapely polygon
+        slip            Slip rate data set
+
+    Output:
+        momentrate      momentrate computed from slip rate
+    """
+
+    momentrate = 0.0
+
+
+    return momentrate

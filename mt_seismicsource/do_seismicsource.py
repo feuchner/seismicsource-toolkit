@@ -94,13 +94,18 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         QObject.connect(self.btnLoadData, SIGNAL("clicked()"), 
             self.loadDataLayers)
 
-        # Button: compute moment rate
-        QObject.connect(self.btnComputeMomentRate, SIGNAL("clicked()"), 
-            self.updateMomentRateValues)
+        # Button: compute moment rate of area zones
+        QObject.connect(self.btnComputeMomentRateArea, SIGNAL("clicked()"), 
+            self.updateMomentRateValuesArea)
 
+        # Button: compute moment rate of fault zones
+        QObject.connect(self.btnComputeMomentRateFault, SIGNAL("clicked()"), 
+            self.updateMomentRateValuesFault)
+
+        # TODO(fab): use selected zone in layer
         # Button: display fault zone values
-        QObject.connect(self.btnComputeFaultZoneValues, SIGNAL("clicked()"), 
-            self.updateFaultZoneValues)
+        #QObject.connect(self.btnComputeFaultZoneValues, SIGNAL("clicked()"), 
+            #self.updateFaultZoneValues)
 
         # Button: FMD plot
         QObject.connect(self.btnDisplayFMD, SIGNAL("clicked()"), 
@@ -126,10 +131,15 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.fmd_canvas = None
         self.fmd_toolbar = None
 
-        # Moment rate comparison plot window
-        self.fig_moment_rate_comparison = None
-        self.canvas_moment_rate_comparison = None
-        self.toolbar_moment_rate_comparison = None
+        # Moment rate per area zone comparison plot window
+        self.fig_moment_rate_comparison_area = None
+        self.canvas_moment_rate_comparison_area = None
+        self.toolbar_moment_rate_comparison_area = None
+
+        # Moment rate per fault zone comparison plot window
+        self.fig_moment_rate_comparison_fault = None
+        self.canvas_moment_rate_comparison_fault = None
+        self.toolbar_moment_rate_comparison_fault = None
 
         # layers
         self.background_layer = None
@@ -193,23 +203,31 @@ class SeismicSource(QDialog, Ui_SeismicSource):
     def loadAdditionalData(self):
         self.data_strain_rate = strain.loadStrainRateData()
 
-    def updateMomentRateValues(self):
-        """Update values in moment rate table/plot, if other area zone has
-        been selected, or zone attributes have been changed."""
+    def updateMomentRateValuesArea(self):
+        """Update values in moment rate per area table/plot, if other 
+        area zone has  been selected, or zone attributes have been changed."""
 
         if not utils.check_only_one_feature_selected(self.area_source_layer):
             return
 
         selected_feature = self.area_source_layer.selectedFeatures()[0]
 
-        moment_rates = self._updateMomentRates(selected_feature)
-        self._updateMomentRateTable(moment_rates)
-        self._updateMomentRatePlot(moment_rates)
+        moment_rates = self._updateMomentRatesArea(selected_feature)
+        self._updateMomentRateTableArea(moment_rates)
+        self._updateMomentRatePlotArea(moment_rates)
 
-    def updateFaultZoneValues(self):
-        """Update table display for selected fault zones."""
+    def updateMomentRateValuesFault(self):
+        """Update values in moment rate per fault table/plot, if other 
+        area zone has been selected, or zone attributes have been changed."""
 
-        self._updateFaultZoneTable()
+        if not utils.check_only_one_feature_selected(self.fault_source_layer):
+            return
+
+        selected_feature = self.fault_source_layer.selectedFeatures()[0]
+
+        moment_rates = self._updateMomentRatesFault(selected_feature)
+        self._updateMomentRateTableFault(moment_rates)
+        self._updateMomentRatePlotFault(moment_rates)
 
     def updateFMD(self):
         """Update FMD display for one selected area zone from
@@ -231,20 +249,18 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
     def updateRecurrence(self):
         """Update recurrence FMD display for one selected fault zone
-        in zone table."""
+        in fault zone layer."""
 
-        selected_features = self.zoneFaultTable.selectedItems()
+        if not utils.check_only_one_feature_selected(self.fault_source_layer):
+            return
 
-        if len(selected_features) == 0:
-            QMessageBox.warning(None, "No zone selected", 
-                "Please select one zone in the fault zone table")
+        selected_feature = self.fault_source_layer.selectedFeatures()[0]
 
-        # get feature index of first selected row
-        feature_id = str(selected_features[FAULT_ZONE_TABLE_ID_IDX].text())
-        feature_idx = self.fault_zone_feature_map[feature_id]
-        feature = self.fault_source_layer.selectedFeatures()[feature_idx]
+        moment_rates = self._updateMomentRatesArea(selected_feature)
+        self._updateMomentRateTableArea(moment_rates)
+        self._updateMomentRatePlotArea(moment_rates)
 
-        self._updateRecurrenceDisplay(feature)
+        self._updateRecurrenceDisplay(selected_feature)
 
     def _updateFMDDisplay(self):
         if 'fmd' in self.figures:
@@ -356,90 +372,6 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.labelSelectedEvents.setText(
             "Selected events: %s" % self.catalog_selected.size())
 
-    def _updateFaultZoneTable(self):
-        """Update table of fault zones."""
-
-        # reset table rows to number of zones
-        feature_count = len(self.fault_source_layer.selectedFeatures())
-        self.zoneFaultTable.clearContents()
-
-        if feature_count > 0:
-            self.zoneFaultTable.setRowCount(feature_count)
-
-            # get attribute indexes
-            attr_idx = {'IDSOURCE': None, 'actrate_mi': None, 
-                'actrate_ma': None, 'momrate_mi': None,
-                'momrate_ma': None}
-            pr = self.fault_source_layer.dataProvider()
-        
-            # if attribute name is not found, -1 is returned
-            for curr_attr in attr_idx:
-                attr_idx[curr_attr] = pr.fieldNameIndex(curr_attr)
-
-            # create mapping from feature id to index
-            self.fault_zone_feature_map = {}
-
-            for feature_idx, feature in enumerate(
-                self.fault_source_layer.selectedFeatures()):
-
-                feature_id = str(feature.id())
-
-                if attr_idx['IDSOURCE'] != -1:
-                    feature_idsource = \
-                feature.attributeMap()[attr_idx['IDSOURCE']].toString()
-                else:
-                    feature_idsource = "-"
-
-                if attr_idx['actrate_mi'] != -1:
-                    feature_actrate_mi = \
-                feature.attributeMap()[attr_idx['actrate_mi']].toString()
-                else:
-                    feature_actrate_mi = "-"
-
-                if attr_idx['actrate_ma'] != -1:
-                    feature_actrate_ma = \
-                feature.attributeMap()[attr_idx['actrate_ma']].toString()
-                else:
-                    feature_actrate_ma = "-"
-
-                if attr_idx['momrate_mi'] != -1:
-                    feature_momrate_mi = \
-                feature.attributeMap()[attr_idx['momrate_mi']].toString()
-                else:
-                    feature_momrate_mi = "-"
-
-                if attr_idx['momrate_ma'] != -1:
-                    feature_momrate_ma = \
-                feature.attributeMap()[attr_idx['momrate_ma']].toString()
-                else:
-                    feature_momrate_ma = "-"
-
-                self.zoneFaultTable.setItem(feature_idx, 
-                    FAULT_ZONE_TABLE_ID_IDX,
-                    QTableWidgetItem(QString("%s" % feature_id)))
-
-                self.zoneFaultTable.setItem(feature_idx, 
-                    FAULT_ZONE_TABLE_NAME_IDX, 
-                    QTableWidgetItem(QString("%s" % feature_idsource)))
-
-                self.zoneFaultTable.setItem(feature_idx, 
-                    FAULT_ZONE_TABLE_ACTIVITY_MIN_IDX,
-                    QTableWidgetItem(QString("%s" % feature_actrate_mi)))
-
-                self.zoneFaultTable.setItem(feature_idx, 
-                    FAULT_ZONE_TABLE_ACTIVITY_MAX_IDX, 
-                    QTableWidgetItem(QString("%s" % feature_actrate_mi)))
-
-                self.zoneFaultTable.setItem(feature_idx, 
-                    FAULT_ZONE_TABLE_MOMENTRATE_MIN_IDX,
-                    QTableWidgetItem(QString("%s" % feature_momrate_mi)))
-
-                self.zoneFaultTable.setItem(feature_idx, 
-                    FAULT_ZONE_TABLE_MOMENTRATE_MAX_IDX,
-                    QTableWidgetItem(QString("%s" % feature_momrate_ma)))
-
-                self.fault_zone_feature_map[feature_id] = feature_idx
-
     def _computeZoneFMD(self, feature):
         """Compute FMD for selected feature."""
 
@@ -499,7 +431,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.recurrenceLEDLabel.setText('Idle')
         self.btnRecurrence.setEnabled(True)
 
-    def _updateMomentRates(self, feature):
+    def _updateMomentRatesArea(self, feature):
         """Update or compute moment rates for selected feature of area source
         zone layer.
 
@@ -527,7 +459,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         curr_cat.cut(geometry=poly[0])
 
         # sum up moment from quakes (converted from Mw with Kanamori eq.)
-        magnitudes =[]
+        magnitudes = []
         for ev in curr_cat.eventParameters.event:
             mag = ev.getPreferredMagnitude()
             magnitudes.append(mag.mag.value)
@@ -574,11 +506,11 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         return moment_rates
 
-    def _updateMomentRateTable(self, moment_rates):
-        self.momentRateTable.clearContents()
+    def _updateMomentRateTableArea(self, moment_rates):
+        self.momentRateTableArea.clearContents()
 
         ## from EQs
-        self.momentRateTable.setItem(0, 0, QTableWidgetItem(QString(
+        self.momentRateTableArea.setItem(0, 0, QTableWidgetItem(QString(
             "%.2e" % moment_rates['eq'])))
 
         ## from activity (RM)
@@ -586,41 +518,145 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         # get maximum likelihood value from central line of table
         ml_idx = len(moment_rates['activity']) / 2
         mr_ml = moment_rates['activity'][ml_idx]
-        self.momentRateTable.setItem(0, 1, QTableWidgetItem(QString(
+        self.momentRateTableArea.setItem(0, 1, QTableWidgetItem(QString(
             "%.2e" % mr_ml)))
 
         ## from geodesy (strain)
-        self.momentRateTable.setItem(0, 2, QTableWidgetItem(QString(
+        self.momentRateTableArea.setItem(0, 2, QTableWidgetItem(QString(
             "%.2e" % moment_rates['strain'])))
 
-    def _updateMomentRatePlot(self, moment_rates):
+    def _updateMomentRatePlotArea(self, moment_rates):
 
         # remove old plot widgets from layout
-        if self.toolbar_moment_rate_comparison is not None:
-            self.layoutPlotMomentRate.removeWidget(
-                self.toolbar_moment_rate_comparison)
+        if self.toolbar_moment_rate_comparison_area is not None:
+            self.layoutPlotMomentRateArea.removeWidget(
+                self.toolbar_moment_rate_comparison_area)
 
-        if self.canvas_moment_rate_comparison is not None:
-            self.layoutPlotMomentRate.removeWidget(
-                self.canvas_moment_rate_comparison)
+        if self.canvas_moment_rate_comparison_area is not None:
+            self.layoutPlotMomentRateArea.removeWidget(
+                self.canvas_moment_rate_comparison_area)
 
         # new moment rate plot
-        self.fig_moment_rate_comparison = plots.MomentRateComparisonPlot()
-        self.fig_moment_rate_comparison = \
-            self.fig_moment_rate_comparison.plot(imgfile=None, 
+        self.fig_moment_rate_comparison_area = plots.MomentRateComparisonPlot()
+        self.fig_moment_rate_comparison_area = \
+            self.fig_moment_rate_comparison_area.plot(imgfile=None, 
                 data=moment_rates)
 
-        self.canvas_moment_rate_comparison = plots.PlotCanvas(
-            self.fig_moment_rate_comparison, 
+        self.canvas_moment_rate_comparison_area = plots.PlotCanvas(
+            self.fig_moment_rate_comparison_area, 
             title="Seismic Moment Rates")
-        self.canvas_moment_rate_comparison.draw()
+        self.canvas_moment_rate_comparison_area.draw()
 
         # plot widget
-        self.layoutPlotMomentRate.addWidget(self.canvas_moment_rate_comparison)
-        self.toolbar_moment_rate_comparison = plots.createToolbar(
-            self.canvas_moment_rate_comparison, self.widgetMomentRate)
-        self.layoutPlotMomentRate.addWidget(
-            self.toolbar_moment_rate_comparison)
+        self.layoutPlotMomentRateArea.addWidget(self.canvas_moment_rate_comparison_area)
+        self.toolbar_moment_rate_comparison_area = plots.createToolbar(
+            self.canvas_moment_rate_comparison_area, self.widgetMomentRateArea)
+        self.layoutPlotMomentRateArea.addWidget(
+            self.toolbar_moment_rate_comparison_area)
+
+    def _updateMomentRatesFault(self, feature):
+        """Update or compute moment rates for selected feature of fault source
+        zone layer.
+
+        Input:
+            feature     QGis polygon feature from area source layer
+        
+        Output:
+            moment_rates    dict of computed moment rates
+        """
+
+        provider = self.fault_source_layer.dataProvider()
+        moment_rates = {}
+
+        # get Shapely polygon from feature geometry
+        poly, vertices = utils.polygonsQGS2Shapely((feature,))
+
+        # get polygon area in square kilometres
+        area_sqkm = utils.polygonAreaFromWGS84(poly[0]) * 1.0e-6
+
+        # get buffer polygon with 30 km extension and its area in square km
+        buffer_poly = 1
+        buffer_area_sqkm = utils.polygonAreaFromWGS84(buffer_poly) * 1.0e-6
+
+        ## moment rate from EQs
+
+        # get quakes from catalog (cut with buffer polygon)
+        curr_cat = QPCatalog.QPCatalog()
+        curr_cat.merge(self.catalog)
+        curr_cat.cut(geometry=buffer_poly)
+
+        # sum up moment from quakes (converted from Mw with Kanamori eq.)
+        magnitudes = []
+        for ev in curr_cat.eventParameters.event:
+            mag = ev.getPreferredMagnitude()
+            magnitudes.append(mag.mag.value)
+
+        moment = numpy.array(momentrate.magnitude2moment(magnitudes))
+
+        # scale moment: per year and area (in km^2)
+        # TODO(fab): compute real catalog time span
+        moment_rates['eq'] = moment.sum() / (
+            area_sqkm * eqcatalog.CATALOG_TIME_SPAN)
+
+        ## TODO(fab): do we need this?
+        ## moment rate from activity (RM)
+        moment_rates['activity'] = numpy.nan
+
+        ## moment rate from geology (slip rate)
+        momentrate_strain = momentrate.momentrateFromStrainRate(poly[0], 
+            self.data_strain_rate)
+        moment_rates['slip'] = momentrate_strain / (
+            eqcatalog.CATALOG_TIME_SPAN)
+
+        return moment_rates
+
+    def _updateMomentRateTableFault(self, moment_rates):
+        self.momentRateTableFault.clearContents()
+
+        ## from EQs
+        self.momentRateTableFault.setItem(0, 0, QTableWidgetItem(QString(
+            "%.2e" % moment_rates['eq'])))
+
+        ## from activity (RM)
+        
+        # get maximum likelihood value from central line of table
+        ml_idx = len(moment_rates['activity']) / 2
+        mr_ml = moment_rates['activity'][ml_idx]
+        self.momentRateTableFault.setItem(0, 1, QTableWidgetItem(QString(
+            "%.2e" % mr_ml)))
+
+        ## from geodesy (strain)
+        self.momentRateTableFault.setItem(0, 2, QTableWidgetItem(QString(
+            "%.2e" % moment_rates['slip'])))
+
+    def _updateMomentRatePlotFault(self, moment_rates):
+
+        # remove old plot widgets from layout
+        if self.toolbar_moment_rate_comparison_fault is not None:
+            self.layoutPlotMomentRateFault.removeWidget(
+                self.toolbar_moment_rate_comparison_fault)
+
+        if self.canvas_moment_rate_comparison_fault is not None:
+            self.layoutPlotMomentRateFault.removeWidget(
+                self.canvas_moment_rate_comparison_fault)
+
+        # new moment rate plot
+        self.fig_moment_rate_comparison_fault = plots.MomentRateComparisonPlot()
+        self.fig_moment_rate_comparison_fault = \
+            self.fig_moment_rate_comparison_fault.plot(imgfile=None, 
+                data=moment_rates)
+
+        self.canvas_moment_rate_comparison_fault = plots.PlotCanvas(
+            self.fig_moment_rate_comparison_fault, 
+            title="Seismic Moment Rates")
+        self.canvas_moment_rate_comparison_fault.draw()
+
+        # plot widget
+        self.layoutPlotMomentRateFault.addWidget(self.canvas_moment_rate_comparison_fault)
+        self.toolbar_moment_rate_comparison_fault = plots.createToolbar(
+            self.canvas_moment_rate_comparison_fault, self.widgetMomentRateFault)
+        self.layoutPlotMomentRateFault.addWidget(
+            self.toolbar_moment_rate_comparison_fault)
 
     def createPlotWindow(self):
         """Create new plot window dialog."""
