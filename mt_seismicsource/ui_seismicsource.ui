@@ -198,7 +198,7 @@
      <property name="geometry">
       <rect>
        <x>0</x>
-       <y>470</y>
+       <y>390</y>
        <width>299</width>
        <height>111</height>
       </rect>
@@ -336,7 +336,7 @@
        <x>0</x>
        <y>280</y>
        <width>299</width>
-       <height>171</height>
+       <height>111</height>
       </rect>
      </property>
      <property name="title">
@@ -378,24 +378,11 @@
        <string>Compute</string>
       </property>
      </widget>
-     <widget class="QLabel" name="labelTotalMoment">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>70</y>
-        <width>271</width>
-        <height>51</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Total moment release rate:</string>
-      </property>
-     </widget>
      <widget class="QPushButton" name="btnDisplayRecurrence">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>130</y>
+        <y>70</y>
         <width>161</width>
         <height>30</height>
        </rect>

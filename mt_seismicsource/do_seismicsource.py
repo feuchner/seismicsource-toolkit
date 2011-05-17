@@ -426,9 +426,6 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         recurrence_result = recurrence.assignRecurrence(
             self.fault_source_layer, self.area_source_layer, self.catalog)
 
-        self.labelTotalMoment.setText(
-            "Total moment release rate:\n %.2e (min) %.2e (max) " % (
-            recurrence_result))
         self.recurrenceLED.setColor(QColor(0, 255, 0))
         self.recurrenceLEDLabel.setText('Idle')
         self.btnComputeRecurrence.setEnabled(True)
