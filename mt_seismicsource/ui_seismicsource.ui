@@ -400,7 +400,7 @@
      <x>320</x>
      <y>10</y>
      <width>491</width>
-     <height>351</height>
+     <height>181</height>
     </rect>
    </property>
    <widget class="QGroupBox" name="groupBoxMomentRateArea">
@@ -409,7 +409,7 @@
       <x>0</x>
       <y>0</y>
       <width>491</width>
-      <height>351</height>
+      <height>171</height>
      </rect>
     </property>
     <property name="title">
@@ -453,17 +453,6 @@
       </property>
      </column>
     </widget>
-    <widget class="QWidget" name="verticalLayoutWidget">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>140</y>
-       <width>241</width>
-       <height>201</height>
-      </rect>
-     </property>
-     <layout class="QVBoxLayout" name="layoutPlotMomentRateArea"/>
-    </widget>
     <widget class="QLabel" name="labelMomentRateArea">
      <property name="geometry">
       <rect>
@@ -496,9 +485,9 @@
    <property name="geometry">
     <rect>
      <x>320</x>
-     <y>360</y>
+     <y>220</y>
      <width>491</width>
-     <height>351</height>
+     <height>151</height>
     </rect>
    </property>
    <widget class="QGroupBox" name="groupBoxMomentRateFault">
@@ -507,7 +496,7 @@
       <x>0</x>
       <y>0</y>
       <width>491</width>
-      <height>351</height>
+      <height>181</height>
      </rect>
     </property>
     <property name="title">
@@ -550,17 +539,6 @@
        <string>Geology (slip)</string>
       </property>
      </column>
-    </widget>
-    <widget class="QWidget" name="verticalLayoutWidget_2">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>140</y>
-       <width>241</width>
-       <height>201</height>
-      </rect>
-     </property>
-     <layout class="QVBoxLayout" name="layoutPlotMomentRateFault"/>
     </widget>
     <widget class="QLabel" name="labelMomentRateFault">
      <property name="geometry">

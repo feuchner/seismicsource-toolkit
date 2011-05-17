@@ -65,9 +65,7 @@ class MCanvas(FigureCanvas):
         self.setParent(parent)
 
         # Expanding, Minimum, Fixed
-        FigureCanvas.setSizePolicy(self,
-                                   QSizePolicy.Fixed,
-                                   QSizePolicy.Fixed)
+        FigureCanvas.setSizePolicy(self, QSizePolicy.Fixed, QSizePolicy.Fixed)
         FigureCanvas.updateGeometry(self)
 
     def compute_initial_figure(self):
@@ -119,7 +117,9 @@ class MomentRateComparisonPlotArea(qpplot.QPPlot):
                        'strain': 'from strain rates'
                       }
 
-        ax = self.figure.add_subplot(111)
+        # set figure size
+        # self.pyplot.rcParams['figure.figsize'] = (6, 2)
+        self.ax = self.figure.add_subplot(111)
 
         for key_idx, key in enumerate(('eq', 'activity', 'strain')):
 
@@ -139,14 +139,21 @@ class MomentRateComparisonPlotArea(qpplot.QPPlot):
             self.pyplot.semilogx(abscissa, ordinate, symbol_style[key])
 
             # plot description
-            self.pyplot.annotate(description[key], 
-                (min(abscissa), key_idx+1.2))
+            #self.pyplot.annotate(description[key], 
+                #(min(abscissa), key_idx+1.2))
 
         # TODO(fab): set x, y axis range
         self.pyplot.ylim(0.5, key_idx+1.5)
+        xmin, xmax = self.pyplot.xlim()
+
+        for key_idx, key in enumerate(('eq', 'activity', 'strain')):
+            self.pyplot.annotate(description[key], 
+                (xmin + numpy.power(10, 0.15 * numpy.log10(xmax - xmin)), 
+                key_idx+1.2))
 
         # TODO(fab): formatting of y axis labels/caption
         self.pyplot.xlabel( 'Annual Seismic Moment Rate' )
+        #self.ax.set_yicks([])
         #self.pyplot.ylabel( '' )
 
         return self.return_image(imgfile)
@@ -178,7 +185,9 @@ class MomentRateComparisonPlotFault(qpplot.QPPlot):
                        'slip': 'from slip rates'
                       }
 
-        ax = self.figure.add_subplot(111)
+        # set figure size
+        # self.pyplot.rcParams['figure.figsize'] = (6, 2)
+        self.ax = self.figure.add_subplot(111)
 
         for key_idx, key in enumerate(('eq', 'activity', 'slip')):
 
@@ -193,14 +202,21 @@ class MomentRateComparisonPlotFault(qpplot.QPPlot):
             self.pyplot.semilogx(abscissa, ordinate, symbol_style[key])
 
             # plot description
-            self.pyplot.annotate(description[key], 
-                (min(abscissa), key_idx+1.2))
+            #self.pyplot.annotate(description[key], 
+                #(min(abscissa), key_idx+1.2))
 
         # TODO(fab): set x, y axis range
         self.pyplot.ylim(0.5, key_idx+1.5)
+        xmin, xmax = self.pyplot.xlim()
+
+        for key_idx, key in enumerate(('eq', 'activity', 'slip')):
+            self.pyplot.annotate(description[key], 
+                (xmin + numpy.power(10, 0.15 * numpy.log10(xmax - xmin)), 
+                key_idx+1.2))
 
         # TODO(fab): formatting of y axis labels/caption
         self.pyplot.xlabel( 'Annual Seismic Moment Rate' )
+        #self.ax.set_yicks([])
         #self.pyplot.ylabel( '' )
 
         return self.return_image(imgfile)

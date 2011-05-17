@@ -526,14 +526,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
     def _updateMomentRatePlotArea(self, moment_rates):
 
-        # remove old plot widgets from layout
-        if self.toolbar_moment_rate_comparison_area is not None:
-            self.layoutPlotMomentRateArea.removeWidget(
-                self.toolbar_moment_rate_comparison_area)
-
-        if self.canvas_moment_rate_comparison_area is not None:
-            self.layoutPlotMomentRateArea.removeWidget(
-                self.canvas_moment_rate_comparison_area)
+        window = self.createPlotWindow()
 
         # new moment rate plot
         self.fig_moment_rate_comparison_area = \
@@ -548,12 +541,12 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.canvas_moment_rate_comparison_area.draw()
 
         # plot widget
-        self.layoutPlotMomentRateArea.addWidget(
+        window.layoutPlot.addWidget(
             self.canvas_moment_rate_comparison_area)
         self.toolbar_moment_rate_comparison_area = plots.createToolbar(
             self.canvas_moment_rate_comparison_area, 
-            self.widgetMomentRateArea)
-        self.layoutPlotMomentRateArea.addWidget(
+            window)
+        window.layoutPlot.addWidget(
             self.toolbar_moment_rate_comparison_area)
 
     def _updateMomentRatesFault(self, feature):
@@ -642,14 +635,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
     def _updateMomentRatePlotFault(self, moment_rates):
 
-        # remove old plot widgets from layout
-        if self.toolbar_moment_rate_comparison_fault is not None:
-            self.layoutPlotMomentRateFault.removeWidget(
-                self.toolbar_moment_rate_comparison_fault)
-
-        if self.canvas_moment_rate_comparison_fault is not None:
-            self.layoutPlotMomentRateFault.removeWidget(
-                self.canvas_moment_rate_comparison_fault)
+        window = self.createPlotWindow()
 
         # new moment rate plot
         self.fig_moment_rate_comparison_fault = \
@@ -664,12 +650,12 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.canvas_moment_rate_comparison_fault.draw()
 
         # plot widget
-        self.layoutPlotMomentRateFault.addWidget(
+        window.layoutPlot.addWidget(
             self.canvas_moment_rate_comparison_fault)
         self.toolbar_moment_rate_comparison_fault = plots.createToolbar(
             self.canvas_moment_rate_comparison_fault, 
-            self.widgetMomentRateFault)
-        self.layoutPlotMomentRateFault.addWidget(
+            window)
+        window.layoutPlot.addWidget(
             self.toolbar_moment_rate_comparison_fault)
 
     def createPlotWindow(self):
