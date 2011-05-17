@@ -49,8 +49,9 @@ import layers
 
 from layers import areasource
 from layers import background
-from layers import faultsource
 from layers import eqcatalog
+from layers import faultsource
+from layers import render
 
 import features
 import plots
@@ -177,6 +178,12 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.loadDefaultLayers()
 
         self.loadAdditionalData()
+
+        self.renderers = render.setRenderers(self.area_source_layer,
+            self.fault_source_layer,
+            self.catalog_layer,
+            self.background_zone_layer,
+            self.background_layer)
 
         self.progressBarLoadData.setRange(0, 100)
         self.progressBarLoadData.setValue(100)
