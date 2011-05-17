@@ -632,6 +632,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         ## moment rate from slip rate
 
+        # TODO(fab): correct scaling of moment rate from slip rate
         momrate_min_name = features.FAULT_SOURCE_ATTR_MOMENTRATE_MIN['name']
         momrate_max_name = features.FAULT_SOURCE_ATTR_MOMENTRATE_MAX['name']
         momentrate_min = \

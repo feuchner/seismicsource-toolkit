@@ -203,11 +203,21 @@ def computeRecurrence(layer_fault, layer_area=None, catalog=None):
             slipratema, b_value, area)
 
         # compute contribution to total seismic moment
-        seismic_moment_rate_min = (1.0e8 * momentrate.SHEAR_MODULUS) * \
-            (slipratemi / 10.0) * (area * 1.0e4)
+        # TODO(fab): double-check scaling with Laurentiu!
+        # shear modulus: Pa = N / m^2 = kg / (m * s^2) = kg / (10^-3 km * s^2)
+        #                1 kg / (km * s^2) = 10^3 N
+        # slip rate: mm / year
+        # area: m^2
+        # moment rate unit: Nm / (year * km^2)
+        #  kg * 10^-3 m * m^2 / (m * s^2 * 365.25*24*60*60 s) 
+        # = 10^3 N * 10^-3 m^3 / (10^-3 * [year] s))
+        #  = 10^3 Nm * m^2 / [year] s <- divide this by area in metres (?)
+        # kg m^3 / (m s^3) = kg m^2 / s^3
+        seismic_moment_rate_min = 1.0e3 * momentrate.SHEAR_MODULUS * \
+            slipratemi * area / (365.25*24*60*60)
 
-        seismic_moment_rate_max = (1.0e8 * momentrate.SHEAR_MODULUS) * \
-            (slipratema / 10.0) * (area * 1.0e4)
+        seismic_moment_rate_max = 1.0e3 * momentrate.SHEAR_MODULUS * \
+            slipratema * area / (365.25*24*60*60)
 
         total_seismic_moment_rate_min += seismic_moment_rate_min
         total_seismic_moment_rate_max += seismic_moment_rate_max
