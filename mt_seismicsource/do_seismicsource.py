@@ -27,7 +27,6 @@ Author: Fabian Euchner, fabian@sed.ethz.ch
 import numpy
 import os
 import shapely.geometry
-# import shapely.ops
 import sys
 import time
 
