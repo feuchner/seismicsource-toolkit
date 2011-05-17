@@ -7,17 +7,17 @@
       <uppervalue></uppervalue>
       <label></label>
       <pointsymbol>hard:circle</pointsymbol>
-      <pointsize>0.5</pointsize>
+      <pointsize>1.25</pointsize>
       <pointsizeunits>pixels</pointsizeunits>
       <rotationclassificationfieldname></rotationclassificationfieldname>
       <scaleclassificationfieldname></scaleclassificationfieldname>
       <symbolfieldname></symbolfieldname>
-      <outlinecolor red="0" blue="0" green="0" />
+      <outlinecolor red="170" blue="0" green="0" />
       <outlinestyle>SolidLine</outlinestyle>
-      <outlinewidth>0</outlinewidth>
-      <fillcolor red="0" blue="0" green="0" />
+      <outlinewidth>0.15</outlinewidth>
+      <fillcolor red="255" blue="0" green="170" />
       <fillpattern>SolidPattern</fillpattern>
-      <texturepath null="1" ></texturepath>
+      <texturepath></texturepath>
     </symbol>
   </singlesymbol>
   <displayfield>magnitude</displayfield>

@@ -12,12 +12,12 @@
       <rotationclassificationfieldname></rotationclassificationfieldname>
       <scaleclassificationfieldname></scaleclassificationfieldname>
       <symbolfieldname></symbolfieldname>
-      <outlinecolor red="0" blue="0" green="0" />
+      <outlinecolor red="0" blue="0" green="170" />
       <outlinestyle>SolidLine</outlinestyle>
       <outlinewidth>0.36</outlinewidth>
       <fillcolor red="170" blue="127" green="255" />
       <fillpattern>SolidPattern</fillpattern>
-      <texturepath null="1" ></texturepath>
+      <texturepath></texturepath>
     </symbol>
   </singlesymbol>
   <displayfield>NAME</displayfield>
