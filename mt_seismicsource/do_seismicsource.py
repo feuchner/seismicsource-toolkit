@@ -183,6 +183,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             self.catalog_layer,
             self.background_zone_layer,
             self.background_layer)
+        self.iface.mapCanvas().refresh()
 
         self.progressBarLoadData.setRange(0, 100)
         self.progressBarLoadData.setValue(100)

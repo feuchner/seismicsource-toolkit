@@ -24,24 +24,40 @@ Author: Fabian Euchner, fabian@sed.ethz.ch
 #    59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ############################################################################
 
+import os
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from qgis.core import *
 
+AREA_LAYER_STYLE_FILE = 'style/layer-style-area-zones.qml'
+FAULT_LAYER_STYLE_FILE = 'style/layer-style-fault-zones.qml'
+EQ_LAYER_STYLE_FILE = 'style/layer-style-eq-catalog-base.qml'
+BACKGROUND_ZONE_LAYER_STYLE_FILE = 'style/layer-style-background-zones.qml'
+BACKGROUND_LAYER_STYLE_FILE = 'style/layer-style-political-boundaries.qml'
+
 def setRenderers(area_layer, fault_layer, eq_layer, background_zone_layer,
     background_layer):
 
-    r_area_layer = area_layer.rendererV2()
-    r_fault_layer = fault_layer.rendererV2()
-    r_eq_layer = eq_layer.rendererV2()
-    r_background_zone_layer = background_zone_layer.rendererV2()
-    r_background_layer = background_layer.rendererV2()
+    #r_area_layer = area_layer.rendererV2()
+    #r_fault_layer = fault_layer.rendererV2()
+    #r_eq_layer = eq_layer.rendererV2()
+    #r_background_zone_layer = background_zone_layer.rendererV2()
+    #r_background_layer = background_layer.rendererV2()
 
-    # TODO(fab): configure renderers
-    return {'area': r_area_layer,
-            'fault': r_fault_layer,
-            'eq': r_eq_layer,
-            'background_zone': r_background_zone_layer,
-            'background': r_background_layer
-           }
+    area_layer.loadNamedStyle(os.path.join(os.path.dirname(__file__), 
+        AREA_LAYER_STYLE_FILE))
+
+    fault_layer.loadNamedStyle(os.path.join(os.path.dirname(__file__), 
+        FAULT_LAYER_STYLE_FILE))
+
+    eq_layer.loadNamedStyle(os.path.join(os.path.dirname(__file__), 
+        EQ_LAYER_STYLE_FILE))
+
+    background_zone_layer.loadNamedStyle(
+        os.path.join(os.path.dirname(__file__), 
+        BACKGROUND_ZONE_LAYER_STYLE_FILE))
+
+    background_layer.loadNamedStyle(os.path.join(os.path.dirname(__file__), 
+        BACKGROUND_LAYER_STYLE_FILE))
