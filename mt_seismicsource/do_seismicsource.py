@@ -220,40 +220,19 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         # check if AtticIvy a, b attributes are available, if not, compute
         provider = self.area_source_layer.dataProvider()
-        indexes = provider.attributeIndexes()
 
         attribute_map = utils.getAttributeIndex(provider, 
             (features.AREA_SOURCE_ATTR_ACTIVITY_RM, ))
 
         attribute_act_name = features.AREA_SOURCE_ATTR_ACTIVITY_RM['name']
         attribute_act_idx = attribute_map[attribute_act_name][0]
-
-        QMessageBox.information(None, "Before: Attribute Dict", "%s" % attribute_map)
-        QMessageBox.information(None, "Before: AttrMap", "%s" % selected_feature.attributeMap())
-        QMessageBox.information(None, "Before: Indexes", "%s" % provider.attributeIndexes())
-
-        #try:
-            #attr = str(selected_feature[attribute_act_idx].toString())
-        #except KeyError:
-            #atticivy_result = atticivy.assignActivityAtticIvy(
-                #self.area_source_layer, self.catalog)
 
         if attribute_act_idx not in selected_feature.attributeMap():
-            QMessageBox.information(None, "Info", "Re-computing activity")
-            atticivy_result = atticivy.assignActivityAtticIvy(
-                self.area_source_layer, self.catalog)
+            self.computeAtticIvy()
+            self.area_source_layer.commitChanges()
 
-        # provider = self.area_source_layer.dataProvider()
-        
-        attribute_map = utils.getAttributeIndex(provider, 
-            (features.AREA_SOURCE_ATTR_ACTIVITY_RM, ))
-
-        attribute_act_name = features.AREA_SOURCE_ATTR_ACTIVITY_RM['name']
-        attribute_act_idx = attribute_map[attribute_act_name][0]
-
-        QMessageBox.information(None, "After: Attribute Dict", "%s" % attribute_map)
-        QMessageBox.information(None, "After: AttrMap", "%s" % selected_feature.attributeMap())
-        QMessageBox.information(None, "After: Indexes", "%s" % provider.attributeIndexes())
+            # NOTE: assigning the selected features again is very important!
+            selected_feature = self.area_source_layer.selectedFeatures()[0]
 
         moment_rates = self._updateMomentRatesArea(selected_feature)
         self._updateMomentRateTableArea(moment_rates)
@@ -513,14 +492,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         ## moment rate from activity (RM)
 
         # get attribute index of AtticIvy result
-        provider.select()
-        provider.rewind()
         attribute_map = utils.getAttributeIndex(provider, 
             (features.AREA_SOURCE_ATTR_ACTIVITY_RM, 
              features.AREA_SOURCE_ATTR_MMAX))
-
-        QMessageBox.information(None, "Attr Map", "%s" % attribute_map)
-        QMessageBox.information(None, "Attr Map real", "%s" % feature.attributeMap())
 
         attribute_act_name = features.AREA_SOURCE_ATTR_ACTIVITY_RM['name']
         attribute_act_idx = attribute_map[attribute_act_name][0]

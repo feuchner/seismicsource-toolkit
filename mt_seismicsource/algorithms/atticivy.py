@@ -136,6 +136,7 @@ def assignActivityAtticIvy(layer, catalog):
         error_str = "cannot update attribute values, %s" % (e)
         raise RuntimeError, error_str
 
+    layer.commitChanges()
     return None
 
 def computeActivityAtticIvy(polygons, mmax, mcdist, catalog, 
