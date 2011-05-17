@@ -568,6 +568,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         """
 
         provider = self.fault_source_layer.dataProvider()
+        provider_area = self.area_source_layer.dataProvider()
 
         attribute_map = utils.getAttributeIndex(provider, 
             (features.FAULT_SOURCE_ATTR_MOMENTRATE_MIN,
@@ -607,9 +608,29 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         moment_rates['eq'] = moment.sum() / (
             area_sqkm * eqcatalog.CATALOG_TIME_SPAN)
 
-        ## TODO(fab): do we need this?
         ## moment rate from activity (RM)
-        moment_rates['activity'] = 1.0e12
+        ## TODO(fab): get real mmax and mcdist from background zone
+        mmax = 7.0
+        mcdist = "4.0 1700 8.5 1200"
+        activity = atticivy.computeActivityAtticIvy((buffer_poly, ), (mmax, ), 
+            (mcdist, ), self.catalog)
+        
+        # get RM (weight, a, b) values from feature attribute
+        activity_str = activity[0][2]
+        activity_arr = activity_str.strip().split()
+
+        # ignore weights
+        activity_a = [float(x) for x in activity_arr[1::3]]
+        activity_b = [float(x) for x in activity_arr[2::3]]
+
+        # multiply computed value with area in square kilometres
+        momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
+            activity_a, activity_b, mmax)) * area_sqkm / (
+                eqcatalog.CATALOG_TIME_SPAN)
+
+        moment_rates['activity'] = momentrates_arr.tolist()
+
+        ## moment rate from slip rate
 
         momrate_min_name = features.FAULT_SOURCE_ATTR_MOMENTRATE_MIN['name']
         momrate_max_name = features.FAULT_SOURCE_ATTR_MOMENTRATE_MAX['name']
@@ -631,12 +652,13 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             "%.2e" % moment_rates['eq'])))
 
         ## from activity (RM)
-        
         # get maximum likelihood value from central line of table
+        ml_idx = len(moment_rates['activity']) / 2
+        mr_ml = moment_rates['activity'][ml_idx]
         self.momentRateTableFault.setItem(0, 1, QTableWidgetItem(QString(
-            "%s" % moment_rates['activity'])))
+            "%.2e" % mr_ml)))
 
-        ## from geodesy (strain)
+        ## from geology (slip)
         self.momentRateTableFault.setItem(0, 2, QTableWidgetItem(QString(
             "%.2e" % moment_rates['slip'][1])))
 

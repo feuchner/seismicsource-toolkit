@@ -90,15 +90,31 @@ def assignActivityAtticIvy(layer, catalog):
 
     # get attribute indexes
     provider = layer.dataProvider()
-    fts = layer.selectedFeatures()
-
     attribute_map = utils.getAttributeIndex(provider, 
         features.AREA_SOURCE_ATTRIBUTES_AB_RM, create=True)
 
-    activity = computeActivityAtticIvy(layer, catalog)
+    zone_attribute_map = utils.getAttributeIndex(provider, ZONE_ATTRIBUTES, 
+        create=False)
+
+    mmax_idx = zone_attribute_map['mmax'][0]
+    mcdist_idx = zone_attribute_map['mcdist'][0]
+
+    fts = layer.selectedFeatures()
+    polygons, vertices = utils.polygonsQGS2Shapely(fts)
+
+    # get mmax and mcdist from layer zone attributes
+    mmax = []
+    mcdist = []
+    for zone in fts:
+        mmax.append(float(zone[mmax_idx].toDouble()[0]))
+        mcdist.append(str(zone[mcdist_idx].toString()))
+
+    activity = computeActivityAtticIvy(polygons, mmax, mcdist, catalog)
 
     # assemble value dict
     values = {}
+
+    # loop over QGis features
     for zone_idx, zone in enumerate(fts):
         attributes = {}
         skipZone = False
@@ -110,10 +126,6 @@ def assignActivityAtticIvy(layer, catalog):
             except Exception, e:
                 skipZone = True
                 break
-                #error_str = \
-        #"error in attribute: seq_idx: %s, zone_idx: %s, attr_idx: %s, %s" % (
-                    #curr_idx, zone_idx, attr_idx, e)
-                #raise RuntimeError, error_str
 
         if skipZone is False:
             values[zone.id()] = attributes
@@ -126,20 +138,22 @@ def assignActivityAtticIvy(layer, catalog):
 
     return None
 
-def computeActivityAtticIvy(layer, catalog, Mmin=ATTICIVY_MMIN):
+def computeActivityAtticIvy(polygons, mmax, mcdist, catalog, 
+    mmin=ATTICIVY_MMIN):
     """Computes a-and b values using Roger Musson's AtticIvy code for
     a set of source zone polygons.
     
     Input: 
-        layer       QGis layer for zone features
-        catalog     earthquake catalog as QuakePy object
+        polygons        list of Shapely polygons for input zones
+        mmax            list of mmax values
+        mcdist          list of mcdist strings
+        catalog         earthquake catalog as QuakePy object
+        mmin            minimum magnitude used for AtticIvy computation
 
     Output: 
-        list of (a, b) pairs
+        list of (a, b, ab-matrix-string) triples
     """
     
-    fts = layer.selectedFeatures()
-
     # create temp dir for computation
     temp_dir_base = os.path.dirname(__file__)
     temp_dir = tempfile.mkdtemp(dir=temp_dir_base)
@@ -147,7 +161,8 @@ def computeActivityAtticIvy(layer, catalog, Mmin=ATTICIVY_MMIN):
     # NOTE: cannot use full file names, since they can be only 30 chars long
     # write zone data to temp file in AtticIvy format
     zone_file_path = os.path.join(temp_dir, ATTICIVY_ZONE_FILE)
-    writeZones2AtticIvy(layer, zone_file_path, Mmin)
+    
+    writeZones2AtticIvy(zone_file_path, polygons, mmax, mcdist, mmin)
 
     # write catalog to temp file in AtticIvy format
     catalog_file_path = os.path.join(temp_dir, ATTICIVY_CATALOG_FILE)
@@ -158,10 +173,6 @@ def computeActivityAtticIvy(layer, catalog, Mmin=ATTICIVY_MMIN):
 
     # copy executable to temp dir
     shutil.copy(ATTICIVY_EXECUTABLE, temp_dir)
-
-    #QMessageBox.information(None, "AtticIvy command line", 
-        #"%s: %s %s %s" % (temp_dir, "./%s" % exec_file, ATTICIVY_ZONE_FILE, 
-        #ATTICIVY_CATALOG_FILE))
 
     retcode = subprocess.call(["./%s" % exec_file, ATTICIVY_ZONE_FILE, 
         ATTICIVY_CATALOG_FILE, str(ATTICIVY_BOOTSTRAP_ITERATIONS)], 
@@ -180,50 +191,45 @@ def computeActivityAtticIvy(layer, catalog, Mmin=ATTICIVY_MMIN):
 
     return activity_list
 
-def writeZones2AtticIvy(layer, path, Mmin):
+def writeZones2AtticIvy(path, polygons, mmax, mcdist, mmin=ATTICIVY_MMIN):
     """Write AtticIvy zone file.
 
     Input:
-        layer   QGis layer for zone features
+        path            filename to write AtticIvy zone file to
+        polygons        list of Shapely polygons for input zones
+        mmax            list of mmax values
+        mcdist          list of mcdist strings
+        mmin            minimum magnitude used for AtticIvy computation
+
     """
-
-    provider = layer.dataProvider()
-    fts = layer.selectedFeatures()
-
-    # get attribute indices for mmax and mcdist
-    attribute_map = utils.getAttributeIndex(provider, ZONE_ATTRIBUTES)
 
     # open file for writing
     with open(path, 'w') as fh:
 
         # write header
-        fh.write('Mmin.......:%3.1f\n' % ATTICIVY_MMIN)
-        fh.write('# zones....:%3i\n' % utils.featureCount(fts, 
-            checkGeometry=True))
+        fh.write('Mmin.......:%3.1f\n' % mmin)
+        fh.write('# zones....:%3i\n' % len(polygons))
         
         # loop over zones
-        for curr_zone_idx, curr_zone in enumerate(fts):
+        for curr_zone_idx, curr_zone in enumerate(polygons):
 
             # get geometry
-            vertices = utils.verticesOuterFromQGSPolygon(curr_zone)
-            if vertices is None:
+            vertices = list(curr_zone.exterior.coords)
+            if len(vertices) < 4:
                 continue
             
-            fh.write('%04i , %s\n' % (curr_zone_idx, len(vertices)))
-            for vertex in vertices:
+            fh.write('%04i , %s\n' % (curr_zone_idx, len(vertices)-1))
+            for vertex in vertices[0:-1]:
                 fh.write('%s , %s\n' % (vertex[1], vertex[0]))
 
             try:
                 # add mmax from area source zone
-                mmax = curr_zone[attribute_map['mmax'][0]]
-                mmax = mmax.toDouble()[0]
-                mmax_str = "# Mmax.....:  1\n %.1f   1.0\n" % mmax
+                mmax_str = "# Mmax.....:  1\n %.1f   1.0\n" % (
+                    mmax[curr_zone_idx])
                 fh.write(mmax_str)
 
                 # assume that mcdist is also valid if mmax is valid
-                mcdist = curr_zone[attribute_map['mcdist'][0]]
-
-                mcdist = str(mcdist.toString())
+                mcdist = mcdist[curr_zone_idx]
                 mcdist_arr = mcdist.strip().split()
                 mcdist_mag = mcdist_arr[::2]
                 mcdist_year = mcdist_arr[1::2]
