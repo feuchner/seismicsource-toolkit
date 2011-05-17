@@ -129,7 +129,7 @@
       </rect>
      </property>
      <property name="title">
-      <string>AtticIvy (takes some time!)</string>
+      <string>AtticIvy</string>
      </property>
      <widget class="KLed" name="activityLED">
       <property name="geometry">
@@ -154,7 +154,7 @@
        <string>Idle</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="btnAtticIvy">
+     <widget class="QPushButton" name="btnComputeAtticIvy">
       <property name="geometry">
        <rect>
         <x>190</x>
@@ -173,7 +173,7 @@
       <rect>
        <x>10</x>
        <y>170</y>
-       <width>119</width>
+       <width>281</width>
        <height>21</height>
       </rect>
      </property>
@@ -186,7 +186,7 @@
       <rect>
        <x>10</x>
        <y>190</y>
-       <width>116</width>
+       <width>281</width>
        <height>21</height>
       </rect>
      </property>
@@ -287,7 +287,7 @@
       <rect>
        <x>10</x>
        <y>150</y>
-       <width>111</width>
+       <width>281</width>
        <height>21</height>
       </rect>
      </property>
@@ -365,7 +365,7 @@
        <string>Idle</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="btnRecurrence">
+     <widget class="QPushButton" name="btnComputeRecurrence">
       <property name="geometry">
        <rect>
         <x>190</x>

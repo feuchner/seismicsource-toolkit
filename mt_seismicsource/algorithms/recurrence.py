@@ -62,43 +62,46 @@ FAULT_ASPECT_RATIO = 2.0
 # buffer around fault polygons, in km
 BUFFER_AROUND_FAULT_POLYGONS = 30.0
 
-def assignRecurrence(provider_fault, provider_area=None, catalog=None):
+def assignRecurrence(layer_fault, layer_area=None, catalog=None):
     """Compute recurrence parameters according to Bungum paper. Add
     total seismic moment rate and activity rate as attributes to fault polygon
     layer.
 
     Input:
-        provider_fault  QGis layer provider for fault polygon layer
-        provider_area   QGis layer provider for area source zone layer
-        catalog         earthquake catalog as QuakePy object
+        layer_fault  QGis layer with fault zone features
+        layer_area   QGis layer with area zone features
+        catalog      earthquake catalog as QuakePy object
     """
 
     # get attribute indexes
-    provider_fault.select()
+    provider_fault = layer_fault.dataProvider()
+    fts = layer_fault.selectedFeatures()
+
     attribute_map = utils.getAttributeIndex(provider_fault, 
         features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE_COMPUTE, create=True)
 
-    provider_fault.rewind()
-    recurrence = computeRecurrence(provider_fault, provider_area, catalog)
+    recurrence = computeRecurrence(layer_fault, layer_area, catalog)
 
     # assemble value dict
     values = {}
-    provider_fault.rewind()
-    for zone_idx, zone in utils.walkValidPolygonFeatures(provider_fault):
+    for zone_idx, zone in enumerate(fts):
 
         attributes = {}
+        skipZone = False
         for attr_idx, attr_dict in enumerate(
             features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE_COMPUTE):
             (curr_idx, curr_type) = attribute_map[attr_dict['name']]
             try:
                 attributes[curr_idx] = QVariant(recurrence[2][zone_idx][attr_idx])
             except Exception, e:
-                error_str = \
-        "error in attribute: curr_idx: %s, zone_idx: %s, attr_idx: %s, %s" % (
-                    curr_idx, zone_idx, attr_idx, e)
-                raise RuntimeError, error_str
-
-        values[zone.id()] = attributes
+                skipZone = True
+                break
+                #error_str = \
+        #"error in attribute: curr_idx: %s, zone_idx: %s, attr_idx: %s, %s" % (
+                    #curr_idx, zone_idx, attr_idx, e)
+                #raise RuntimeError, error_str
+        if skipZone is False:
+            values[zone.id()] = attributes
 
     try:
         provider_fault.changeAttributeValues(values)
@@ -108,7 +111,7 @@ def assignRecurrence(provider_fault, provider_area=None, catalog=None):
 
     return recurrence[0:2]
 
-def computeRecurrence(provider_fault, provider_area=None, catalog=None):
+def computeRecurrence(layer_fault, layer_area=None, catalog=None):
     """Compute recurrence parameters according to Bungum paper. 
 
     Output:
@@ -149,8 +152,11 @@ def computeRecurrence(provider_fault, provider_area=None, catalog=None):
     total_seismic_moment_rate_min = 0.0
     total_seismic_moment_rate_max = 0.0
 
+    provider_fault = layer_fault.dataProvider()
+    fts = layer_fault.selectedFeatures()
+
     # loop over fault polygons
-    for zone_idx, zone in utils.walkValidPolygonFeatures(provider_fault):
+    for zone_idx, zone in enumerate(fts):
 
         zone_data_string_min = ""
         zone_data_string_max = ""

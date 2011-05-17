@@ -43,12 +43,15 @@ from algorithms import atticivy
 from algorithms import momentrate
 from algorithms import recurrence
 from algorithms import strain
+
 import do_plotwindow
 import layers
+
 from layers import areasource
 from layers import background
 from layers import faultsource
 from layers import eqcatalog
+
 import features
 import plots
 import utils
@@ -120,11 +123,11 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             SIGNAL("stateChanged(int)"), self._updateFMDDisplay)
 
         # Button: compute activity (AtticIvy)
-        QObject.connect(self.btnAtticIvy, SIGNAL("clicked()"), 
+        QObject.connect(self.btnComputeAtticIvy, SIGNAL("clicked()"), 
             self.computeAtticIvy)
 
         # Button: compute recurrence
-        QObject.connect(self.btnRecurrence, SIGNAL("clicked()"), 
+        QObject.connect(self.btnComputeRecurrence, SIGNAL("clicked()"), 
             self.computeRecurrence)
 
         # FMD plot window
@@ -400,14 +403,14 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         self.activityLED.setColor(QColor(255, 0, 0))
         self.activityLEDLabel.setText('Computing...')
-        self.btnAtticIvy.setEnabled(False)
+        self.btnComputeAtticIvy.setEnabled(False)
 
         atticivy_result = atticivy.assignActivityAtticIvy(
             self.area_source_layer, self.catalog)
 
         self.activityLED.setColor(QColor(0, 255, 0))
         self.activityLEDLabel.setText('Idle')
-        self.btnAtticIvy.setEnabled(True)
+        self.btnComputeAtticIvy.setEnabled(True)
 
     def computeRecurrence(self):
         """Compute recurrence with Bungum code."""
@@ -418,18 +421,17 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         self.recurrenceLED.setColor(QColor(255, 0, 0))
         self.recurrenceLEDLabel.setText('Computing...')
-        self.btnRecurrence.setEnabled(False)
+        self.btnComputeRecurrence.setEnabled(False)
 
-        pr = self.fault_source_layer.dataProvider()
-        pr.select()
-        recurrence_result = recurrence.assignRecurrence(pr)
+        recurrence_result = recurrence.assignRecurrence(
+            self.fault_source_layer, self.area_source_layer, self.catalog)
 
         self.labelTotalMoment.setText(
             "Total moment release rate:\n %.2e (min) %.2e (max) " % (
             recurrence_result))
         self.recurrenceLED.setColor(QColor(0, 255, 0))
         self.recurrenceLEDLabel.setText('Idle')
-        self.btnRecurrence.setEnabled(True)
+        self.btnComputeRecurrence.setEnabled(True)
 
     def _updateMomentRatesArea(self, feature):
         """Update or compute moment rates for selected feature of area source
@@ -537,7 +539,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
                 self.canvas_moment_rate_comparison_area)
 
         # new moment rate plot
-        self.fig_moment_rate_comparison_area = plots.MomentRateComparisonPlot()
+        self.fig_moment_rate_comparison_area = \
+            plots.MomentRateComparisonPlotArea()
         self.fig_moment_rate_comparison_area = \
             self.fig_moment_rate_comparison_area.plot(imgfile=None, 
                 data=moment_rates)
@@ -548,9 +551,11 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.canvas_moment_rate_comparison_area.draw()
 
         # plot widget
-        self.layoutPlotMomentRateArea.addWidget(self.canvas_moment_rate_comparison_area)
+        self.layoutPlotMomentRateArea.addWidget(
+            self.canvas_moment_rate_comparison_area)
         self.toolbar_moment_rate_comparison_area = plots.createToolbar(
-            self.canvas_moment_rate_comparison_area, self.widgetMomentRateArea)
+            self.canvas_moment_rate_comparison_area, 
+            self.widgetMomentRateArea)
         self.layoutPlotMomentRateArea.addWidget(
             self.toolbar_moment_rate_comparison_area)
 
@@ -566,6 +571,11 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         """
 
         provider = self.fault_source_layer.dataProvider()
+
+        attribute_map = utils.getAttributeIndex(provider, 
+            (features.FAULT_SOURCE_ATTR_MOMENTRATE_MIN,
+             features.FAULT_SOURCE_ATTR_MOMENTRATE_MAX))
+
         moment_rates = {}
 
         # get Shapely polygon from feature geometry
@@ -575,7 +585,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         area_sqkm = utils.polygonAreaFromWGS84(poly[0]) * 1.0e-6
 
         # get buffer polygon with 30 km extension and its area in square km
-        buffer_poly = 1
+        buffer_deg = 360.0 * (recurrence.BUFFER_AROUND_FAULT_POLYGONS / \
+            utils.EARTH_CIRCUMFERENCE_EQUATORIAL_KM)
+        buffer_poly = poly[0].buffer(buffer_deg)
         buffer_area_sqkm = utils.polygonAreaFromWGS84(buffer_poly) * 1.0e-6
 
         ## moment rate from EQs
@@ -600,13 +612,17 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         ## TODO(fab): do we need this?
         ## moment rate from activity (RM)
-        moment_rates['activity'] = numpy.nan
+        moment_rates['activity'] = 1.0e12
 
-        ## moment rate from geology (slip rate)
-        momentrate_strain = momentrate.momentrateFromStrainRate(poly[0], 
-            self.data_strain_rate)
-        moment_rates['slip'] = momentrate_strain / (
-            eqcatalog.CATALOG_TIME_SPAN)
+        momrate_min_name = features.FAULT_SOURCE_ATTR_MOMENTRATE_MIN['name']
+        momrate_max_name = features.FAULT_SOURCE_ATTR_MOMENTRATE_MAX['name']
+        momentrate_min = \
+            feature[attribute_map[momrate_min_name][0]].toDouble()[0] / (
+                eqcatalog.CATALOG_TIME_SPAN)
+        momentrate_max = \
+            feature[attribute_map[momrate_max_name][0]].toDouble()[0] / (
+                eqcatalog.CATALOG_TIME_SPAN)
+        moment_rates['slip'] = [momentrate_min, momentrate_max]
 
         return moment_rates
 
@@ -620,14 +636,12 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         ## from activity (RM)
         
         # get maximum likelihood value from central line of table
-        ml_idx = len(moment_rates['activity']) / 2
-        mr_ml = moment_rates['activity'][ml_idx]
         self.momentRateTableFault.setItem(0, 1, QTableWidgetItem(QString(
-            "%.2e" % mr_ml)))
+            "%s" % moment_rates['activity'])))
 
         ## from geodesy (strain)
         self.momentRateTableFault.setItem(0, 2, QTableWidgetItem(QString(
-            "%.2e" % moment_rates['slip'])))
+            "%.2e" % moment_rates['slip'][1])))
 
     def _updateMomentRatePlotFault(self, moment_rates):
 
@@ -641,7 +655,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
                 self.canvas_moment_rate_comparison_fault)
 
         # new moment rate plot
-        self.fig_moment_rate_comparison_fault = plots.MomentRateComparisonPlot()
+        self.fig_moment_rate_comparison_fault = \
+            plots.MomentRateComparisonPlotFault()
         self.fig_moment_rate_comparison_fault = \
             self.fig_moment_rate_comparison_fault.plot(imgfile=None, 
                 data=moment_rates)
@@ -652,9 +667,11 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.canvas_moment_rate_comparison_fault.draw()
 
         # plot widget
-        self.layoutPlotMomentRateFault.addWidget(self.canvas_moment_rate_comparison_fault)
+        self.layoutPlotMomentRateFault.addWidget(
+            self.canvas_moment_rate_comparison_fault)
         self.toolbar_moment_rate_comparison_fault = plots.createToolbar(
-            self.canvas_moment_rate_comparison_fault, self.widgetMomentRateFault)
+            self.canvas_moment_rate_comparison_fault, 
+            self.widgetMomentRateFault)
         self.layoutPlotMomentRateFault.addWidget(
             self.toolbar_moment_rate_comparison_fault)
 

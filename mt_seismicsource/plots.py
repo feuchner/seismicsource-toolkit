@@ -92,7 +92,7 @@ class PlotCanvas(MCanvas):
 
         self.draw()
 
-class MomentRateComparisonPlot(qpplot.QPPlot):
+class MomentRateComparisonPlotArea(qpplot.QPPlot):
     """Plot for comparing several computations of seismic moment rate."""
 
     def plot( self, imgfile, data, **kwargs ):
@@ -122,6 +122,65 @@ class MomentRateComparisonPlot(qpplot.QPPlot):
         ax = self.figure.add_subplot(111)
 
         for key_idx, key in enumerate(('eq', 'activity', 'strain')):
+
+            if isinstance(data[key], list):
+                ordinate_length = len(data[key])
+                abscissa = data[key]
+            else:
+
+                # TODO(fab): this does not work, still throws error is NaN
+                if data[key] == numpy.nan:
+                    continue
+
+                ordinate_length = 1
+                abscissa = [data[key], ]
+
+            ordinate = [key_idx+1] * ordinate_length
+            self.pyplot.semilogx(abscissa, ordinate, symbol_style[key])
+
+            # plot description
+            self.pyplot.annotate(description[key], 
+                (min(abscissa), key_idx+1.2))
+
+        # TODO(fab): set x, y axis range
+        self.pyplot.ylim(0.5, key_idx+1.5)
+
+        # TODO(fab): formatting of y axis labels/caption
+        self.pyplot.xlabel( 'Annual Seismic Moment Rate' )
+        #self.pyplot.ylabel( '' )
+
+        return self.return_image(imgfile)
+
+class MomentRateComparisonPlotFault(qpplot.QPPlot):
+    """Plot for comparing several computations of seismic moment rate."""
+
+    def plot( self, imgfile, data, **kwargs ):
+        """Plot cumulative occurrence rate vs. magnitude.
+
+        Input:
+            data        dict of abscissa values (or lists of abscissa values)
+                        key 'eq': from EQs
+                        key 'activity': from activity (RM code, AtticIvy)
+                        key 'slip': from slip rates
+        """
+        if 'backend' in kwargs and kwargs['backend'] != self.backend:
+            self.__init__(backend=kwargs['backend'])
+    
+        self.pyplot.clf()
+        
+        symbol_style = {'eq': 'ks',        # black solid square
+                        'activity': 'ro',  # red circle
+                        'slip': 'b^'     # blue triangle
+                       }
+
+        description = {'eq': 'from earthquakes',
+                       'activity': 'from activity',
+                       'slip': 'from slip rates'
+                      }
+
+        ax = self.figure.add_subplot(111)
+
+        for key_idx, key in enumerate(('eq', 'activity', 'slip')):
 
             if isinstance(data[key], list):
                 ordinate_length = len(data[key])
