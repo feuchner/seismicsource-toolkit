@@ -115,8 +115,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             self.updateRecurrence)
 
         # Checkbox: Normalize FMD plot
-        QObject.connect(self.checkBoxGRAnnualRate, 
-            SIGNAL("stateChanged(int)"), self._updateFMDDisplay)
+        # TODO(fab): disabled, since results are not correct
+        #QObject.connect(self.checkBoxGRAnnualRate, 
+            #SIGNAL("stateChanged(int)"), self._updateFMDDisplay)
 
         # Button: compute activity (AtticIvy)
         QObject.connect(self.btnComputeAtticIvy, SIGNAL("clicked()"), 
@@ -216,23 +217,11 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         if not utils.check_only_one_feature_selected(self.area_source_layer):
             return
 
-        selected_feature = self.area_source_layer.selectedFeatures()[0]
-
-        # check if AtticIvy a, b attributes are available, if not, compute
-        provider = self.area_source_layer.dataProvider()
-
-        attribute_map = utils.getAttributeIndex(provider, 
-            (features.AREA_SOURCE_ATTR_ACTIVITY_RM, ))
-
-        attribute_act_name = features.AREA_SOURCE_ATTR_ACTIVITY_RM['name']
-        attribute_act_idx = attribute_map[attribute_act_name][0]
-
         # TODO(fab): check if attribute values have been changed
         # so far, we always recompute
         self.computeAtticIvy()
         self.area_source_layer.commitChanges()
 
-        # NOTE: assigning the selected features again is very important!
         selected_feature = self.area_source_layer.selectedFeatures()[0]
 
         moment_rates = self._updateMomentRatesArea(selected_feature)
@@ -245,6 +234,11 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         if not utils.check_only_one_feature_selected(self.fault_source_layer):
             return
+
+        # TODO(fab): check if attribute values have been changed
+        # so far, we always recompute
+        self.computeRecurrence()
+        self.fault_source_layer.commitChanges()
 
         selected_feature = self.fault_source_layer.selectedFeatures()[0]
 
@@ -261,12 +255,6 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             return
 
         selected_feature = self.area_source_layer.selectedFeatures()[0]
-
-        # get feature index of first selected row
-        #feature_id = str(selected_features[AREA_ZONE_TABLE_ID_IDX].text())
-        #feature_idx = self.area_zone_feature_map[feature_id]
-        #feature = self.area_source_layer.selectedFeatures()[feature_idx]
-
         self._computeZoneFMD(selected_feature)
         self._updateFMDDisplay()
 
@@ -278,11 +266,6 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             return
 
         selected_feature = self.fault_source_layer.selectedFeatures()[0]
-
-        moment_rates = self._updateMomentRatesArea(selected_feature)
-        self._updateMomentRateTableArea(moment_rates)
-        self._updateMomentRatePlotArea(moment_rates)
-
         self._updateRecurrenceDisplay(selected_feature)
 
     def _updateFMDDisplay(self):
