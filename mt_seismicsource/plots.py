@@ -37,6 +37,11 @@ from qgis.core import *
 
 import qpplot
 
+MOMENT_RATE_COMPARISON_WIDTH = 6
+MOMENT_RATE_COMPARISON_HEIGHT = 6
+
+ANNUAL_SEISMIC_MOMENT_RATE_UNIT = "Annual Seismic Moment Rate [Nm km^2 yr^-1]"
+
 try:
     from matplotlib.backends.backend_qt4agg \
         import FigureCanvasQTAgg as FigureCanvas
@@ -50,7 +55,7 @@ except ImportError:
 
 class MCanvas(FigureCanvas):
     """Base class for matplotlib canvases."""
-    def __init__(self, fig=None, parent=None, width=5, height=4, dpi=100):
+    def __init__(self, fig=None, parent=None, width=5, height=5, dpi=100):
 
         if fig is None:
             self.fig = Figure(figsize = (width, height), dpi=dpi)
@@ -93,6 +98,12 @@ class PlotCanvas(MCanvas):
 class MomentRateComparisonPlotArea(qpplot.QPPlot):
     """Plot for comparing several computations of seismic moment rate."""
 
+    def __init__(self, *args, **kwargs):
+        super(MomentRateComparisonPlotArea, self).__init__(self, 
+            xsize=MOMENT_RATE_COMPARISON_WIDTH,
+            ysize=MOMENT_RATE_COMPARISON_HEIGHT,
+            *args, **kwargs)
+
     def plot( self, imgfile, data, **kwargs ):
         """Plot cumulative occurrence rate vs. magnitude.
 
@@ -118,7 +129,7 @@ class MomentRateComparisonPlotArea(qpplot.QPPlot):
                       }
 
         # set figure size
-        # self.pyplot.rcParams['figure.figsize'] = (6, 2)
+        # self.pyplot.rcParams['figure.figsize'] = (5, 5)
         self.ax = self.figure.add_subplot(111)
 
         for key_idx, key in enumerate(('eq', 'activity', 'strain')):
@@ -152,7 +163,7 @@ class MomentRateComparisonPlotArea(qpplot.QPPlot):
                 key_idx+1.2))
 
         # TODO(fab): formatting of y axis labels/caption
-        self.pyplot.xlabel( 'Annual Seismic Moment Rate' )
+        self.pyplot.xlabel(ANNUAL_SEISMIC_MOMENT_RATE_UNIT)
         #self.ax.set_yicks([])
         #self.pyplot.ylabel( '' )
 
@@ -160,6 +171,12 @@ class MomentRateComparisonPlotArea(qpplot.QPPlot):
 
 class MomentRateComparisonPlotFault(qpplot.QPPlot):
     """Plot for comparing several computations of seismic moment rate."""
+
+    def __init__(self, *args, **kwargs):
+        super(MomentRateComparisonPlotFault, self).__init__(self, 
+            xsize=MOMENT_RATE_COMPARISON_WIDTH,
+            ysize=MOMENT_RATE_COMPARISON_HEIGHT,
+            *args, **kwargs)
 
     def plot( self, imgfile, data, **kwargs ):
         """Plot cumulative occurrence rate vs. magnitude.
@@ -186,7 +203,7 @@ class MomentRateComparisonPlotFault(qpplot.QPPlot):
                       }
 
         # set figure size
-        # self.pyplot.rcParams['figure.figsize'] = (6, 2)
+        # self.pyplot.rcParams['figure.figsize'] = (5, 5)
         self.ax = self.figure.add_subplot(111)
 
         for key_idx, key in enumerate(('eq', 'activity', 'slip')):
@@ -215,7 +232,7 @@ class MomentRateComparisonPlotFault(qpplot.QPPlot):
                 key_idx+1.2))
 
         # TODO(fab): formatting of y axis labels/caption
-        self.pyplot.xlabel( 'Annual Seismic Moment Rate' )
+        self.pyplot.xlabel(ANNUAL_SEISMIC_MOMENT_RATE_UNIT)
         #self.ax.set_yicks([])
         #self.pyplot.ylabel( '' )
 
