@@ -227,12 +227,13 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         attribute_act_name = features.AREA_SOURCE_ATTR_ACTIVITY_RM['name']
         attribute_act_idx = attribute_map[attribute_act_name][0]
 
-        if attribute_act_idx not in selected_feature.attributeMap():
-            self.computeAtticIvy()
-            self.area_source_layer.commitChanges()
+        # TODO(fab): check if attribute values have been changed
+        # so far, we always recompute
+        self.computeAtticIvy()
+        self.area_source_layer.commitChanges()
 
-            # NOTE: assigning the selected features again is very important!
-            selected_feature = self.area_source_layer.selectedFeatures()[0]
+        # NOTE: assigning the selected features again is very important!
+        selected_feature = self.area_source_layer.selectedFeatures()[0]
 
         moment_rates = self._updateMomentRatesArea(selected_feature)
         self._updateMomentRateTableArea(moment_rates)
