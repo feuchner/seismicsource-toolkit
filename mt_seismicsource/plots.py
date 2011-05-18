@@ -149,10 +149,6 @@ class MomentRateComparisonPlotArea(qpplot.QPPlot):
             ordinate = [key_idx+1] * ordinate_length
             self.pyplot.semilogx(abscissa, ordinate, symbol_style[key])
 
-            # plot description
-            #self.pyplot.annotate(description[key], 
-                #(min(abscissa), key_idx+1.2))
-
         # TODO(fab): set x, y axis range
         self.pyplot.ylim(0.5, key_idx+1.5)
         xmin, xmax = self.pyplot.xlim()
@@ -162,11 +158,9 @@ class MomentRateComparisonPlotArea(qpplot.QPPlot):
                 (xmin + numpy.power(10, 0.15 * numpy.log10(xmax - xmin)), 
                 key_idx+1.2))
 
-        # TODO(fab): formatting of y axis labels/caption
         self.pyplot.xlabel(ANNUAL_SEISMIC_MOMENT_RATE_UNIT)
-        #self.ax.set_yicks([])
-        #self.pyplot.ylabel( '' )
-
+        self.ax.set_yticks([])
+        
         return self.return_image(imgfile)
 
 class MomentRateComparisonPlotFault(qpplot.QPPlot):
@@ -218,10 +212,6 @@ class MomentRateComparisonPlotFault(qpplot.QPPlot):
             ordinate = [key_idx+1] * ordinate_length
             self.pyplot.semilogx(abscissa, ordinate, symbol_style[key])
 
-            # plot description
-            #self.pyplot.annotate(description[key], 
-                #(min(abscissa), key_idx+1.2))
-
         # TODO(fab): set x, y axis range
         self.pyplot.ylim(0.5, key_idx+1.5)
         xmin, xmax = self.pyplot.xlim()
@@ -231,10 +221,8 @@ class MomentRateComparisonPlotFault(qpplot.QPPlot):
                 (xmin + numpy.power(10, 0.15 * numpy.log10(xmax - xmin)), 
                 key_idx+1.2))
 
-        # TODO(fab): formatting of y axis labels/caption
         self.pyplot.xlabel(ANNUAL_SEISMIC_MOMENT_RATE_UNIT)
-        #self.ax.set_yicks([])
-        #self.pyplot.ylabel( '' )
+        self.ax.set_yticks([])
 
         return self.return_image(imgfile)
 
