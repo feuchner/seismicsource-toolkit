@@ -39,6 +39,7 @@ import qpplot
 
 MOMENT_RATE_COMPARISON_WIDTH = 6
 MOMENT_RATE_COMPARISON_HEIGHT = 6
+MOMENT_RATE_COMPARISON_LABEL_POSITION = 0.7
 
 ANNUAL_SEISMIC_MOMENT_RATE_UNIT = "Annual Seismic Moment Rate [Nm km^2 yr^-1]"
 
@@ -155,7 +156,9 @@ class MomentRateComparisonPlotArea(qpplot.QPPlot):
 
         for key_idx, key in enumerate(('eq', 'activity', 'strain')):
             self.pyplot.annotate(description[key], 
-                (xmin + numpy.power(10, 0.15 * numpy.log10(xmax - xmin)), 
+                (xmin + numpy.power(10, 
+                MOMENT_RATE_COMPARISON_LABEL_POSITION * numpy.log10(
+                    xmax - xmin)), 
                 key_idx+1.2))
 
         self.pyplot.xlabel(ANNUAL_SEISMIC_MOMENT_RATE_UNIT)
@@ -218,7 +221,9 @@ class MomentRateComparisonPlotFault(qpplot.QPPlot):
 
         for key_idx, key in enumerate(('eq', 'activity', 'slip')):
             self.pyplot.annotate(description[key], 
-                (xmin + numpy.power(10, 0.15 * numpy.log10(xmax - xmin)), 
+                (xmin + numpy.power(10, 
+                MOMENT_RATE_COMPARISON_LABEL_POSITION * numpy.log10(
+                    xmax - xmin)), 
                 key_idx+1.2))
 
         self.pyplot.xlabel(ANNUAL_SEISMIC_MOMENT_RATE_UNIT)
