@@ -127,19 +127,22 @@ def momentrateFromStrainRate(poly, strain):
     # return 1000 * CZ_FACTOR * SHEAR_MODULUS * strainrate * 1.0e-6
     return 1000 * CZ_FACTOR * SHEAR_MODULUS * momentrate
 
-def momentrateFromSlipRate(poly, slip):
-    """Compute seismic moment rate from slip rate computed with recurrence
-    module.
+def momentrateFromSlipRate(slipratemi, slipratema, area):
+    """Compute min/max seismic moment rate from min/max slip rate."""
 
-    Input:
-        poly            Fault zone geometry as Shapely polygon
-        slip            Slip rate data set
+    # TODO(fab): double-check scaling with Laurentiu!
+    # shear modulus: Pa = N / m^2 = kg / (m * s^2) = kg / (10^-3 km * s^2)
+    #                1 kg / (km * s^2) = 10^3 N
+    # slip rate: mm / year
+    # area: m^2
+    # moment rate unit: Nm / (year * km^2)
+    #  kg * 10^-3 m * m^2 / (m * s^2 * 365.25*24*60*60 s) 
+    # = 10^3 N * 10^-3 m^3 / (10^-3 * [year] s))
+    #  = 10^3 Nm * m^2 / [year] s <- divide this by area in metres (?)
+    # kg m^3 / (m s^3) = kg m^2 / s^3
 
-    Output:
-        momentrate      momentrate computed from slip rate
-    """
+    slip_rates = numpy.array([slipratemi, slipratema], dtype=float)
+    moment_rates = 1.0e3 * SHEAR_MODULUS * slip_rates * area / (
+        365.25*24*60*60)
 
-    momentrate = 0.0
-
-
-    return momentrate
+    return moment_rates.tolist()
