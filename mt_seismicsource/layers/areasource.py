@@ -87,13 +87,6 @@ def assignAttributesFromBackgroundZones(layer, background_layer):
         utils.getAttributeIndex(provider, attribute_list, create=True)
 
     values = {}
-
-    # get mmax and mcdist for all zones
-    background_attrs = getAttributesFromBackgroundZones(provider, 
-        provider_back)
-
-    #QMessageBox.information(None, "Attr", "%s" % background_attrs)
-
     attribute_map = utils.getAttributeIndex(provider, COPY_ATTRIBUTES)
 
     provider.select()
@@ -102,17 +95,24 @@ def assignAttributesFromBackgroundZones(layer, background_layer):
 
         attributes = {}
         skipZone = False
+
+        # get mmax and mcdist from background zones
+        polygon, vertices = utils.polygonsQGS2Shapely((zone,))
+        centroid = polygon[0].centroid
+        copy_attr = getAttributesFromBackgroundZones(centroid,
+            provider_back)
+
         for attr_idx, attr_dict in enumerate(COPY_ATTRIBUTES):
             (curr_idx, curr_type) = attribute_map[attr_dict['name']]
 
             # if one of the attribute values is None, skip zone
-            if background_attrs[zone_idx][attr_idx] is None:
+            if copy_attr[attr_idx] is None:
                 skipZone = True
                 break
                 
             try:
                 # attributes are of type QVariant
-                attributes[curr_idx] = background_attrs[zone_idx][attr_idx]
+                attributes[curr_idx] = copy_attr[attr_idx]
             except Exception, e:
                 error_str = \
         "error in attribute: curr_idx: %s, zone_idx: %s, attr_idx: %s, %s" % (
@@ -122,37 +122,28 @@ def assignAttributesFromBackgroundZones(layer, background_layer):
         if skipZone is False:
             values[zone.id()] = attributes
 
-    #QMessageBox.information(None, "values", "%s" % values)
-
     try:
         provider.changeAttributeValues(values)
     except Exception, e:
         error_str = "cannot update attribute values, %s" % (e)
         raise RuntimeError, error_str
 
-def getAttributesFromBackgroundZones(provider, provider_back):
-    """Get mmax and mcdist from background for all zones."""
-
-    background_attrs = []
+def getAttributesFromBackgroundZones(point, provider_back):
+    """Get mmax and mcdist from background zone at a given
+    Shapely point."""
 
     attribute_map = utils.getAttributeIndex(provider_back, COPY_ATTRIBUTES)
 
-    provider.select()
-    provider.rewind()
-    for zone_idx, zone in utils.walkValidPolygonFeatures(provider):
+    # identify matching background zone
+    background_zone = utils.findBackgroundZone(point, provider_back)
 
-        # identify matching background zone
-        background_zone = utils.findBackgroundZone(zone, provider_back)
-
-        if background_zone is not None:
-            # leave values as QVariant
-            mmax = background_zone[attribute_map['mmax'][0]]
-            mcdist = background_zone[attribute_map['mcdist'][0]]
-            zone_data = [mmax, mcdist]
-        else:
-            zone_data = [None, None]
-
-        background_attrs.append(zone_data)
+    if background_zone is not None:
+        # leave values as QVariant
+        mmax = background_zone[attribute_map['mmax'][0]]
+        mcdist = background_zone[attribute_map['mcdist'][0]]
+        background_attrs = [mmax, mcdist]
+    else:
+        background_attrs = [None, None]
 
     return background_attrs
 

@@ -137,14 +137,10 @@ def polygonsQGS2Shapely(polygons, getVertices=False):
 
     return (polygons_shapely, vertices_shapely)
 
-def findBackgroundZone(zone, provider_back):
-    """Find background zone in which centroid of a given other zone lies."""
+def findBackgroundZone(point, provider_back):
+    """Find background zone in which a given Shapely point lies."""
     
     bg_zone = None
-
-    # convert test zone polygon to Shapely
-    poly, vertices = polygonsQGS2Shapely((zone,))
-    poly_center = poly[0].centroid
 
     # TODO(fab): this can probably be made more efficient
     # loop over background zones
@@ -155,7 +151,7 @@ def findBackgroundZone(zone, provider_back):
         # convert background zone polygon to Shapely
         bg_poly, vertices = polygonsQGS2Shapely((bgz,))
 
-        if poly_center.within(bg_poly[0]):
+        if point.within(bg_poly[0]):
             bg_zone = bgz
             break
 

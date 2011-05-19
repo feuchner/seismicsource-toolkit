@@ -558,7 +558,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         zone layer.
 
         Input:
-            feature     QGis polygon feature from area source layer
+            feature         QGis polygon feature from area source layer
         
         Output:
             moment_rates    dict of computed moment rates
@@ -566,6 +566,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         provider = self.fault_source_layer.dataProvider()
         provider_area = self.area_source_layer.dataProvider()
+        provider_back = self.background_zone_layer.dataProvider()
 
         attribute_map = utils.getAttributeIndex(provider, 
             (features.FAULT_SOURCE_ATTR_MOMENTRATE_MIN,
@@ -584,6 +585,12 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             utils.EARTH_CIRCUMFERENCE_EQUATORIAL_KM)
         buffer_poly = poly[0].buffer(buffer_deg)
         buffer_area_sqkm = utils.polygonAreaFromWGS84(buffer_poly) * 1.0e-6
+
+        # get mmax and mcdist for buffer zone from background zone
+        (mmax_qv, mcdist_qv) = areasource.getAttributesFromBackgroundZones(
+            buffer_poly.centroid, provider_back)
+        mmax = float(mmax_qv.toDouble()[0])
+        mcdist = str(mcdist_qv.toString())
 
         ## moment rate from EQs
 
@@ -606,9 +613,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             area_sqkm * eqcatalog.CATALOG_TIME_SPAN)
 
         ## moment rate from activity (RM)
-        ## TODO(fab): get real mmax and mcdist from background zone
-        mmax = 7.0
-        mcdist = "4.0 1700 8.5 1200"
+
         activity = atticivy.computeActivityAtticIvy((buffer_poly, ), (mmax, ), 
             (mcdist, ), self.catalog)
         

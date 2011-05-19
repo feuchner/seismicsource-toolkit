@@ -96,8 +96,10 @@ def assignActivityAtticIvy(layer, catalog):
     zone_attribute_map = utils.getAttributeIndex(provider, ZONE_ATTRIBUTES, 
         create=False)
 
-    mmax_idx = zone_attribute_map['mmax'][0]
-    mcdist_idx = zone_attribute_map['mcdist'][0]
+    mmax_name = features.AREA_SOURCE_ATTR_MMAX['name']    
+    mmax_idx = zone_attribute_map[mmax_name][0]
+    mcdist_name = features.AREA_SOURCE_ATTR_MCDIST['name']
+    mcdist_idx = zone_attribute_map[mcdist_name][0]
 
     fts = layer.selectedFeatures()
     polygons, vertices = utils.polygonsQGS2Shapely(fts)
