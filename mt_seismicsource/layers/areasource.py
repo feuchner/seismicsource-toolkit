@@ -136,12 +136,11 @@ def getAttributesFromBackgroundZones(point, provider_back):
 
     # identify matching background zone
     background_zone = utils.findBackgroundZone(point, provider_back)
-
+    
     if background_zone is not None:
         # leave values as QVariant
-        mmax = background_zone[attribute_map['mmax'][0]]
-        mcdist = background_zone[attribute_map['mcdist'][0]]
-        background_attrs = [mmax, mcdist]
+        background_attrs = [background_zone[attribute_map[x['name']][0]] \
+            for x in COPY_ATTRIBUTES]
     else:
         background_attrs = [None, None]
 
