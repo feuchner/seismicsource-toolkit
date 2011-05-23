@@ -37,6 +37,8 @@ from qgis.core import *
 
 import qpplot
 
+import do_plotwindow
+
 MOMENT_RATE_COMPARISON_WIDTH = 6
 MOMENT_RATE_COMPARISON_HEIGHT = 6
 MOMENT_RATE_COMPARISON_LABEL_POSITION = 0.7
@@ -236,3 +238,13 @@ def createToolbar(canvas, widget):
     lstActions = toolbar.actions()
     toolbar.removeAction(lstActions[7])
     return toolbar
+
+def createPlotWindow(cls):
+    """Create new plot window dialog."""
+
+    plot_window = do_plotwindow.PlotWindow(cls.iface)
+    plot_window.setModal(False)
+    plot_window.show()
+    plot_window.raise_()
+    cls.plot_windows.append(plot_window)
+    return plot_window

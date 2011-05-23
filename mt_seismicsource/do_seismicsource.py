@@ -40,11 +40,10 @@ import QPCatalog
 import qpplot
 
 from algorithms import atticivy
-from algorithms import momentrate
 from algorithms import recurrence
 from algorithms import strain
 
-import do_plotwindow
+import engine
 import layers
 
 from layers import areasource
@@ -53,7 +52,6 @@ from layers import eqcatalog
 from layers import faultsource
 from layers import render
 
-import features
 import plots
 import utils
 
@@ -66,12 +64,6 @@ MIN_EVENTS_FOR_GR = 10
 
 (MOMENT_TABLE_EQ_IDX, MOMENT_TABLE_SEISMICITY_IDX,
     MOMENT_TABLE_STRAIN_IDX) = range(3)
-
-(FAULT_ZONE_TABLE_ID_IDX, FAULT_ZONE_TABLE_NAME_IDX, 
-    FAULT_ZONE_TABLE_ACTIVITY_MIN_IDX, 
-    FAULT_ZONE_TABLE_ACTIVITY_MAX_IDX, 
-    FAULT_ZONE_TABLE_MOMENTRATE_MIN_IDX,
-    FAULT_ZONE_TABLE_MOMENTRATE_MAX_IDX) = range(6)
 
 try:
     from matplotlib.backends.backend_qt4agg \
@@ -224,9 +216,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         selected_feature = self.area_source_layer.selectedFeatures()[0]
 
-        moment_rates = self._updateMomentRatesArea(selected_feature)
-        self._updateMomentRateTableArea(moment_rates)
-        self._updateMomentRatePlotArea(moment_rates)
+        moment_rates = engine.updateMomentRatesArea(self, selected_feature)
+        engine.updateMomentRateTableArea(self, moment_rates)
+        engine.updateMomentRatePlotArea(self, moment_rates)
 
     def updateMomentRateValuesFault(self):
         """Update values in moment rate per fault table/plot, if other 
@@ -242,9 +234,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         selected_feature = self.fault_source_layer.selectedFeatures()[0]
 
-        moment_rates = self._updateMomentRatesFault(selected_feature)
-        self._updateMomentRateTableFault(moment_rates)
-        self._updateMomentRatePlotFault(moment_rates)
+        moment_rates = engine.updateMomentRatesFault(self, selected_feature)
+        engine.updateMomentRateTableFault(self, moment_rates)
+        engine.updateMomentRatePlotFault(self, moment_rates)
 
     def updateFMD(self):
         """Update FMD display for one selected area zone from
@@ -294,7 +286,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
     def _plotFMD(self):
 
-        window = self.createPlotWindow()
+        window = plots.createPlotWindow(self)
 
         # new FMD plot (returns figure)
         self.figures['fmd']['fig'] = self.figures['fmd']['fmd'].plot(
@@ -312,7 +304,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
     def _plotRecurrence(self, feature):
 
-        window = self.createPlotWindow()
+        window = plots.createPlotWindow(self)
 
         pr = self.fault_source_layer.dataProvider()
         activity_min_idx = pr.fieldNameIndex('actrate_mi')
@@ -432,270 +424,3 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.recurrenceLED.setColor(QColor(0, 255, 0))
         self.recurrenceLEDLabel.setText('Idle')
         self.btnComputeRecurrence.setEnabled(True)
-
-    def _updateMomentRatesArea(self, feature):
-        """Update or compute moment rates for selected feature of area source
-        zone layer.
-
-        Input:
-            feature     QGis polygon feature from area source layer
-        
-        Output:
-            moment_rates    dict of computed moment rates
-        """
-
-        provider = self.area_source_layer.dataProvider()
-        moment_rates = {}
-
-        # get Shapely polygon from feature geometry
-        poly, vertices = utils.polygonsQGS2Shapely((feature,))
-
-        # get polygon area in square kilometres
-        area_sqkm = utils.polygonAreaFromWGS84(poly[0]) * 1.0e-6
-
-        ## moment rate from EQs
-
-        # get quakes from catalog (cut with polygon)
-        curr_cat = QPCatalog.QPCatalog()
-        curr_cat.merge(self.catalog)
-        curr_cat.cut(geometry=poly[0])
-
-        # sum up moment from quakes (converted from Mw with Kanamori eq.)
-        magnitudes = []
-        for ev in curr_cat.eventParameters.event:
-            mag = ev.getPreferredMagnitude()
-            magnitudes.append(mag.mag.value)
-
-        moment = numpy.array(momentrate.magnitude2moment(magnitudes))
-
-        # scale moment: per year and area (in km^2)
-        # TODO(fab): compute real catalog time span
-        moment_rates['eq'] = moment.sum() / (
-            area_sqkm * eqcatalog.CATALOG_TIME_SPAN)
-
-        ## moment rate from activity (RM)
-
-        # get attribute index of AtticIvy result
-        attribute_map = utils.getAttributeIndex(provider, 
-            (features.AREA_SOURCE_ATTR_ACTIVITY_RM, 
-             features.AREA_SOURCE_ATTR_MMAX))
-
-        attribute_act_name = features.AREA_SOURCE_ATTR_ACTIVITY_RM['name']
-        attribute_act_idx = attribute_map[attribute_act_name][0]
-        attribute_mmax_name = features.AREA_SOURCE_ATTR_MMAX['name']
-        attribute_mmax_idx = attribute_map[attribute_mmax_name][0]
-
-        # get RM (weight, a, b) values from feature attribute
-        activity_str = str(feature[attribute_act_idx].toString())
-        activity_arr = activity_str.strip().split()
-
-        # ignore weights
-        activity_a = [float(x) for x in activity_arr[1::3]]
-        activity_b = [float(x) for x in activity_arr[2::3]]
-        mmax = float(feature[attribute_mmax_idx].toDouble()[0])
-
-        # multiply computed value with area in square kilometres
-        momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
-            activity_a, activity_b, mmax)) * area_sqkm / (
-                eqcatalog.CATALOG_TIME_SPAN)
-
-        moment_rates['activity'] = momentrates_arr.tolist()
-
-        ## moment rate from geodesy (strain)
-        momentrate_strain = momentrate.momentrateFromStrainRate(poly[0], 
-            self.data_strain_rate)
-        moment_rates['strain'] = momentrate_strain / (
-            eqcatalog.CATALOG_TIME_SPAN)
-
-        return moment_rates
-
-    def _updateMomentRateTableArea(self, moment_rates):
-        self.momentRateTableArea.clearContents()
-
-        ## from EQs
-        self.momentRateTableArea.setItem(0, 0, QTableWidgetItem(QString(
-            "%.2e" % moment_rates['eq'])))
-
-        ## from activity (RM)
-        
-        # get maximum likelihood value from central line of table
-        ml_idx = len(moment_rates['activity']) / 2
-        mr_ml = moment_rates['activity'][ml_idx]
-        self.momentRateTableArea.setItem(0, 1, QTableWidgetItem(QString(
-            "%.2e" % mr_ml)))
-
-        ## from geodesy (strain)
-        self.momentRateTableArea.setItem(0, 2, QTableWidgetItem(QString(
-            "%.2e" % moment_rates['strain'])))
-
-    def _updateMomentRatePlotArea(self, moment_rates):
-
-        window = self.createPlotWindow()
-
-        # new moment rate plot
-        self.fig_moment_rate_comparison_area = \
-            plots.MomentRateComparisonPlotArea()
-        self.fig_moment_rate_comparison_area = \
-            self.fig_moment_rate_comparison_area.plot(imgfile=None, 
-                data=moment_rates)
-
-        self.canvas_moment_rate_comparison_area = plots.PlotCanvas(
-            self.fig_moment_rate_comparison_area, 
-            title="Seismic Moment Rates")
-        self.canvas_moment_rate_comparison_area.draw()
-
-        # plot widget
-        window.layoutPlot.addWidget(
-            self.canvas_moment_rate_comparison_area)
-        self.toolbar_moment_rate_comparison_area = plots.createToolbar(
-            self.canvas_moment_rate_comparison_area, 
-            window)
-        window.layoutPlot.addWidget(
-            self.toolbar_moment_rate_comparison_area)
-
-    def _updateMomentRatesFault(self, feature):
-        """Update or compute moment rates for selected feature of fault source
-        zone layer.
-
-        Input:
-            feature         QGis polygon feature from area source layer
-        
-        Output:
-            moment_rates    dict of computed moment rates
-        """
-
-        provider = self.fault_source_layer.dataProvider()
-        provider_area = self.area_source_layer.dataProvider()
-        provider_back = self.background_zone_layer.dataProvider()
-
-        attribute_map = utils.getAttributeIndex(provider, 
-            (features.FAULT_SOURCE_ATTR_MOMENTRATE_MIN,
-             features.FAULT_SOURCE_ATTR_MOMENTRATE_MAX))
-
-        moment_rates = {}
-
-        # get Shapely polygon from feature geometry
-        poly, vertices = utils.polygonsQGS2Shapely((feature,))
-
-        # get polygon area in square kilometres
-        area_sqkm = utils.polygonAreaFromWGS84(poly[0]) * 1.0e-6
-
-        # get buffer polygon with 30 km extension and its area in square km
-        buffer_deg = 360.0 * (recurrence.BUFFER_AROUND_FAULT_POLYGONS / \
-            utils.EARTH_CIRCUMFERENCE_EQUATORIAL_KM)
-        buffer_poly = poly[0].buffer(buffer_deg)
-        buffer_area_sqkm = utils.polygonAreaFromWGS84(buffer_poly) * 1.0e-6
-
-        # get mmax and mcdist for buffer zone from background zone
-        (mmax_qv, mcdist_qv) = areasource.getAttributesFromBackgroundZones(
-            buffer_poly.centroid, provider_back)
-        mmax = float(mmax_qv.toDouble()[0])
-        mcdist = str(mcdist_qv.toString())
-
-        ## moment rate from EQs
-
-        # get quakes from catalog (cut with buffer polygon)
-        curr_cat = QPCatalog.QPCatalog()
-        curr_cat.merge(self.catalog)
-        curr_cat.cut(geometry=buffer_poly)
-
-        # sum up moment from quakes (converted from Mw with Kanamori eq.)
-        magnitudes = []
-        for ev in curr_cat.eventParameters.event:
-            mag = ev.getPreferredMagnitude()
-            magnitudes.append(mag.mag.value)
-
-        moment = numpy.array(momentrate.magnitude2moment(magnitudes))
-
-        # scale moment: per year and area (in km^2)
-        # TODO(fab): compute real catalog time span
-        moment_rates['eq'] = moment.sum() / (
-            area_sqkm * eqcatalog.CATALOG_TIME_SPAN)
-
-        ## moment rate from activity (RM)
-
-        activity = atticivy.computeActivityAtticIvy((buffer_poly, ), (mmax, ), 
-            (mcdist, ), self.catalog)
-        
-        # get RM (weight, a, b) values from feature attribute
-        activity_str = activity[0][2]
-        activity_arr = activity_str.strip().split()
-
-        # ignore weights
-        activity_a = [float(x) for x in activity_arr[1::3]]
-        activity_b = [float(x) for x in activity_arr[2::3]]
-
-        # multiply computed value with area in square kilometres
-        momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
-            activity_a, activity_b, mmax)) * area_sqkm / (
-                eqcatalog.CATALOG_TIME_SPAN)
-
-        moment_rates['activity'] = momentrates_arr.tolist()
-
-        ## moment rate from slip rate
-
-        # TODO(fab): correct scaling of moment rate from slip rate
-        momrate_min_name = features.FAULT_SOURCE_ATTR_MOMENTRATE_MIN['name']
-        momrate_max_name = features.FAULT_SOURCE_ATTR_MOMENTRATE_MAX['name']
-        momentrate_min = \
-            feature[attribute_map[momrate_min_name][0]].toDouble()[0] / (
-                eqcatalog.CATALOG_TIME_SPAN)
-        momentrate_max = \
-            feature[attribute_map[momrate_max_name][0]].toDouble()[0] / (
-                eqcatalog.CATALOG_TIME_SPAN)
-        moment_rates['slip'] = [momentrate_min, momentrate_max]
-
-        return moment_rates
-
-    def _updateMomentRateTableFault(self, moment_rates):
-        self.momentRateTableFault.clearContents()
-
-        ## from EQs
-        self.momentRateTableFault.setItem(0, 0, QTableWidgetItem(QString(
-            "%.2e" % moment_rates['eq'])))
-
-        ## from activity (RM)
-        # get maximum likelihood value from central line of table
-        ml_idx = len(moment_rates['activity']) / 2
-        mr_ml = moment_rates['activity'][ml_idx]
-        self.momentRateTableFault.setItem(0, 1, QTableWidgetItem(QString(
-            "%.2e" % mr_ml)))
-
-        ## from geology (slip)
-        self.momentRateTableFault.setItem(0, 2, QTableWidgetItem(QString(
-            "%.2e" % moment_rates['slip'][1])))
-
-    def _updateMomentRatePlotFault(self, moment_rates):
-
-        window = self.createPlotWindow()
-
-        # new moment rate plot
-        self.fig_moment_rate_comparison_fault = \
-            plots.MomentRateComparisonPlotFault()
-        self.fig_moment_rate_comparison_fault = \
-            self.fig_moment_rate_comparison_fault.plot(imgfile=None, 
-                data=moment_rates)
-
-        self.canvas_moment_rate_comparison_fault = plots.PlotCanvas(
-            self.fig_moment_rate_comparison_fault, 
-            title="Seismic Moment Rates")
-        self.canvas_moment_rate_comparison_fault.draw()
-
-        # plot widget
-        window.layoutPlot.addWidget(
-            self.canvas_moment_rate_comparison_fault)
-        self.toolbar_moment_rate_comparison_fault = plots.createToolbar(
-            self.canvas_moment_rate_comparison_fault, 
-            window)
-        window.layoutPlot.addWidget(
-            self.toolbar_moment_rate_comparison_fault)
-
-    def createPlotWindow(self):
-        """Create new plot window dialog."""
- 
-        plot_window = do_plotwindow.PlotWindow(self.iface)
-        plot_window.setModal(False)
-        plot_window.show()
-        plot_window.raise_()
-        self.plot_windows.append(plot_window)
-        return plot_window
