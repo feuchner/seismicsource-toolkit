@@ -260,45 +260,6 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         selected_feature = self.fault_source_layer.selectedFeatures()[0]
         fmd.updateRecurrenceDisplay(self, selected_feature)
 
-    def _filterEventsFromSelection(self):
-        """Select events from EQ catalog that are within selected polygons
-        from area source layer."""
-
-        # get selected polygons from area source layer
-        layer_to_select_from = self.area_source_layer
-        features_selected = layer_to_select_from.selectedFeatures()
-
-        selected_polygons = []
-        for feature in features_selected:
-
-            # yields list of QGSPoints
-            qgis_geometry_aspolygon = feature.geometry().asPolygon()
-            if len(qgis_geometry_aspolygon) == 0:
-                QMessageBox.warning(None, "Error", 
-                    "illegal empty polygon, ID: %s" % feature.id())
-                continue
-            else:
-                vertices = [(x.x(), x.y()) for x in qgis_geometry_aspolygon[0]]
-                if len(vertices) == 0:
-                    QMessageBox.warning(None, "Error", 
-                        "illegal empty vertices, ID: %s" % feature.id())
-                    continue
-
-            shapely_polygon = shapely.geometry.Polygon(vertices)
-            selected_polygons.append(shapely_polygon)
-
-        geometry = shapely.ops.cascaded_union(selected_polygons)
-
-        # cut catalog with selected polygons
-        self.catalog_selected = QPCatalog.QPCatalog()
-        self.catalog_selected.merge(self.catalog)
-        self.catalog_selected.cut(geometry=geometry)
-
-        self.labelSelectedAreaZones.setText(
-            "Selected area zones: %s" % len(features_selected))
-        self.labelSelectedEvents.setText(
-            "Selected events: %s" % self.catalog_selected.size())
-
     def computeAtticIvy(self):
         """Compute activity with AtticIvy code."""
 
