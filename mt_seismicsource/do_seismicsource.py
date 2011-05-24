@@ -51,15 +51,13 @@ from layers import areasource
 from layers import background
 from layers import eqcatalog
 from layers import faultsource
+from layers import mapdata
 from layers import render
 
 import plots
 import utils
 
 from ui_seismicsource import Ui_SeismicSource
-
-BACKGROUND_FILE_DIR = 'misc'
-BACKGROUND_FILE = 'world.shp'
 
 (MOMENT_TABLE_EQ_IDX, MOMENT_TABLE_SEISMICITY_IDX,
     MOMENT_TABLE_STRAIN_IDX) = range(3)
@@ -161,7 +159,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         # "busy" progress bar
         self.progressBarLoadData.setRange(0, 0)
 
-        self.loadBackgroundLayer()
+        mapdata.loadBackgroundLayer(self)
         self.loadDefaultLayers()
 
         self.loadAdditionalData()
@@ -177,19 +175,6 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.progressBarLoadData.setValue(100)
 
         # TODO(fab): make zone layer the active layer
-
-    def loadBackgroundLayer(self):
-        if self.background_layer is None:
-            background_path = os.path.join(layers.DATA_DIR,
-                BACKGROUND_FILE_DIR, BACKGROUND_FILE)
-
-            if not os.path.isfile(background_path):
-                utils.warning_box_missing_layer_file(background_path)
-                return
-
-            self.background_layer = QgsVectorLayer(background_path, 
-                "Political Boundaries", "ogr")
-            QgsMapLayerRegistry.instance().addMapLayer(self.background_layer)
 
     def loadDefaultLayers(self):
 
