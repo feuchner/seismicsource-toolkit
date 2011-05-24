@@ -43,6 +43,7 @@ from algorithms import atticivy
 from algorithms import recurrence
 from algorithms import strain
 
+from engine import fmd
 from engine import momentbalancing
 
 import layers
@@ -59,8 +60,6 @@ from ui_seismicsource import Ui_SeismicSource
 
 BACKGROUND_FILE_DIR = 'misc'
 BACKGROUND_FILE = 'world.shp'
-
-MIN_EVENTS_FOR_GR = 10
 
 (MOMENT_TABLE_EQ_IDX, MOMENT_TABLE_SEISMICITY_IDX,
     MOMENT_TABLE_STRAIN_IDX) = range(3)
@@ -244,13 +243,12 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         """Update FMD display for one selected area zone from
         area zone layer."""
 
-        # selected_features = self.zoneAreaTable.selectedItems()
         if not utils.check_only_one_feature_selected(self.area_source_layer):
             return
 
         selected_feature = self.area_source_layer.selectedFeatures()[0]
-        self._computeZoneFMD(selected_feature)
-        self._updateFMDDisplay()
+        fmd.computeZoneFMD(self, selected_feature)
+        fmd.updateFMDDisplay(self)
 
     def updateRecurrence(self):
         """Update recurrence FMD display for one selected fault zone
@@ -260,79 +258,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             return
 
         selected_feature = self.fault_source_layer.selectedFeatures()[0]
-        self._updateRecurrenceDisplay(selected_feature)
+        fmd.updateRecurrenceDisplay(self, selected_feature)
 
-    def _updateFMDDisplay(self):
-        if 'fmd' in self.figures:
-            self._displayValues()
-            self._plotFMD()
-
-    def _updateRecurrenceDisplay(self, feature):
-        self.figures['recurrence'] = {}
-        self._plotRecurrence(feature)
-
-    def _computeFMD(self):
-        self.figures['fmd'] = {}
-        self.figures['fmd']['fmd'] = self.catalog_selected.getFmd(
-            minEventsGR=MIN_EVENTS_FOR_GR)
-
-    def _displayValues(self):
-        """Updates a and b value display."""
-
-        if self.checkBoxGRAnnualRate.isChecked():
-            aValue = self.figures['fmd']['fmd'].GR['aValueNormalized']
-        else:
-            aValue = self.figures['fmd']['fmd'].GR['aValue']
-        self.inputAValue.setValue(aValue)
-        self.inputBValue.setValue(self.figures['fmd']['fmd'].GR['bValue'])
-
-    def _plotFMD(self):
-
-        window = plots.createPlotWindow(self)
-
-        # new FMD plot (returns figure)
-        self.figures['fmd']['fig'] = self.figures['fmd']['fmd'].plot(
-            imgfile=None, fmdtype='cumulative', 
-            normalize=self.checkBoxGRAnnualRate.isChecked())
-
-        self.fmd_canvas = plots.PlotCanvas(self.figures['fmd']['fig'], 
-            title="FMD")
-        self.fmd_canvas.draw()
-
-        # FMD plot window, re-populate layout
-        window.layoutPlot.addWidget(self.fmd_canvas)
-        self.fmd_toolbar = plots.createToolbar(self.fmd_canvas, window)
-        window.layoutPlot.addWidget(self.fmd_toolbar)
-
-    def _plotRecurrence(self, feature):
-
-        window = plots.createPlotWindow(self)
-
-        pr = self.fault_source_layer.dataProvider()
-        activity_min_idx = pr.fieldNameIndex('actrate_mi')
-        activity_max_idx = pr.fieldNameIndex('actrate_ma')
-
-        distrostring_min = str(feature[activity_min_idx].toString())
-        distrostring_max = str(feature[activity_max_idx].toString())
-        distrodata_min = utils.distrostring2plotdata(distrostring_min)
-        distrodata_max = utils.distrostring2plotdata(distrostring_max)
-
-        distrodata = numpy.vstack((distrodata_min, distrodata_max[1, :]))
-
-        # new recurrence FMD plot (returns figure)
-        plot = qpplot.FMDPlotRecurrence()
-        self.figures['recurrence']['fig'] = plot.plot(imgfile=None, 
-            data=distrodata)
-
-        self.fmd_canvas = plots.PlotCanvas(self.figures['recurrence']['fig'],
-            title="Recurrence")
-        self.fmd_canvas.draw()
-
-        # FMD plot window, re-populate layout
-        window.layoutPlot.addWidget(self.fmd_canvas)
-        self.fmd_toolbar = plots.createToolbar(self.fmd_canvas, window)
-        window.layoutPlot.addWidget(self.fmd_toolbar)
-        
     def _filterEventsFromSelection(self):
         """Select events from EQ catalog that are within selected polygons
         from area source layer."""
@@ -371,25 +298,6 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             "Selected area zones: %s" % len(features_selected))
         self.labelSelectedEvents.setText(
             "Selected events: %s" % self.catalog_selected.size())
-
-    def _computeZoneFMD(self, feature):
-        """Compute FMD for selected feature."""
-
-        self.figures['fmd'] = {}
-
-        # cut catalog to feature
-        qgis_geometry_aspolygon = feature.geometry().asPolygon()
-        vertices = [(x.x(), x.y()) for x in qgis_geometry_aspolygon[0]]
-        geometry = shapely.geometry.Polygon(vertices)
-
-        # cut catalog with selected polygons
-        catalog_selected = QPCatalog.QPCatalog()
-        catalog_selected.merge(self.catalog)
-        catalog_selected.cut(geometry=geometry)
-
-        self.figures['fmd']['fmd'] = catalog_selected.getFmd(
-            minEventsGR=MIN_EVENTS_FOR_GR)
-        return self.figures['fmd']['fmd']
 
     def computeAtticIvy(self):
         """Compute activity with AtticIvy code."""
