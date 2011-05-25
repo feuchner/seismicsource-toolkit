@@ -51,7 +51,10 @@ Install following packages:
 $ sudo apt-get install python-setuptools tcsh git subversion
 $ sudo apt-get install python-lxml python-matplotlib
 $ sudo apt-get install python-egenix-mxdatetime python-shapely cython
-$ sudo apt-get install pyqt-dev-tools
+$ sudo apt-get install pyqt-dev-tools 
+$ sudo apt-get install g++ default-jre
+
+(packages in last command are needed for the Intel Fortran compiler)
 
 Add repository for QGis (version 1.4 from Kubuntu 10.10 is too old):
 
