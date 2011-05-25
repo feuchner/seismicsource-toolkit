@@ -1,16 +1,17 @@
 SHARE Seismic Source Toolkit
 ============================
 
-The SHARE Seismic Source Toolkit is a Python plugin for QGis. It is used in 
-the SHARE project to modify the seismic source zone dataset that is the 
-basis for subsequent seismic hazard calculations.
+The SHARE Seismic Source Toolkit is a Python plugin for Quantum GIS (QGis).
+It is used in the SHARE project to modify the seismic source zone dataset 
+that is the basis for subsequent seismic hazard calculations.
 
 NOTE:
-This toolkit is an expert tool. For its intended use in SHARE, some input 
-files are required, which are not public and hence are not included in 
-this repository. Nevertheless, the tool may be of interest to an expert
-community. Example input files for demonstration purposes will be added
-later.
+This toolkit is an expert tool. For its intended use in SHARE, some non-public
+input files and external codes are required. These are included as an 
+encrypted archive. In order to decrypt the archive, a key file is needed.
+Please write an e-mail to fabian.euchner@sed.ethz.ch to request the key file.
+Please do not distribute the input files and external codes to people outside
+the SHARE community without permission of the authors. 
 
 The toolkit requires Quantum GIS version >= 1.6.
 
@@ -63,11 +64,19 @@ Continue with instructions for all systems (see below).
 All systems
 -----------
 
- * install pyRXP from sources (required for QuakePy):
+ * Install pyRXP from sources (required for QuakePy):
 
-download & unpack from http://www.reportlab.com/software/opensource/pyrxp/download/
+Download & unpack from http://www.reportlab.com/software/opensource/pyrxp/download/
 $ python ./setup.py build
 $ sudo python ./setup.py install
+
+ * Install Intel Fortran compiler
+
+Please find license terms and installation instructions at 
+http://software.intel.com/en-us/articles/intel-composer-xe/
+
+Please modify your PATH so that the command "ifort" invokes the correct 
+version of the Intel Fortran compiler. 
 
  * Install QuakePy (www.quakepy.org) from SVN:
 
@@ -86,7 +95,7 @@ $ make testclean
 
 $ cd /my/path/to/
 $ git clone https://github.com/feuchner/seismicsource-toolkit.git
-$ cd seismicsource-toolkit/mt_seismicsource
+$ cd seismicsource-toolkit
 $ make
 
 In Quantum GIS, activate plugin:
