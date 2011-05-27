@@ -121,21 +121,24 @@ class MomentRateComparisonPlotArea(qpplot.QPPlot):
     
         self.pyplot.clf()
         
-        symbol_style = {'eq': 'ks',        # black solid square
-                        'activity': 'ro',  # red circle
-                        'strain': 'b^'     # blue triangle
+        symbol_style = {'eq': 'ks',            # black solid square
+                        'activity': 'ro',      # red circle
+                        'strain_barba': 'b^',  # blue triangle
+                        'strain_bird': 'b^'    # blue triangle
                        }
 
         description = {'eq': 'from earthquakes',
                        'activity': 'from activity',
-                       'strain': 'from strain rates'
+                       'strain_barba': 'from strain rates (Barba)',
+                       'strain_bird': 'from strain rates (Bird)'
                       }
 
         # set figure size
         # self.pyplot.rcParams['figure.figsize'] = (5, 5)
         self.ax = self.figure.add_subplot(111)
 
-        for key_idx, key in enumerate(('eq', 'activity', 'strain')):
+        for key_idx, key in enumerate(('eq', 'activity', 'strain_barba', 
+            'strain_bird')):
 
             if isinstance(data[key], list):
                 ordinate_length = len(data[key])
@@ -156,7 +159,8 @@ class MomentRateComparisonPlotArea(qpplot.QPPlot):
         self.pyplot.ylim(0.5, key_idx+1.5)
         xmin, xmax = self.pyplot.xlim()
 
-        for key_idx, key in enumerate(('eq', 'activity', 'strain')):
+        for key_idx, key in enumerate(('eq', 'activity', 'strain_barba', 
+            'strain_bird')):
             self.pyplot.annotate(description[key], 
                 (xmin + numpy.power(10, 
                 MOMENT_RATE_COMPARISON_LABEL_POSITION * numpy.log10(

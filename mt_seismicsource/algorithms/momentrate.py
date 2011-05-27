@@ -93,8 +93,8 @@ def momentrateFromActivity(activity_a, activity_b, mmax):
 
     return mr.tolist()
 
-def momentrateFromStrainRate(poly, strain):
-    """Compute seismic moment rate from strain rate data set.
+def momentrateFromStrainRateBarba(poly, strain):
+    """Compute seismic moment rate from Barba strain rate data set.
 
     Input:
         poly            Area zone geometry as Shapely polygon
@@ -125,6 +125,34 @@ def momentrateFromStrainRate(poly, strain):
     # TODO(fab): double-check this !!
     # convert to strain rate per square kilometre: multiply with 10^-6
     # return 1000 * CZ_FACTOR * SHEAR_MODULUS * strainrate * 1.0e-6
+    return 1000 * CZ_FACTOR * SHEAR_MODULUS * momentrate
+
+def momentrateFromStrainRateBird(poly, strain):
+    """Compute seismic moment rate from Bird strain rate data set.
+
+    Input:
+        poly            Area zone geometry as Shapely polygon
+        strain          Strain rate dataset as list of lists
+                        [ [lon, lat, value], ...]
+
+    Output:
+        momentrate      moment rate computed from strain rate summed 
+                        over area zone
+    """
+
+    momentrate = 0.0
+
+    for (lat, lon, exx, eyy, exy) in strain:
+
+        # make Shapely point from lon, lat
+        point = shapely.geometry.Point((lon, lat))
+
+        # check if in area zone polygon
+        # if positive, sum up strain rate contribution
+        if poly.intersects(point) and exx > 0.0:
+            momentrate += exx
+
+    # TODO(fab): use proper scaling
     return 1000 * CZ_FACTOR * SHEAR_MODULUS * momentrate
 
 def momentrateFromSlipRate(slipratemi, slipratema, area):

@@ -113,9 +113,14 @@ def updateMomentRatesArea(cls, feature):
     moment_rates['activity'] = momentrates_arr.tolist()
 
     ## moment rate from geodesy (strain)
-    momentrate_strain = momentrate.momentrateFromStrainRate(poly[0], 
-        cls.data_strain_rate)
-    moment_rates['strain'] = momentrate_strain / (
+    momentrate_strain_barba = momentrate.momentrateFromStrainRateBarba(
+        poly[0], cls.data.strain_rate_barba)
+    moment_rates['strain_barba'] = momentrate_strain_barba / (
+        eqcatalog.CATALOG_TIME_SPAN)
+
+    momentrate_strain_bird = momentrate.momentrateFromStrainRateBird(poly[0], 
+        cls.data.strain_rate_bird)
+    moment_rates['strain_bird'] = momentrate_strain_bird / (
         eqcatalog.CATALOG_TIME_SPAN)
 
     return moment_rates
@@ -137,7 +142,10 @@ def updateMomentRateTableArea(cls, moment_rates):
 
     ## from geodesy (strain)
     cls.momentRateTableArea.setItem(0, 2, QTableWidgetItem(QString(
-        "%.2e" % moment_rates['strain'])))
+        "%.2e" % moment_rates['strain_barba'])))
+
+    cls.momentRateTableArea.setItem(0, 3, QTableWidgetItem(QString(
+        "%.2e" % moment_rates['strain_bird'])))
 
 def updateMomentRatePlotArea(cls, moment_rates):
 

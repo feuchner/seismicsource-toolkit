@@ -41,7 +41,8 @@ import qpplot
 
 from algorithms import atticivy
 from algorithms import recurrence
-from algorithms import strain
+
+import data
 
 from engine import fmd
 from engine import momentbalancing
@@ -59,19 +60,16 @@ import utils
 
 from ui_seismicsource import Ui_SeismicSource
 
-(MOMENT_TABLE_EQ_IDX, MOMENT_TABLE_SEISMICITY_IDX,
-    MOMENT_TABLE_STRAIN_IDX) = range(3)
-
-try:
-    from matplotlib.backends.backend_qt4agg \
-        import FigureCanvasQTAgg as FigureCanvas
-    from matplotlib.backends.backend_qt4agg \
-        import NavigationToolbar2QTAgg as NavigationToolbar
-    from matplotlib.figure import Figure
-    import matplotlib.font_manager as FontManager
-except ImportError:
-    error_msg = "Couldn't import matplotlib"
-    QMessageBox.warning(None, "Error", error_msg)
+#try:
+    #from matplotlib.backends.backend_qt4agg \
+        #import FigureCanvasQTAgg as FigureCanvas
+    #from matplotlib.backends.backend_qt4agg \
+        #import NavigationToolbar2QTAgg as NavigationToolbar
+    #from matplotlib.figure import Figure
+    #import matplotlib.font_manager as FontManager
+#except ImportError:
+    #error_msg = "Couldn't import matplotlib"
+    #QMessageBox.warning(None, "Error", error_msg)
 
 class SeismicSource(QDialog, Ui_SeismicSource):
     """This class represents the main dialog widget of the plugin."""
@@ -138,7 +136,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.catalog_layer = None
         
         # additional datasets
-        self.data_strain_rate = None
+        self.data = data.Datasets()
 
         # prepare data load combo boxes
         self.comboBoxZoneInput.addItems(areasource.ZONE_FILES)
@@ -162,8 +160,6 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         mapdata.loadBackgroundLayer(self)
         self.loadDefaultLayers()
 
-        self.loadAdditionalData()
-
         self.renderers = render.setRenderers(self.area_source_layer,
             self.fault_source_layer,
             self.catalog_layer,
@@ -182,9 +178,6 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.area_source_layer = areasource.loadAreaSourceLayer(self)
         self.fault_source_layer = faultsource.loadFaultSourceLayer(self)
         self.catalog_layer = eqcatalog.loadEQCatalogLayer(self)
-
-    def loadAdditionalData(self):
-        self.data_strain_rate = strain.loadStrainRateData()
 
     def updateMomentRateValuesArea(self):
         """Update values in moment rate per area table/plot, if other 
