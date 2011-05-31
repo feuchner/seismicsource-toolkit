@@ -46,3 +46,4 @@ class Datasets(object):
 
         self.strain_rate_barba = strain.loadStrainRateDataBarba()
         self.strain_rate_bird = strain.loadStrainRateDataBird()
+        self.deformation_regimes_bird = strain.loadDeformationRegimesBird()

@@ -27,6 +27,11 @@ Author: Fabian Euchner, fabian@sed.ethz.ch
 import numpy
 import shapely.geometry
 
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
+
+from mt_seismicsource.algorithms import strain
+
 # Kanamori equation
 # lg(M_0) = 1.5 * m_W + 9.05
 # M_0 is in SI units: Nm = kg * m^2 / s 
@@ -42,12 +47,6 @@ CONST_KANAMORI_C_CGS = 16.05
 
 # shear modulus (mu, rigidity) for all faults, in Pa
 SHEAR_MODULUS = 3.0e10
-
-# cz factor according to Bird & Liu paper
-# Bird & Liu, 2007, SRL, 78(1), 37
-# use continental, strike-slip
-# unit: km
-CZ_FACTOR = 8.6
 
 MMIN_MOMENTRATE_FROM_ACTIVITY = 5.0
 
@@ -93,12 +92,12 @@ def momentrateFromActivity(activity_a, activity_b, mmax):
 
     return mr.tolist()
 
-def momentrateFromStrainRateBarba(poly, strain):
+def momentrateFromStrainRateBarba(poly, strain_in):
     """Compute seismic moment rate from Barba strain rate data set.
 
     Input:
         poly            Area zone geometry as Shapely polygon
-        strain          Strain rate dataset as list of lists
+        strain_in       Strain rate dataset as list of lists
                         [ [lon, lat, value], ...]
 
     Output:
@@ -108,7 +107,7 @@ def momentrateFromStrainRateBarba(poly, strain):
 
     momentrate = 0.0
 
-    for (lon, lat, value) in strain:
+    for (lon, lat, value) in strain_in:
 
         # make Shapely point from lon, lat
         point = shapely.geometry.Point((lon, lat))
@@ -124,16 +123,25 @@ def momentrateFromStrainRateBarba(poly, strain):
     # km * Pa / s = 1000 m * N / (m^2 * s) = 1000 (Nm/s) per m^2
     # TODO(fab): double-check this !!
     # convert to strain rate per square kilometre: multiply with 10^-6
-    # return 1000 * CZ_FACTOR * SHEAR_MODULUS * strainrate * 1.0e-6
-    return 1000 * CZ_FACTOR * SHEAR_MODULUS * momentrate
+    # return 1000 * cz * SHEAR_MODULUS * strainrate * 1.0e-6
+    
+    # coupled thickness (cz): use value of Continental Transform Fault
+    # unit: km
+    cz = strain.BIRD_SEISMICITY_PARAMETERS[\
+        strain.DEFORMATION_REGIME_KEY_CTF]['cz']
+    return 1000 * cz * SHEAR_MODULUS * momentrate
 
-def momentrateFromStrainRateBird(poly, strain):
+def momentrateFromStrainRateBird(poly, strain_in, regime):
     """Compute seismic moment rate from Bird strain rate data set.
 
     Input:
         poly            Area zone geometry as Shapely polygon
-        strain          Strain rate dataset as list of lists
-                        [ [lon, lat, value], ...]
+        strain_in       Strain rate dataset as list of lists
+                        [ [lat, lon,  exx, eyy, exy], ...]
+        regime          Dict of Shapely multipolygons for each deformation regime
+                        Currently only Continental (C) and Ridge-transform (R)
+                        implemented
+                        {'C': Multipolygon, 'R': Multipolygon}
 
     Output:
         momentrate      moment rate computed from strain rate summed 
@@ -142,19 +150,84 @@ def momentrateFromStrainRateBird(poly, strain):
 
     momentrate = 0.0
 
-    for (lat, lon, exx, eyy, exy) in strain:
+    for (lat, lon, exx, eyy, exy) in strain_in:
 
         # make Shapely point from lon, lat
         point = shapely.geometry.Point((lon, lat))
 
         # check if in area zone polygon
-        # if positive, sum up strain rate contribution
-        if poly.intersects(point) and exx > 0.0:
-            momentrate += exx
+        # TODO(fab): small area zones that do not include a strain rate
+        # grid node
+        if poly.intersects(point):
+            
+            # get deformation regime
+            regime_key = ''
+            for deformation_regime, regime_poly in regime.items():
+                
+                if regime_poly.intersects(point):
+                    
+                    # found deformation regime
+                    regime_key = deformation_regime
+                    break
+                    
+            # select values for cz and mc
+            if regime_key not in (strain.DEFORMATION_REGIME_KEY_C, 
+                strain.DEFORMATION_REGIME_KEY_R):
+                    
+                # point not in available regimes, don't evaluate contribution
+                # from this point
+                continue
+           
+            else:
+                
+                (e1, e2, e3, e1h, e2h, err) = \
+                    strain.strainRateComponentsFromDataset((exx, eyy, exy))
+                
+                if regime_key == strain.DEFORMATION_REGIME_KEY_C:
+                    
+                    # continental regime
+                    if (
+                err <= strain.BIRD_CONTINENTAL_REGIME_COMPARISON_FACTOR * e2h \
+            and err >= strain.BIRD_CONTINENTAL_REGIME_COMPARISON_FACTOR * e1h):
+                            
+                        # strike-slip faulting dominates
+                        parameter_key = strain.DEFORMATION_REGIME_KEY_CTF
+                        
+                    elif \
+                err > strain.BIRD_CONTINENTAL_REGIME_COMPARISON_FACTOR * e2h:
+                        # thrust faulting dominates
+                        parameter_key = strain.DEFORMATION_REGIME_KEY_CCB
+                        
+                    else:
+                        # normal faulting dominates
+                        parameter_key = strain.DEFORMATION_REGIME_KEY_CRB
+                        
+                elif regime_key == strain.DEFORMATION_REGIME_KEY_R:
+                    
+                    # ridge-transform regime
+                    if e1h >= 0.0:
+                        parameter_key = strain.DEFORMATION_REGIME_KEY_OSR
+                    elif e2h < 0.0:
+                        parameter_key = strain.DEFORMATION_REGIME_KEY_OCB
+                    elif (e1h * e2h < 0.0 and (e1h + e2h) >= 0.0):
+                        parameter_key = strain.DEFORMATION_REGIME_KEY_OTF
+                    elif (e1h * e2h < 0.0 and (e1h + e2h) < 0.0):
+                        parameter_key = strain.DEFORMATION_REGIME_KEY_OCB
+                    else:
+                        # never get here
+                        raise RuntimeError, \
+                            "Unexpected case in ridge-transform regime"
+                        
+                # TODO(fab): criterion for not adding contribution
+                cz = strain.BIRD_SEISMICITY_PARAMETERS[parameter_key]['cz']
+                if e2 < 0:
+                    momentrate += (2 * cz * e3)
+                else:
+                    momentrate += (2 * cz * -e1)
 
     # TODO(fab): use proper scaling
-    return 1000 * CZ_FACTOR * SHEAR_MODULUS * momentrate
-
+    return 1000 * SHEAR_MODULUS * momentrate
+                    
 def momentrateFromSlipRate(slipratemi, slipratema, area):
     """Compute min/max seismic moment rate from min/max slip rate."""
 

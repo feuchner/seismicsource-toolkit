@@ -119,7 +119,7 @@ def updateMomentRatesArea(cls, feature):
         eqcatalog.CATALOG_TIME_SPAN)
 
     momentrate_strain_bird = momentrate.momentrateFromStrainRateBird(poly[0], 
-        cls.data.strain_rate_bird)
+        cls.data.strain_rate_bird, cls.data.deformation_regimes_bird)
     moment_rates['strain_bird'] = momentrate_strain_bird / (
         eqcatalog.CATALOG_TIME_SPAN)
 

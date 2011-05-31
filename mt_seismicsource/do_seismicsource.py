@@ -26,8 +26,6 @@ Author: Fabian Euchner, fabian@sed.ethz.ch
 
 import numpy
 import os
-import shapely.geometry
-import shapely.ops
 import sys
 import time
 
@@ -54,22 +52,12 @@ from layers import eqcatalog
 from layers import faultsource
 from layers import mapdata
 from layers import render
+from layers import tectonic
 
 import plots
 import utils
 
 from ui_seismicsource import Ui_SeismicSource
-
-#try:
-    #from matplotlib.backends.backend_qt4agg \
-        #import FigureCanvasQTAgg as FigureCanvas
-    #from matplotlib.backends.backend_qt4agg \
-        #import NavigationToolbar2QTAgg as NavigationToolbar
-    #from matplotlib.figure import Figure
-    #import matplotlib.font_manager as FontManager
-#except ImportError:
-    #error_msg = "Couldn't import matplotlib"
-    #QMessageBox.warning(None, "Error", error_msg)
 
 class SeismicSource(QDialog, Ui_SeismicSource):
     """This class represents the main dialog widget of the plugin."""
@@ -134,9 +122,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.area_source_layer = None
         self.fault_source_layer = None
         self.catalog_layer = None
-        
-        # additional datasets
-        self.data = data.Datasets()
+        self.tectonic_layer = None
 
         # prepare data load combo boxes
         self.comboBoxZoneInput.addItems(areasource.ZONE_FILES)
@@ -157,6 +143,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         # "busy" progress bar
         self.progressBarLoadData.setRange(0, 0)
 
+        # additional datasets
+        self.data = data.Datasets()
+        
+        # load map layers
         mapdata.loadBackgroundLayer(self)
         self.loadDefaultLayers()
 
@@ -164,7 +154,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             self.fault_source_layer,
             self.catalog_layer,
             self.background_zone_layer,
-            self.background_layer)
+            self.background_layer,
+            self.tectonic_layer)
         self.iface.mapCanvas().refresh()
 
         self.progressBarLoadData.setRange(0, 100)
@@ -178,6 +169,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.area_source_layer = areasource.loadAreaSourceLayer(self)
         self.fault_source_layer = faultsource.loadFaultSourceLayer(self)
         self.catalog_layer = eqcatalog.loadEQCatalogLayer(self)
+        self.tectonic_layer = tectonic.loadTectonicRegimeLayer(self, 
+            self.data.deformation_regimes_bird)
 
     def updateMomentRateValuesArea(self):
         """Update values in moment rate per area table/plot, if other 
