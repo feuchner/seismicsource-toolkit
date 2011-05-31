@@ -161,14 +161,7 @@ def momentrateFromStrainRateBird(poly, strain_in, regime):
         if poly.intersects(point):
             
             # get deformation regime
-            regime_key = ''
-            for deformation_regime, regime_poly in regime.items():
-                
-                if regime_poly.intersects(point):
-                    
-                    # found deformation regime
-                    regime_key = deformation_regime
-                    break
+            regime_key = strain.tectonicRegimeForPoint(point, regime)
                     
             # select values for cz and mc
             if regime_key not in (strain.DEFORMATION_REGIME_KEY_C, 
@@ -225,7 +218,7 @@ def momentrateFromStrainRateBird(poly, strain_in, regime):
                 else:
                     momentrate += (2 * cz * -e1)
 
-    # convert original unit of 10^-9 yr^-1 to s^-1
+    # convert original unit of [10^-9 yr^-1] to [s^-1]
     return 1000 * SHEAR_MODULUS * 1.0e-9 * momentrate * (
         60 * 60 * 24 * 365.25)
                     

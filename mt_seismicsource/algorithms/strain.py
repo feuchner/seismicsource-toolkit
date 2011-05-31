@@ -225,4 +225,28 @@ def strainRateComponentsFromDataset(rates_in):
         
     return (e1, e2, e3, e1h, e2h, err)
 
+def tectonicRegimeForPoint(point, regime):
+    """Get deformation regime code from Bird/Kreemer data set.
+    
+    Input:
+        point       Shapely point
+        regime      Python dict with tectonic regime data
+        
+    Output:
+        regime key  Token describing regime (currently, C or R)
+                    If point does not lie in any tectonic regime polygon,
+                    None is returned
+    """
+    
+                
+    regime_key = None
+    for deformation_regime, regime_poly in regime.items():
+        
+        if regime_poly.intersects(point):
+            
+            # found deformation regime
+            regime_key = deformation_regime
+            break
+            
+    return regime_key
     
