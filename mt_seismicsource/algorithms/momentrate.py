@@ -225,8 +225,9 @@ def momentrateFromStrainRateBird(poly, strain_in, regime):
                 else:
                     momentrate += (2 * cz * -e1)
 
-    # TODO(fab): use proper scaling
-    return 1000 * SHEAR_MODULUS * momentrate
+    # convert original unit of 10^-9 yr^-1 to s^-1
+    return 1000 * SHEAR_MODULUS * 1.0e-9 * momentrate * (
+        60 * 60 * 24 * 365.25)
                     
 def momentrateFromSlipRate(slipratemi, slipratema, area):
     """Compute min/max seismic moment rate from min/max slip rate."""
