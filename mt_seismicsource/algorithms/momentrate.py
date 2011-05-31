@@ -92,13 +92,17 @@ def momentrateFromActivity(activity_a, activity_b, mmax):
 
     return mr.tolist()
 
-def momentrateFromStrainRateBarba(poly, strain_in):
+def momentrateFromStrainRateBarba(poly, strain_in, regime):
     """Compute seismic moment rate from Barba strain rate data set.
 
     Input:
         poly            Area zone geometry as Shapely polygon
         strain_in       Strain rate dataset as list of lists
                         [ [lon, lat, value], ...]
+        regime          Dict of Shapely multipolygons for each deformation regime
+                        Currently only Continental (C) and Ridge-transform (R)
+                        implemented
+                        {'C': Multipolygon, 'R': Multipolygon}
 
     Output:
         momentrate      moment rate computed from strain rate summed 
@@ -115,7 +119,28 @@ def momentrateFromStrainRateBarba(poly, strain_in):
         # check if in area zone polygon
         # if positive, sum up strain rate contribution
         if poly.intersects(point) and value > 0.0:
-            momentrate += value
+            
+            # get deformation regime
+            regime_key = strain.tectonicRegimeForPoint(point, regime)
+                    
+            # if point not in one of the tectonic regions, use value for
+            # crustal
+            if regime_key not in (strain.DEFORMATION_REGIME_KEY_C, 
+                strain.DEFORMATION_REGIME_KEY_R):
+                regime_key = strain.DEFORMATION_REGIME_KEY_C
+                
+            # select value for coupled thickness (cz):
+            # if crustal, use value of Continental Transform Fault
+            # if ridge-transform: use value of Oceanic Transform Fault
+            # unit: km
+            if regime_key == strain.DEFORMATION_REGIME_KEY_C:
+                cz = strain.BIRD_SEISMICITY_PARAMETERS[\
+                    strain.DEFORMATION_REGIME_KEY_CTF]['cz']
+            else:
+                cz = strain.BIRD_SEISMICITY_PARAMETERS[\
+                    strain.DEFORMATION_REGIME_KEY_OTF]['cz']
+                    
+            momentrate += (cz * value)
 
     # Bird & Liu eq. 7B
     # Note: unit of values in Barba dataset is s^-1
@@ -124,12 +149,7 @@ def momentrateFromStrainRateBarba(poly, strain_in):
     # TODO(fab): double-check this !!
     # convert to strain rate per square kilometre: multiply with 10^-6
     # return 1000 * cz * SHEAR_MODULUS * strainrate * 1.0e-6
-    
-    # coupled thickness (cz): use value of Continental Transform Fault
-    # unit: km
-    cz = strain.BIRD_SEISMICITY_PARAMETERS[\
-        strain.DEFORMATION_REGIME_KEY_CTF]['cz']
-    return 1000 * cz * SHEAR_MODULUS * momentrate
+    return 1000 * SHEAR_MODULUS * momentrate
 
 def momentrateFromStrainRateBird(poly, strain_in, regime):
     """Compute seismic moment rate from Bird strain rate data set.

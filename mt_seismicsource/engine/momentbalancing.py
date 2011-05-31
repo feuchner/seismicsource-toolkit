@@ -114,7 +114,8 @@ def updateMomentRatesArea(cls, feature):
 
     ## moment rate from geodesy (strain)
     momentrate_strain_barba = momentrate.momentrateFromStrainRateBarba(
-        poly[0], cls.data.strain_rate_barba)
+        poly[0], cls.data.strain_rate_barba, 
+        cls.data.deformation_regimes_bird)
     moment_rates['strain_barba'] = momentrate_strain_barba / (
         eqcatalog.CATALOG_TIME_SPAN)
 

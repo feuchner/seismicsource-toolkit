@@ -238,7 +238,6 @@ def tectonicRegimeForPoint(point, regime):
                     None is returned
     """
     
-                
     regime_key = None
     for deformation_regime, regime_poly in regime.items():
         
