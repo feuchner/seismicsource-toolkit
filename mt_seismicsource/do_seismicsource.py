@@ -50,6 +50,7 @@ from layers import areasource
 from layers import background
 from layers import eqcatalog
 from layers import faultsource
+from layers import faultbackground
 from layers import mapdata
 from layers import render
 from layers import tectonic
@@ -121,6 +122,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.background_zone_layer = None
         self.area_source_layer = None
         self.fault_source_layer = None
+        self.fault_background_layer = None
         self.catalog_layer = None
         self.tectonic_layer = None
 
@@ -152,6 +154,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         self.renderers = render.setRenderers(self.area_source_layer,
             self.fault_source_layer,
+            self.fault_background_layer,
             self.catalog_layer,
             self.background_zone_layer,
             self.background_layer,
@@ -168,6 +171,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.background_zone_layer = background.loadBackgroundZoneLayer(self)
         self.area_source_layer = areasource.loadAreaSourceLayer(self)
         self.fault_source_layer = faultsource.loadFaultSourceLayer(self)
+        self.fault_background_layer = faultbackground.loadFaultBackgroundLayer(self)
         self.catalog_layer = eqcatalog.loadEQCatalogLayer(self)
         self.tectonic_layer = tectonic.loadTectonicRegimeLayer(self, 
             self.data.deformation_regimes_bird)

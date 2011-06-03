@@ -33,13 +33,15 @@ from qgis.core import *
 
 AREA_LAYER_STYLE_FILE = 'style/layer-style-area-zones.qml'
 FAULT_LAYER_STYLE_FILE = 'style/layer-style-fault-zones.qml'
+FAULT_BACKGROUND_LAYER_STYLE_FILE = \
+    'style/layer-style-faultsource-background.qml'
 EQ_LAYER_STYLE_FILE = 'style/layer-style-eq-catalog-base.qml'
 BACKGROUND_ZONE_LAYER_STYLE_FILE = 'style/layer-style-background-zones.qml'
 BACKGROUND_LAYER_STYLE_FILE = 'style/layer-style-political-boundaries.qml'
 TECTONIC_LAYER_STYLE_FILE = 'style/layer-style-tectonic-regimes.qml'
 
-def setRenderers(area_layer, fault_layer, eq_layer, background_zone_layer,
-    background_layer, tectonic_layer):
+def setRenderers(area_layer, fault_layer, fault_background_layer, eq_layer,
+    background_zone_layer, background_layer, tectonic_layer):
 
     area_layer.loadNamedStyle(os.path.join(os.path.dirname(__file__), 
         AREA_LAYER_STYLE_FILE))
@@ -47,6 +49,9 @@ def setRenderers(area_layer, fault_layer, eq_layer, background_zone_layer,
     fault_layer.loadNamedStyle(os.path.join(os.path.dirname(__file__), 
         FAULT_LAYER_STYLE_FILE))
 
+    fault_background_layer.loadNamedStyle(os.path.join(
+        os.path.dirname(__file__), FAULT_BACKGROUND_LAYER_STYLE_FILE))
+        
     eq_layer.loadNamedStyle(os.path.join(os.path.dirname(__file__), 
         EQ_LAYER_STYLE_FILE))
 

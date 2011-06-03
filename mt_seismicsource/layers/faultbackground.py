@@ -2,7 +2,7 @@
 """
 SHARE Seismic Source Toolkit
 
-Loader for fault source layer.
+Loader for fault source background zone layer.
 
 Author: Fabian Euchner, fabian@sed.ethz.ch
 """
@@ -35,34 +35,33 @@ from mt_seismicsource import layers
 from mt_seismicsource import features
 from mt_seismicsource import utils
 
-FAULT_FILE_DIR = 'fault_sources/DISS-3.2-2011-04-19'
-FAULT_FILES = ('CSSources_region.shp',)
+FAULT_BACKGROUND_FILE_DIR = 'fault_background'
+FAULT_BACKGROUND_FILE = 'FSBGZ01_0_region.shp'
 
-TEMP_FILENAME = 'fault-sources.shp'
+TEMP_FILENAME = 'fault-background.shp'
 
-def loadFaultSourceLayer(cls):
-    """Load fault source layer from Shapefile. Add required feature attributes
-    if they are missing.
+def loadFaultBackgroundLayer(cls):
+    """Load fault source background layer from Shapefile.
     """
-    fault_source_path = os.path.join(layers.DATA_DIR, 
-        FAULT_FILE_DIR, unicode(cls.comboBoxFaultInput.currentText()))
+    fault_background_path = os.path.join(layers.DATA_DIR, 
+        FAULT_BACKGROUND_FILE_DIR, FAULT_BACKGROUND_FILE)
 
-    if not os.path.isfile(fault_source_path):
-        utils.warning_box_missing_layer_file(fault_source_path)
+    if not os.path.isfile(fault_background_path):
+        utils.warning_box_missing_layer_file(fault_background_path)
         return
 
-    temp_fault_source_layer = QgsVectorLayer(fault_source_path, 
-        "Fault Sources", "ogr")
+    temp_fault_background_layer = QgsVectorLayer(fault_background_path, 
+        "Fault Background", "ogr")
 
     # PostGIS SRID 4326 is allocated for WGS84
     crs = QgsCoordinateReferenceSystem(4326, 
         QgsCoordinateReferenceSystem.PostgisCrsId)
 
-    layer = utils.shp2memory(temp_fault_source_layer, "Fault Sources")
+    layer = utils.shp2memory(temp_fault_background_layer, "Fault Background")
     layer.setCrs(crs) 
 
     QgsMapLayerRegistry.instance().addMapLayer(layer)
     utils.writeLayerToShapefile(layer, os.path.join(layers.DATA_DIR, 
-        FAULT_FILE_DIR, TEMP_FILENAME), crs)
+        FAULT_BACKGROUND_FILE_DIR, TEMP_FILENAME), crs)
 
     return layer
