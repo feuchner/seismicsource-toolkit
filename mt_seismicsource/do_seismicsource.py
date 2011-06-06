@@ -183,8 +183,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         moment_rates = momentbalancing.updateMomentRatesArea(self, 
             selected_feature)
-        momentbalancing.updateMomentRateTableArea(self, moment_rates)
-        momentbalancing.updateMomentRatePlotArea(self, moment_rates)
+        momentbalancing.updateDisplaysArea(self, moment_rates)
 
     def updateMomentRateValuesFault(self):
         """Update values in moment rate per fault table."""
@@ -201,8 +200,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         moment_rates = momentbalancing.updateMomentRatesFault(self, 
             selected_feature)
-        momentbalancing.updateMomentRateTableFault(self, moment_rates)
-        momentbalancing.updateMomentRatePlotFault(self, moment_rates)
+        momentbalancing.updateDisplaysFault(self, moment_rates)
 
     def updateMomentRateValuesFaultBackgr(self):
         """Update values in moment rate per fault background zone table."""
@@ -221,8 +219,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         moment_rates = momentbalancing.updateMomentRatesFaultBackgr(self, 
             selected_feature)
-        momentbalancing.updateMomentRateTableFaultBackgr(self, moment_rates)
-        #momentbalancing.updateMomentRatePlotFaultBackgr(self, moment_rates)
+        momentbalancing.updateDisplaysFaultBackgr(self, moment_rates)
 
     def updateFMD(self):
         """Update FMD display for one selected area zone from

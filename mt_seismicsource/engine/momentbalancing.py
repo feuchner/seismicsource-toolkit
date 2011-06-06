@@ -45,7 +45,7 @@ from mt_seismicsource.layers import areasource
 from mt_seismicsource.layers import eqcatalog
 
 FAULT_BACKGROUND_MAG_THRESHOLD = 5.5
-
+        
 def updateMomentRatesArea(cls, feature):
     """Update or compute moment rates for selected feature of area source
     zone layer.
@@ -127,6 +127,15 @@ def updateMomentRatesArea(cls, feature):
         eqcatalog.CATALOG_TIME_SPAN)
 
     return moment_rates
+
+def updateDisplaysArea(cls, moment_rates):
+    """Update UI with computed values for selected area zone."""
+    updateTextArea(cls, moment_rates)
+    updateMomentRateTableArea(cls, moment_rates)
+    updateMomentRatePlotArea(cls, moment_rates)
+
+def updateTextArea(cls, moment_rates):
+    cls.textArea.setText("Area")
 
 def updateMomentRateTableArea(cls, moment_rates):
     cls.momentRateTableArea.clearContents()
@@ -268,6 +277,15 @@ def updateMomentRatesFault(cls, feature):
     moment_rates['slip'] = [momentrate_min, momentrate_max]
 
     return moment_rates
+
+def updateDisplaysFault(cls, moment_rates):
+    """Update UI with computed values for selected fault zone."""
+    updateTextFault(cls, moment_rates)
+    updateMomentRateTableFault(cls, moment_rates)
+    updateMomentRatePlotFault(cls, moment_rates)
+
+def updateTextFault(cls, moment_rates):
+    cls.textFault.setText("Fault")
 
 def updateMomentRateTableFault(cls, moment_rates):
     cls.momentRateTableFault.clearContents()
@@ -439,6 +457,15 @@ def updateMomentRatesFaultBackgr(cls, feature):
     moment_rates['slip'] = [momentrate_min, momentrate_max]
 
     return moment_rates
+
+def updateDisplaysFaultBackgr(cls, moment_rates):
+    """Update UI with computed values for selected fault background zone."""
+    updateTextFaultBackgr(cls, moment_rates)
+    updateMomentRateTableFaultBackgr(cls, moment_rates)
+    #updateMomentRatePlotFaultBackgr(cls, moment_rates)
+
+def updateTextFaultBackgr(cls, moment_rates):
+    cls.textFaultBackgr.setText("FaultBackgr")
 
 def updateMomentRateTableFaultBackgr(cls, moment_rates):
     cls.momentRateTableFault.clearContents()

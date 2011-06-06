@@ -360,7 +360,7 @@
       <string>Compute</string>
      </property>
     </widget>
-    <widget class="QTextBrowser" name="textMomentRateArea">
+    <widget class="QTextEdit" name="textArea">
      <property name="geometry">
       <rect>
        <x>0</x>
@@ -470,7 +470,7 @@
       <string>Compute</string>
      </property>
     </widget>
-    <widget class="QTextBrowser" name="textMomentRateFault">
+    <widget class="QTextEdit" name="textFault">
      <property name="geometry">
       <rect>
        <x>0</x>
@@ -496,7 +496,7 @@
     <zorder>momentRateTableFault</zorder>
     <zorder>labelMomentRateFault</zorder>
     <zorder>btnComputeMomentRateFault</zorder>
-    <zorder>textMomentRateFault</zorder>
+    <zorder>textFault</zorder>
     <zorder>widgetMomentRateFaultBackgr</zorder>
     <zorder>btnDisplayRecurrence</zorder>
    </widget>
@@ -601,7 +601,7 @@
       <string>Compute</string>
      </property>
     </widget>
-    <widget class="QTextBrowser" name="textMomentRateFaultBackgr">
+    <widget class="QTextEdit" name="textFaultBackgr">
      <property name="geometry">
       <rect>
        <x>0</x>
