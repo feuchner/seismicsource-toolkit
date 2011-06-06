@@ -82,6 +82,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         QObject.connect(self.btnComputeMomentRateFault, SIGNAL("clicked()"), 
             self.updateMomentRateValuesFault)
 
+        # Button: compute moment rate of fault background zones
+        QObject.connect(self.btnComputeMomentRateFaultBackgr, 
+            SIGNAL("clicked()"), self.updateMomentRateValuesFaultBackgr)
+            
         # Button: FMD plot
         QObject.connect(self.btnDisplayFMD, SIGNAL("clicked()"), 
             self.updateFMD)
@@ -177,7 +181,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             self.data.deformation_regimes_bird)
 
     def updateMomentRateValuesArea(self):
-        """Update values in moment rate per area table/plot, if other 
+        """Update values in moment rate per area table, if other 
         area zone has  been selected, or zone attributes have been changed."""
 
         if not utils.check_only_one_feature_selected(self.area_source_layer):
@@ -196,8 +200,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         momentbalancing.updateMomentRatePlotArea(self, moment_rates)
 
     def updateMomentRateValuesFault(self):
-        """Update values in moment rate per fault table/plot, if other 
-        area zone has been selected, or zone attributes have been changed."""
+        """Update values in moment rate per fault table."""
 
         if not utils.check_only_one_feature_selected(self.fault_source_layer):
             return
@@ -213,6 +216,26 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             selected_feature)
         momentbalancing.updateMomentRateTableFault(self, moment_rates)
         momentbalancing.updateMomentRatePlotFault(self, moment_rates)
+
+    def updateMomentRateValuesFaultBackgr(self):
+        """Update values in moment rate per fault background zone table."""
+
+        if not utils.check_only_one_feature_selected(
+            self.fault_background_layer):
+            return
+
+        # TODO(fab): check if attribute values have been changed
+        # so far, we always recompute
+        #self.computeRecurrence()
+        #self.fault_background_layer.commitChanges()
+
+        selected_feature = \
+            self.fault_background_layer.selectedFeatures()[0]
+
+        moment_rates = momentbalancing.updateMomentRatesFaultBackgr(self, 
+            selected_feature)
+        momentbalancing.updateMomentRateTableFaultBackgr(self, moment_rates)
+        #momentbalancing.updateMomentRatePlotFaultBackgr(self, moment_rates)
 
     def updateFMD(self):
         """Update FMD display for one selected area zone from
