@@ -94,19 +94,6 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         QObject.connect(self.btnDisplayRecurrence, SIGNAL("clicked()"), 
             self.updateRecurrence)
 
-        # Checkbox: Normalize FMD plot
-        # TODO(fab): disabled, since results are not correct
-        #QObject.connect(self.checkBoxGRAnnualRate, 
-            #SIGNAL("stateChanged(int)"), self._updateFMDDisplay)
-
-        # Button: compute activity (AtticIvy)
-        QObject.connect(self.btnComputeAtticIvy, SIGNAL("clicked()"), 
-            self.computeAtticIvy)
-
-        # Button: compute recurrence
-        QObject.connect(self.btnComputeRecurrence, SIGNAL("clicked()"), 
-            self.computeRecurrence)
-
         # FMD plot window
         self.fmd_canvas = None
         self.fmd_toolbar = None
@@ -265,16 +252,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             self.area_source_layer):
             return
 
-        self.activityLED.setColor(QColor(255, 0, 0))
-        self.activityLEDLabel.setText('Computing...')
-        self.btnComputeAtticIvy.setEnabled(False)
-
         atticivy_result = atticivy.assignActivityAtticIvy(
             self.area_source_layer, self.catalog)
-
-        self.activityLED.setColor(QColor(0, 255, 0))
-        self.activityLEDLabel.setText('Idle')
-        self.btnComputeAtticIvy.setEnabled(True)
 
     def computeRecurrence(self):
         """Compute recurrence with Bungum code."""
@@ -283,13 +262,5 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             self.fault_source_layer):
             return
 
-        self.recurrenceLED.setColor(QColor(255, 0, 0))
-        self.recurrenceLEDLabel.setText('Computing...')
-        self.btnComputeRecurrence.setEnabled(False)
-
         recurrence_result = recurrence.assignRecurrence(
             self.fault_source_layer, self.area_source_layer, self.catalog)
-
-        self.recurrenceLED.setColor(QColor(0, 255, 0))
-        self.recurrenceLEDLabel.setText('Idle')
-        self.btnComputeRecurrence.setEnabled(True)
