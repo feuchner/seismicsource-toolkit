@@ -347,7 +347,7 @@
       <string>Zone ID:</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="btnComputeMomentRateArea">
+    <widget class="QPushButton" name="btnComputeDataArea">
      <property name="geometry">
       <rect>
        <x>370</x>
@@ -457,7 +457,7 @@
       <string>Zone ID:</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="btnComputeMomentRateFault">
+    <widget class="QPushButton" name="btnComputeDataFault">
      <property name="geometry">
       <rect>
        <x>370</x>
@@ -495,7 +495,7 @@
     </widget>
     <zorder>momentRateTableFault</zorder>
     <zorder>labelMomentRateFault</zorder>
-    <zorder>btnComputeMomentRateFault</zorder>
+    <zorder>btnComputeDataFault</zorder>
     <zorder>textFault</zorder>
     <zorder>widgetMomentRateFaultBackgr</zorder>
     <zorder>btnDisplayRecurrence</zorder>
@@ -588,7 +588,7 @@
       <string>Zone ID:</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="btnComputeMomentRateFaultBackgr">
+    <widget class="QPushButton" name="btnComputeDataFaultBackgr">
      <property name="geometry">
       <rect>
        <x>370</x>

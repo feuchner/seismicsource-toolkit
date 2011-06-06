@@ -74,17 +74,17 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         QObject.connect(self.btnLoadData, SIGNAL("clicked()"), 
             self.loadDataLayers)
 
-        # Button: compute moment rate of area zones
-        QObject.connect(self.btnComputeMomentRateArea, SIGNAL("clicked()"), 
-            self.updateMomentRateValuesArea)
+        # Button: compute parameters for area zones
+        QObject.connect(self.btnComputeDataArea, SIGNAL("clicked()"), 
+            self.updateDataArea)
 
-        # Button: compute moment rate of fault zones
-        QObject.connect(self.btnComputeMomentRateFault, SIGNAL("clicked()"), 
-            self.updateMomentRateValuesFault)
+        # Button: compute parameters for fault zones
+        QObject.connect(self.btnComputeDataFault, SIGNAL("clicked()"), 
+            self.updateDataFault)
 
-        # Button: compute moment rate of fault background zones
-        QObject.connect(self.btnComputeMomentRateFaultBackgr, 
-            SIGNAL("clicked()"), self.updateMomentRateValuesFaultBackgr)
+        # Button: compute parameters for fault background zones
+        QObject.connect(self.btnComputeDataFaultBackgr, 
+            SIGNAL("clicked()"), self.updateDataFaultBackgr)
             
         # Button: FMD plot
         QObject.connect(self.btnDisplayFMD, SIGNAL("clicked()"), 
@@ -167,7 +167,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.tectonic_layer = tectonic.loadTectonicRegimeLayer(self, 
             self.data.deformation_regimes_bird)
 
-    def updateMomentRateValuesArea(self):
+    def updateDataArea(self):
         """Update values in moment rate per area table, if other 
         area zone has  been selected, or zone attributes have been changed."""
 
@@ -181,11 +181,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         selected_feature = self.area_source_layer.selectedFeatures()[0]
 
-        moment_rates = momentbalancing.updateMomentRatesArea(self, 
-            selected_feature)
-        momentbalancing.updateDisplaysArea(self, moment_rates)
+        parameters = momentbalancing.updateDataArea(self, selected_feature)
+        momentbalancing.updateDisplaysArea(self, parameters)
 
-    def updateMomentRateValuesFault(self):
+    def updateDataFault(self):
         """Update values in moment rate per fault table."""
 
         if not utils.check_only_one_feature_selected(self.fault_source_layer):
@@ -198,11 +197,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         selected_feature = self.fault_source_layer.selectedFeatures()[0]
 
-        moment_rates = momentbalancing.updateMomentRatesFault(self, 
-            selected_feature)
-        momentbalancing.updateDisplaysFault(self, moment_rates)
+        parameters = momentbalancing.updateDataFault(self, selected_feature)
+        momentbalancing.updateDisplaysFault(self, parameters)
 
-    def updateMomentRateValuesFaultBackgr(self):
+    def updateDataFaultBackgr(self):
         """Update values in moment rate per fault background zone table."""
 
         if not utils.check_only_one_feature_selected(
@@ -217,9 +215,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         selected_feature = \
             self.fault_background_layer.selectedFeatures()[0]
 
-        moment_rates = momentbalancing.updateMomentRatesFaultBackgr(self, 
+        parameters = momentbalancing.updateDataFaultBackgr(self, 
             selected_feature)
-        momentbalancing.updateDisplaysFaultBackgr(self, moment_rates)
+        momentbalancing.updateDisplaysFaultBackgr(self, parameters)
 
     def updateFMD(self):
         """Update FMD display for one selected area zone from

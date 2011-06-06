@@ -46,19 +46,19 @@ from mt_seismicsource.layers import eqcatalog
 
 FAULT_BACKGROUND_MAG_THRESHOLD = 5.5
         
-def updateMomentRatesArea(cls, feature):
+def updateDataArea(cls, feature):
     """Update or compute moment rates for selected feature of area source
     zone layer.
 
     Input:
-        feature     QGis polygon feature from area source layer
+        feature         QGis polygon feature from area source layer
 
     Output:
-        moment_rates    dict of computed moment rates
+        parameters      dict of computed parameters
     """
 
     provider = cls.area_source_layer.dataProvider()
-    moment_rates = {}
+    parameters = {}
 
     # get Shapely polygon from feature geometry
     poly, vertices = utils.polygonsQGS2Shapely((feature,))
@@ -83,7 +83,7 @@ def updateMomentRatesArea(cls, feature):
 
     # scale moment: per year and area (in km^2)
     # TODO(fab): compute real catalog time span
-    moment_rates['eq'] = moment.sum() / (
+    parameters['mr_eq'] = moment.sum() / (
         area_sqkm * eqcatalog.CATALOG_TIME_SPAN)
 
     ## moment rate from activity (RM)
@@ -112,54 +112,59 @@ def updateMomentRatesArea(cls, feature):
         activity_a, activity_b, mmax)) * area_sqkm / (
             eqcatalog.CATALOG_TIME_SPAN)
 
-    moment_rates['activity'] = momentrates_arr.tolist()
+    parameters['activity_a'] = activity_a
+    parameters['activity_b'] = activity_b 
+    parameters['mmax'] = mmax 
+    
+    parameters['mr_activity'] = momentrates_arr.tolist()
 
     ## moment rate from geodesy (strain)
     momentrate_strain_barba = momentrate.momentrateFromStrainRateBarba(
         poly[0], cls.data.strain_rate_barba, 
         cls.data.deformation_regimes_bird)
-    moment_rates['strain_barba'] = momentrate_strain_barba / (
+    parameters['mr_strain_barba'] = momentrate_strain_barba / (
         eqcatalog.CATALOG_TIME_SPAN)
 
     momentrate_strain_bird = momentrate.momentrateFromStrainRateBird(poly[0], 
         cls.data.strain_rate_bird, cls.data.deformation_regimes_bird)
-    moment_rates['strain_bird'] = momentrate_strain_bird / (
+    parameters['mr_strain_bird'] = momentrate_strain_bird / (
         eqcatalog.CATALOG_TIME_SPAN)
 
-    return moment_rates
+    return parameters
 
-def updateDisplaysArea(cls, moment_rates):
+def updateDisplaysArea(cls, parameters):
     """Update UI with computed values for selected area zone."""
-    updateTextArea(cls, moment_rates)
-    updateMomentRateTableArea(cls, moment_rates)
-    updateMomentRatePlotArea(cls, moment_rates)
+    updateTextArea(cls, parameters)
+    updateMomentRateTableArea(cls, parameters)
+    updateMomentRatePlotArea(cls, parameters)
 
-def updateTextArea(cls, moment_rates):
-    cls.textArea.setText("Area")
+def updateTextArea(cls, parameters):
+    text = "a: %(activity_a)s\nb: %(activity_b)s" % (parameters)
+    cls.textArea.setText(text)
 
-def updateMomentRateTableArea(cls, moment_rates):
+def updateMomentRateTableArea(cls, parameters):
     cls.momentRateTableArea.clearContents()
 
     ## from EQs
     cls.momentRateTableArea.setItem(0, 0, QTableWidgetItem(QString(
-        "%.2e" % moment_rates['eq'])))
+        "%.2e" % parameters['mr_eq'])))
 
     ## from activity (RM)
 
     # get maximum likelihood value from central line of table
-    ml_idx = len(moment_rates['activity']) / 2
-    mr_ml = moment_rates['activity'][ml_idx]
+    ml_idx = len(parameters['mr_activity']) / 2
+    mr_ml = parameters['mr_activity'][ml_idx]
     cls.momentRateTableArea.setItem(0, 1, QTableWidgetItem(QString(
         "%.2e" % mr_ml)))
 
     ## from geodesy (strain)
     cls.momentRateTableArea.setItem(0, 2, QTableWidgetItem(QString(
-        "%.2e" % moment_rates['strain_barba'])))
+        "%.2e" % parameters['mr_strain_barba'])))
 
     cls.momentRateTableArea.setItem(0, 3, QTableWidgetItem(QString(
-        "%.2e" % moment_rates['strain_bird'])))
+        "%.2e" % parameters['mr_strain_bird'])))
 
-def updateMomentRatePlotArea(cls, moment_rates):
+def updateMomentRatePlotArea(cls, parameters):
 
     window = plots.createPlotWindow(cls)
 
@@ -168,7 +173,7 @@ def updateMomentRatePlotArea(cls, moment_rates):
         plots.MomentRateComparisonPlotArea()
     cls.fig_moment_rate_comparison_area = \
         cls.fig_moment_rate_comparison_area.plot(imgfile=None, 
-            data=moment_rates)
+            data=parameters)
 
     cls.canvas_moment_rate_comparison_area = plots.PlotCanvas(
         cls.fig_moment_rate_comparison_area, 
@@ -184,7 +189,7 @@ def updateMomentRatePlotArea(cls, moment_rates):
     window.layoutPlot.addWidget(
         cls.toolbar_moment_rate_comparison_area)
 
-def updateMomentRatesFault(cls, feature):
+def updateDataFault(cls, feature):
     """Update or compute moment rates for selected feature of fault source
     zone layer.
 
@@ -192,7 +197,7 @@ def updateMomentRatesFault(cls, feature):
         feature         QGis polygon feature from fault source layer
 
     Output:
-        moment_rates    dict of computed moment rates
+        parameters      dict of computed parameters
     """
 
     provider = cls.fault_source_layer.dataProvider()
@@ -203,7 +208,7 @@ def updateMomentRatesFault(cls, feature):
         (features.FAULT_SOURCE_ATTR_MOMENTRATE_MIN,
         features.FAULT_SOURCE_ATTR_MOMENTRATE_MAX))
 
-    moment_rates = {}
+    parameters = {}
 
     # get Shapely polygon from feature geometry
     poly, vertices = utils.polygonsQGS2Shapely((feature,))
@@ -240,7 +245,7 @@ def updateMomentRatesFault(cls, feature):
 
     # scale moment: per year and area (in km^2)
     # TODO(fab): compute real catalog time span
-    moment_rates['eq'] = moment.sum() / (
+    parameters['mr_eq'] = moment.sum() / (
         buffer_area_sqkm * eqcatalog.CATALOG_TIME_SPAN)
 
     ## moment rate from activity (RM)
@@ -261,7 +266,11 @@ def updateMomentRatesFault(cls, feature):
         activity_a, activity_b, mmax)) * buffer_area_sqkm / (
             eqcatalog.CATALOG_TIME_SPAN)
 
-    moment_rates['activity'] = momentrates_arr.tolist()
+    parameters['activity_a'] = activity_a
+    parameters['activity_b'] = activity_b 
+    parameters['mmax'] = mmax 
+    
+    parameters['mr_activity'] = momentrates_arr.tolist()
 
     ## moment rate from slip rate
 
@@ -274,38 +283,39 @@ def updateMomentRatesFault(cls, feature):
     momentrate_max = \
         feature[attribute_map[momrate_max_name][0]].toDouble()[0] / (
             eqcatalog.CATALOG_TIME_SPAN)
-    moment_rates['slip'] = [momentrate_min, momentrate_max]
+    parameters['mr_slip'] = [momentrate_min, momentrate_max]
 
-    return moment_rates
+    return parameters
 
-def updateDisplaysFault(cls, moment_rates):
+def updateDisplaysFault(cls, parameters):
     """Update UI with computed values for selected fault zone."""
-    updateTextFault(cls, moment_rates)
-    updateMomentRateTableFault(cls, moment_rates)
-    updateMomentRatePlotFault(cls, moment_rates)
+    updateTextFault(cls, parameters)
+    updateMomentRateTableFault(cls, parameters)
+    updateMomentRatePlotFault(cls, parameters)
 
-def updateTextFault(cls, moment_rates):
-    cls.textFault.setText("Fault")
+def updateTextFault(cls, parameters):
+    text = "a: %(activity_a)s\nb: %(activity_b)s" % (parameters)
+    cls.textFault.setText(text)
 
-def updateMomentRateTableFault(cls, moment_rates):
+def updateMomentRateTableFault(cls, parameters):
     cls.momentRateTableFault.clearContents()
 
     ## from EQs
     cls.momentRateTableFault.setItem(0, 0, QTableWidgetItem(QString(
-        "%.2e" % moment_rates['eq'])))
+        "%.2e" % parameters['mr_eq'])))
 
     ## from activity (RM)
     # get maximum likelihood value from central line of table
-    ml_idx = len(moment_rates['activity']) / 2
-    mr_ml = moment_rates['activity'][ml_idx]
+    ml_idx = len(parameters['mr_activity']) / 2
+    mr_ml = parameters['mr_activity'][ml_idx]
     cls.momentRateTableFault.setItem(0, 1, QTableWidgetItem(QString(
         "%.2e" % mr_ml)))
 
     ## from geology (slip)
     cls.momentRateTableFault.setItem(0, 2, QTableWidgetItem(QString(
-        "%.2e" % moment_rates['slip'][1])))
+        "%.2e" % parameters['mr_slip'][1])))
 
-def updateMomentRatePlotFault(cls, moment_rates):
+def updateMomentRatePlotFault(cls, parameters):
 
     window = plots.createPlotWindow(cls)
 
@@ -314,7 +324,7 @@ def updateMomentRatePlotFault(cls, moment_rates):
         plots.MomentRateComparisonPlotFault()
     cls.fig_moment_rate_comparison_fault = \
         cls.fig_moment_rate_comparison_fault.plot(imgfile=None, 
-            data=moment_rates)
+            data=parameters)
 
     cls.canvas_moment_rate_comparison_fault = plots.PlotCanvas(
         cls.fig_moment_rate_comparison_fault, 
@@ -330,7 +340,7 @@ def updateMomentRatePlotFault(cls, moment_rates):
     window.layoutPlot.addWidget(
         cls.toolbar_moment_rate_comparison_fault)
 
-def updateMomentRatesFaultBackgr(cls, feature):
+def updateDataFaultBackgr(cls, feature):
     """Update or compute moment rates for selected feature of fault background
     zone layer.
 
@@ -338,7 +348,7 @@ def updateMomentRatesFaultBackgr(cls, feature):
         feature         QGis polygon feature from fault background zone layer
 
     Output:
-        moment_rates    dict of computed moment rates
+        parameters      dict of computed parameters
     """
 
     provider = cls.fault_background_layer.dataProvider()
@@ -350,7 +360,7 @@ def updateMomentRatesFaultBackgr(cls, feature):
         (features.FAULT_SOURCE_ATTR_MOMENTRATE_MIN,
         features.FAULT_SOURCE_ATTR_MOMENTRATE_MAX))
 
-    moment_rates = {}
+    parameters = {}
 
     # get Shapely polygon from feature geometry
     poly, vertices = utils.polygonsQGS2Shapely((feature,))
@@ -381,12 +391,32 @@ def updateMomentRatesFaultBackgr(cls, feature):
 
     # scale moment: per year and area (in km^2)
     # TODO(fab): compute real catalog time span
-    moment_rates['eq'] = moment.sum() / (
+    parameters['mr_eq'] = moment.sum() / (
         area_sqkm * eqcatalog.CATALOG_TIME_SPAN)
 
     ## moment rate from activity (RM)
     
-    # get catalogs below and above magnitude threshold
+    activity = atticivy.computeActivityAtticIvy(
+        (poly[0], ), (mmax, ), (mcdist, ), cls.catalog)
+    
+    # get RM (weight, a, b) values from feature attribute
+    activity_str = activity[0][2]
+    activity_arr = activity_str.strip().split()
+    
+    # ignore weights
+    activity_a = [float(x) for x in activity_arr[1::3]]
+    activity_b = [float(x) for x in activity_arr[2::3]]
+    
+    # multiply computed value with area in square kilometres
+    momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
+        activity_a, activity_b, mmax)) * area_sqkm / (
+            eqcatalog.CATALOG_TIME_SPAN)
+
+    parameters['activity_a'] = activity_a
+    parameters['activity_b'] = activity_b 
+    parameters['mr_activity'] = momentrates_arr.tolist()
+    
+    # get separate catalogs below and above magnitude threshold
     cat_below_threshold = QPCatalog.QPCatalog()
     cat_below_threshold.merge(cls.catalog)
     cat_below_threshold.cut(maxmag=FAULT_BACKGROUND_MAG_THRESHOLD, 
@@ -426,8 +456,16 @@ def updateMomentRatesFaultBackgr(cls, feature):
         activity_above_a, activity_above_b, mmax)) * area_sqkm / (
             eqcatalog.CATALOG_TIME_SPAN)
 
-    moment_rates['activity_below'] = momentrates_below_arr.tolist()
-    moment_rates['activity_above'] = momentrates_above_arr.tolist()
+    parameters['activity_below_a'] = activity_below_a
+    parameters['activity_below_b'] = activity_below_b 
+    
+    parameters['activity_above_a'] = activity_above_a
+    parameters['activity_above_b'] = activity_above_b 
+    
+    parameters['mr_activity_below'] = momentrates_below_arr.tolist()
+    parameters['mr_activity_above'] = momentrates_above_arr.tolist()
+    
+    parameters['mmax'] = mmax 
     
     ## moment rate from slip rate
 
@@ -454,44 +492,45 @@ def updateMomentRatesFaultBackgr(cls, feature):
             fault_contrib[attribute_map[momrate_max_name][0]].toDouble()[0] / (
                 eqcatalog.CATALOG_TIME_SPAN)
     
-    moment_rates['slip'] = [momentrate_min, momentrate_max]
+    parameters['mr_slip'] = [momentrate_min, momentrate_max]
 
-    return moment_rates
+    return parameters
 
-def updateDisplaysFaultBackgr(cls, moment_rates):
+def updateDisplaysFaultBackgr(cls, parameters):
     """Update UI with computed values for selected fault background zone."""
-    updateTextFaultBackgr(cls, moment_rates)
-    updateMomentRateTableFaultBackgr(cls, moment_rates)
-    #updateMomentRatePlotFaultBackgr(cls, moment_rates)
+    updateTextFaultBackgr(cls, parameters)
+    updateMomentRateTableFaultBackgr(cls, parameters)
+    #updateMomentRatePlotFaultBackgr(cls, parameters)
 
-def updateTextFaultBackgr(cls, moment_rates):
-    cls.textFaultBackgr.setText("FaultBackgr")
+def updateTextFaultBackgr(cls, parameters):
+    text = "a: %(activity_a)s\nb: %(activity_b)s" % (parameters)
+    cls.textFaultBackgr.setText(text)
 
-def updateMomentRateTableFaultBackgr(cls, moment_rates):
+def updateMomentRateTableFaultBackgr(cls, parameters):
     cls.momentRateTableFault.clearContents()
 
     ## from EQs
     cls.momentRateTableFaultBackgr.setItem(0, 0, QTableWidgetItem(QString(
-        "%.2e" % moment_rates['eq'])))
+        "%.2e" % parameters['mr_eq'])))
 
     ## from activity (RM)
     
     # get maximum likelihood value from central line of table
-    ml_idx = len(moment_rates['activity_below']) / 2
-    mr_ml = moment_rates['activity_below'][ml_idx]
+    ml_idx = len(parameters['mr_activity_below']) / 2
+    mr_ml = parameters['mr_activity_below'][ml_idx]
     cls.momentRateTableFaultBackgr.setItem(0, 1, QTableWidgetItem(QString(
         "%.2e" % mr_ml)))
         
-    ml_idx = len(moment_rates['activity_above']) / 2
-    mr_ml = moment_rates['activity_above'][ml_idx]
+    ml_idx = len(parameters['mr_activity_above']) / 2
+    mr_ml = parameters['mr_activity_above'][ml_idx]
     cls.momentRateTableFaultBackgr.setItem(0, 2, QTableWidgetItem(QString(
         "%.2e" % mr_ml)))
 
     ## from geology (slip)
     cls.momentRateTableFaultBackgr.setItem(0, 3, QTableWidgetItem(QString(
-        "%.2e" % moment_rates['slip'][1])))
+        "%.2e" % parameters['mr_slip'][1])))
 
-def updateMomentRatePlotFaultBackgr(cls, moment_rates):
+def updateMomentRatePlotFaultBackgr(cls, parameters):
 
     window = plots.createPlotWindow(cls)
 
@@ -500,7 +539,7 @@ def updateMomentRatePlotFaultBackgr(cls, moment_rates):
         plots.MomentRateComparisonPlotFault()
     cls.fig_moment_rate_comparison_fault = \
         cls.fig_moment_rate_comparison_fault.plot(imgfile=None, 
-            data=moment_rates)
+            data=parameters)
 
     cls.canvas_moment_rate_comparison_fault = plots.PlotCanvas(
         cls.fig_moment_rate_comparison_fault, 
