@@ -232,7 +232,7 @@
     <widget class="QPushButton" name="btnComputeDataArea">
      <property name="geometry">
       <rect>
-       <x>370</x>
+       <x>360</x>
        <y>20</y>
        <width>115</width>
        <height>30</height>
@@ -260,7 +260,7 @@
     <widget class="QPushButton" name="btnDisplayFMD">
      <property name="geometry">
       <rect>
-       <x>300</x>
+       <x>290</x>
        <y>20</y>
        <width>67</width>
        <height>30</height>
@@ -292,7 +292,7 @@
     <rect>
      <x>310</x>
      <y>500</y>
-     <width>491</width>
+     <width>501</width>
      <height>211</height>
     </rect>
    </property>
@@ -367,7 +367,7 @@
       <rect>
        <x>290</x>
        <y>60</y>
-       <width>181</width>
+       <width>191</width>
        <height>141</height>
       </rect>
      </property>
@@ -416,7 +416,7 @@
     <widget class="QPushButton" name="btnComputeDataFaultBackgr">
      <property name="geometry">
       <rect>
-       <x>370</x>
+       <x>360</x>
        <y>20</y>
        <width>115</width>
        <height>30</height>
