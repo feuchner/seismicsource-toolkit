@@ -2,7 +2,7 @@
 """
 SHARE Seismic Source Toolkit
 
-Computations for frequency-magnitude distribution.
+Computations for frequency-magnitude distribution (FMD).
 
 Author: Fabian Euchner, fabian@sed.ethz.ch
 """
@@ -38,6 +38,7 @@ from mt_seismicsource import plots
 from mt_seismicsource import utils
 
 MIN_EVENTS_FOR_GR = 50
+FMD_COMPUTE_ANNUAL_RATE = True
 
 def computeZoneFMD(cls, feature):
     """Compute FMD for selected feature."""
@@ -45,12 +46,13 @@ def computeZoneFMD(cls, feature):
     cls.figures['fmd'] = {}
 
     # cut catalog to feature
-    poly, vertices = utils.polygonsQGS2Shapely((feature,))
-
+    polylist, vertices = utils.polygonsQGS2Shapely((feature,))
+    poly = polylist[0]
+    
     # cut catalog with selected polygons
     catalog_selected = QPCatalog.QPCatalog()
     catalog_selected.merge(cls.catalog)
-    catalog_selected.cut(geometry=poly[0])
+    catalog_selected.cut(geometry=poly)
 
     cls.figures['fmd']['fmd'] = catalog_selected.getFmd(
         minEventsGR=MIN_EVENTS_FOR_GR)
@@ -64,12 +66,15 @@ def updateFMDDisplay(cls):
 def displayFMDValues(cls):
     """Updates a and b value display."""
 
-    if cls.checkBoxGRAnnualRate.isChecked():
+    if FMD_COMPUTE_ANNUAL_RATE is True:
         aValue = cls.figures['fmd']['fmd'].GR['aValueNormalized']
     else:
         aValue = cls.figures['fmd']['fmd'].GR['aValue']
-    cls.inputAValue.setValue(aValue)
-    cls.inputBValue.setValue(cls.figures['fmd']['fmd'].GR['bValue'])
+        
+    #cls.inputAValue.setValue(aValue)
+    #cls.inputBValue.setValue(cls.figures['fmd']['fmd'].GR['bValue'])
+    
+    return (aValue, cls.figures['fmd']['fmd'].GR['bValue'])
 
 def plotFMD(cls):
 
@@ -78,7 +83,7 @@ def plotFMD(cls):
     # new FMD plot (returns figure)
     cls.figures['fmd']['fig'] = cls.figures['fmd']['fmd'].plot(
         imgfile=None, fmdtype='cumulative', 
-        normalize=cls.checkBoxGRAnnualRate.isChecked())
+        normalize=FMD_COMPUTE_ANNUAL_RATE)
 
     cls.fmd_canvas = plots.PlotCanvas(cls.figures['fmd']['fig'], 
         title="FMD")

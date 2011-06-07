@@ -45,7 +45,7 @@ from mt_seismicsource.layers import areasource
 from mt_seismicsource.layers import eqcatalog
 
 FAULT_BACKGROUND_MAG_THRESHOLD = 5.5
-        
+
 # ----------------------------------------------------------------------------
 
 def updateDataArea(cls, feature):
@@ -141,16 +141,15 @@ def updateDisplaysArea(cls, parameters):
     """Update UI with computed values for selected area zone."""
     updateTextActivityArea(cls, parameters)
     updateTextMomentRateArea(cls, parameters)
-    #updateMomentRateTableArea(cls, parameters)
-    updateMomentRatePlotArea(cls, parameters)
+    updatePlotMomentRateArea(cls, parameters)
 
 def updateTextActivityArea(cls, parameters):
     text = ''
     text += "<b>Activity</b><br/>"
-    text += "(RM) a: %s, b: %s<br/>" % (
+    text += "<b>(RM)</b> a: %s, b: %s<br/>" % (
         utils.centralValueOfList(parameters['activity_a']), 
         utils.centralValueOfList(parameters['activity_b']))
-    text += "(ML) a: %s, b: %s<br/>" % (None, None)
+    text += "<b>(ML)</b> a: %s, b: %s<br/>" % (None, None)
     text += "Mmax: %s, %s EQ in %s km^2 (area zone)" % (
         parameters['mmax'],
         parameters['eq_count'],
@@ -166,28 +165,8 @@ def updateTextMomentRateArea(cls, parameters):
     text += "[Strain (Bird)] %.2e<br/>" % parameters['mr_strain_bird']
     text += "[Strain (Barba)] %.2e" % parameters['mr_strain_barba']
     cls.textMomentRateArea.setText(text)
-    
-def updateMomentRateTableArea(cls, parameters):
-    cls.momentRateTableArea.clearContents()
 
-    ## from EQs
-    cls.momentRateTableArea.setItem(0, 0, QTableWidgetItem(QString(
-        "%.2e" % parameters['mr_eq'])))
-
-    ## from activity (RM)
-
-    # get maximum likelihood value from central line of table
-    cls.momentRateTableArea.setItem(0, 1, QTableWidgetItem(QString(
-        "%.2e" % utils.centralValueOfList(parameters['mr_activity']))))
-
-    ## from geodesy (strain)
-    cls.momentRateTableArea.setItem(0, 2, QTableWidgetItem(QString(
-        "%.2e" % parameters['mr_strain_barba'])))
-
-    cls.momentRateTableArea.setItem(0, 3, QTableWidgetItem(QString(
-        "%.2e" % parameters['mr_strain_bird'])))
-
-def updateMomentRatePlotArea(cls, parameters):
+def updatePlotMomentRateArea(cls, parameters):
 
     window = plots.createPlotWindow(cls)
 
@@ -321,17 +300,16 @@ def updateDisplaysFault(cls, parameters):
     """Update UI with computed values for selected fault zone."""
     updateTextActivityFault(cls, parameters)
     updateTextMomentRateFault(cls, parameters)
-    updateMomentRateTableFault(cls, parameters)
-    updateMomentRatePlotFault(cls, parameters)
+    updatePlotMomentRateFault(cls, parameters)
 
 def updateTextActivityFault(cls, parameters):
 
     text = ''
     text += "<b>Activity</b><br/>"
-    text += "(RM) a: %s, b: %s<br/>" % (
+    text += "<b>(RM)</b> a: %s, b: %s<br/>" % (
         utils.centralValueOfList(parameters['activity_a']), 
         utils.centralValueOfList(parameters['activity_b']))
-    text += "(ML) a: %s, b: %s<br/>" % (None, None)
+    text += "<b>(ML)</b> a: %s, b: %s<br/>" % (None, None)
     text += "Mmax: %s, %s EQ in %s km^2 (buffer zone)" % (
         parameters['mmax'],
         parameters['eq_count'],
@@ -347,24 +325,8 @@ def updateTextMomentRateFault(cls, parameters):
         utils.centralValueOfList(parameters['mr_activity']))
     text += "[Slip] %.2e" %  parameters['mr_slip'][1]
     cls.textMomentRateFault.setText(text)
-    
-def updateMomentRateTableFault(cls, parameters):
-    cls.momentRateTableFault.clearContents()
 
-    ## from EQs
-    cls.momentRateTableFault.setItem(0, 0, QTableWidgetItem(QString(
-        "%.2e" % parameters['mr_eq'])))
-
-    ## from activity (RM)
-    # get maximum likelihood value from central line of table
-    cls.momentRateTableFault.setItem(0, 1, QTableWidgetItem(QString(
-        "%.2e" % utils.centralValueOfList(parameters['mr_activity']))))
-
-    ## from geology (slip)
-    cls.momentRateTableFault.setItem(0, 2, QTableWidgetItem(QString(
-        "%.2e" % parameters['mr_slip'][1])))
-
-def updateMomentRatePlotFault(cls, parameters):
+def updatePlotMomentRateFault(cls, parameters):
 
     window = plots.createPlotWindow(cls)
 
@@ -569,27 +531,26 @@ def updateDisplaysFaultBackgr(cls, parameters):
     """Update UI with computed values for selected fault background zone."""
     updateTextActivityFaultBackgr(cls, parameters)
     updateTextMomentRateFaultBackgr(cls, parameters)
-    updateMomentRateTableFaultBackgr(cls, parameters)
-    #updateMomentRatePlotFaultBackgr(cls, parameters)
+    #updatePlotMomentRateFaultBackgr(cls, parameters)
 
 def updateTextActivityFaultBackgr(cls, parameters):
     text = ''
     text += "<b>Activity</b><br/>"
-    text += "(RM) all EQ: a: %s, b: %s (%s EQ)<br/>" % (
+    text += "<b>(RM)</b> all EQ: a: %s, b: %s (%s EQ)<br/>" % (
         utils.centralValueOfList(parameters['activity_a']), 
         utils.centralValueOfList(parameters['activity_b']),
         parameters['eq_count'])
-    text += "(RM) below M%s: a: %s, b: %s (%s EQ)<br/>" % (
+    text += "<b>(RM)</b> below M%s: a: %s, b: %s (%s EQ)<br/>" % (
         FAULT_BACKGROUND_MAG_THRESHOLD,
         utils.centralValueOfList(parameters['activity_below_a']), 
         utils.centralValueOfList(parameters['activity_below_b']),
         parameters['eq_count_below'])
-    text += "(RM) above M%s: a: %s, b: %s (%s EQ)<br/>" % (
+    text += "<b>(RM)</b> above M%s: a: %s, b: %s (%s EQ)<br/>" % (
         FAULT_BACKGROUND_MAG_THRESHOLD,
         utils.centralValueOfList(parameters['activity_above_a']), 
         utils.centralValueOfList(parameters['activity_above_b']),
         parameters['eq_count_above'])
-    text += "(ML) all EQ: a: %s, b: %s (%s EQ)<br/>" % (None, None, 
+    text += "<b>(ML)</b> all EQ: a: %s, b: %s (%s EQ)<br/>" % (None, None, 
         parameters['eq_count'])
     text += "Mmax: %s, %s faults with area of %s km^2 in background zone of %s km^2" % (
         parameters['mmax'], 
@@ -604,30 +565,15 @@ def updateTextMomentRateFaultBackgr(cls, parameters):
     text += "[EQ] %.2e<br/>" % parameters['mr_eq']
     text += "[Act] %.2e<br/>" % (
         utils.centralValueOfList(parameters['mr_activity']))
-    text += "[Slip] %.2e" % parameters['mr_slip'][1]
+    text += "[Slip] %.2e<br/>" % parameters['mr_slip'][1]
+    
+    # TODO(fab): compute and display moment rate from strain rate
+    # on fault background zone
+    text += "[Strain (Bird)] %s<br/>" % None
+    text += "[Strain (Barba)] %s" % None
     cls.textMomentRateFaultBackgr.setText(text)
-    
-def updateMomentRateTableFaultBackgr(cls, parameters):
-    cls.momentRateTableFault.clearContents()
 
-    ## from EQs
-    cls.momentRateTableFaultBackgr.setItem(0, 0, QTableWidgetItem(QString(
-        "%.2e" % parameters['mr_eq'])))
-
-    ## from activity (RM)
-    
-    # get maximum likelihood value from central line of table
-    cls.momentRateTableFaultBackgr.setItem(0, 1, QTableWidgetItem(QString(
-        "%.2e" % utils.centralValueOfList(parameters['mr_activity_below']))))
-        
-    cls.momentRateTableFaultBackgr.setItem(0, 2, QTableWidgetItem(QString(
-        "%.2e" % utils.centralValueOfList(parameters['mr_activity_above']))))
-
-    ## from geology (slip)
-    cls.momentRateTableFaultBackgr.setItem(0, 3, QTableWidgetItem(QString(
-        "%.2e" % parameters['mr_slip'][1])))
-
-def updateMomentRatePlotFaultBackgr(cls, parameters):
+def updatePlotMomentRateFaultBackgr(cls, parameters):
 
     window = plots.createPlotWindow(cls)
 
