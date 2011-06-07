@@ -360,14 +360,19 @@
       <string>Compute</string>
      </property>
     </widget>
-    <widget class="QTextEdit" name="textArea">
+    <widget class="QTextEdit" name="textAreaActivity">
      <property name="geometry">
       <rect>
        <x>0</x>
        <y>140</y>
-       <width>481</width>
+       <width>201</width>
        <height>91</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Bitstream Vera Sans Mono</family>
+      </font>
      </property>
     </widget>
     <widget class="QPushButton" name="btnDisplayFMD">
@@ -381,6 +386,16 @@
      </property>
      <property name="text">
       <string>FMD</string>
+     </property>
+    </widget>
+    <widget class="QTextEdit" name="textAreaMomentRate">
+     <property name="geometry">
+      <rect>
+       <x>210</x>
+       <y>140</y>
+       <width>261</width>
+       <height>91</height>
+      </rect>
      </property>
     </widget>
    </widget>
@@ -470,14 +485,19 @@
       <string>Compute</string>
      </property>
     </widget>
-    <widget class="QTextEdit" name="textFault">
+    <widget class="QTextEdit" name="textFaultActivity">
      <property name="geometry">
       <rect>
        <x>0</x>
        <y>140</y>
-       <width>481</width>
+       <width>221</width>
        <height>61</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Bitstream Vera Sans Mono</family>
+      </font>
      </property>
     </widget>
     <widget class="QPushButton" name="btnDisplayRecurrence">
@@ -493,12 +513,16 @@
       <string>Recurrence</string>
      </property>
     </widget>
-    <zorder>momentRateTableFault</zorder>
-    <zorder>labelMomentRateFault</zorder>
-    <zorder>btnComputeDataFault</zorder>
-    <zorder>textFault</zorder>
-    <zorder>widgetMomentRateFaultBackgr</zorder>
-    <zorder>btnDisplayRecurrence</zorder>
+    <widget class="QTextEdit" name="textFaultMomentRate">
+     <property name="geometry">
+      <rect>
+       <x>230</x>
+       <y>140</y>
+       <width>231</width>
+       <height>51</height>
+      </rect>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QWidget" name="widgetMomentRateFaultBackgr" native="true">
@@ -601,13 +625,28 @@
       <string>Compute</string>
      </property>
     </widget>
-    <widget class="QTextEdit" name="textFaultBackgr">
+    <widget class="QTextEdit" name="textFaultBackgrActivity">
      <property name="geometry">
       <rect>
        <x>0</x>
        <y>140</y>
-       <width>481</width>
+       <width>211</width>
        <height>91</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>DejaVu Sans Mono</family>
+      </font>
+     </property>
+    </widget>
+    <widget class="QTextEdit" name="textFaultBackgrMomentRate">
+     <property name="geometry">
+      <rect>
+       <x>220</x>
+       <y>140</y>
+       <width>261</width>
+       <height>101</height>
       </rect>
      </property>
     </widget>

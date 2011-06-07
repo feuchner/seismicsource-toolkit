@@ -243,7 +243,13 @@ def momentrateFromStrainRateBird(poly, strain_in, regime):
         60 * 60 * 24 * 365.25)
                     
 def momentrateFromSlipRate(slipratemi, slipratema, area):
-    """Compute min/max seismic moment rate from min/max slip rate."""
+    """Compute min/max seismic moment rate from min/max slip rate.
+    
+    Input:
+        slipratemi      Minimum sliprate in mm/yr
+        slipratema      Maximum sliprate in mm/yr
+        area            Fault are in m^2
+    """
 
     # TODO(fab): double-check scaling with Laurentiu!
     # shear modulus: Pa = N / m^2 = kg / (m * s^2) = kg / (10^-3 km * s^2)

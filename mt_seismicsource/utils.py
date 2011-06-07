@@ -225,10 +225,7 @@ def shp2memory(layer, name):
     # create layer
     mem_layer = QgsVectorLayer(geometry_token, name, "memory")
     pr = mem_layer.dataProvider()
-
-    #QMessageBox.information(None, "Orig Layer", "%s, %s, %s, %s" % (
-        #pr_orig.encoding(), pr_orig.geometryType(),
-            #pr_orig.crs(), pr_orig.fields()))
+    mem_layer.startEditing()
 
     # TODO(fab): check if encoding() and crs() have to be set in new layer
 
@@ -250,6 +247,7 @@ def shp2memory(layer, name):
             f[attr_idx] = QVariant(attr)
         pr.addFeatures([f])
 
+    mem_layer.commitChanges()
     mem_layer.updateExtents()
     return mem_layer
 
@@ -301,6 +299,11 @@ def check_at_least_one_feature_selected(layer):
     else:
         return True
 
+def centralValueOfList(list_in):
+    """Return central value of a list."""
+    central_idx = len(list_in) / 2
+    return list_in[central_idx]
+    
 def warning_box_missing_layer_file(filename):
     QMessageBox.warning(None, "File not found", 
         "Layer file not found: %s" % os.path.basename(filename))
