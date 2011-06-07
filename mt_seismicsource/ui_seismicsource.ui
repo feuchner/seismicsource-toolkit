@@ -360,7 +360,7 @@
       <string>Compute</string>
      </property>
     </widget>
-    <widget class="QTextEdit" name="textAreaActivity">
+    <widget class="QTextEdit" name="textActivityArea">
      <property name="geometry">
       <rect>
        <x>0</x>
@@ -388,7 +388,7 @@
       <string>FMD</string>
      </property>
     </widget>
-    <widget class="QTextEdit" name="textAreaMomentRate">
+    <widget class="QTextEdit" name="textMomentRateArea">
      <property name="geometry">
       <rect>
        <x>210</x>
@@ -396,6 +396,11 @@
        <width>261</width>
        <height>91</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Bitstream Vera Sans Mono</family>
+      </font>
      </property>
     </widget>
    </widget>
@@ -485,7 +490,7 @@
       <string>Compute</string>
      </property>
     </widget>
-    <widget class="QTextEdit" name="textFaultActivity">
+    <widget class="QTextEdit" name="textActivityFault">
      <property name="geometry">
       <rect>
        <x>0</x>
@@ -513,7 +518,7 @@
       <string>Recurrence</string>
      </property>
     </widget>
-    <widget class="QTextEdit" name="textFaultMomentRate">
+    <widget class="QTextEdit" name="textMomentRateFault">
      <property name="geometry">
       <rect>
        <x>230</x>
@@ -521,6 +526,11 @@
        <width>231</width>
        <height>51</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Bitstream Vera Sans Mono</family>
+      </font>
      </property>
     </widget>
    </widget>
@@ -625,7 +635,7 @@
       <string>Compute</string>
      </property>
     </widget>
-    <widget class="QTextEdit" name="textFaultBackgrActivity">
+    <widget class="QTextEdit" name="textActivityFaultBackgr">
      <property name="geometry">
       <rect>
        <x>0</x>
@@ -640,7 +650,7 @@
       </font>
      </property>
     </widget>
-    <widget class="QTextEdit" name="textFaultBackgrMomentRate">
+    <widget class="QTextEdit" name="textMomentRateFaultBackgr">
      <property name="geometry">
       <rect>
        <x>220</x>
@@ -648,6 +658,11 @@
        <width>261</width>
        <height>101</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Bitstream Vera Sans Mono</family>
+      </font>
      </property>
     </widget>
    </widget>

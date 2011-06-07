@@ -139,11 +139,12 @@ def updateDataArea(cls, feature):
 
 def updateDisplaysArea(cls, parameters):
     """Update UI with computed values for selected area zone."""
-    updateTextArea(cls, parameters)
-    updateMomentRateTableArea(cls, parameters)
+    updateTextActivityArea(cls, parameters)
+    updateTextMomentRateArea(cls, parameters)
+    #updateMomentRateTableArea(cls, parameters)
     updateMomentRatePlotArea(cls, parameters)
 
-def updateTextArea(cls, parameters):
+def updateTextActivityArea(cls, parameters):
     text = ''
     text += "<b>Activity</b><br/>"
     text += "(RM) a: %s, b: %s<br/>" % (
@@ -154,8 +155,18 @@ def updateTextArea(cls, parameters):
         parameters['mmax'],
         parameters['eq_count'],
         int(parameters['area_sqkm']))
-    cls.textAreaActivity.setText(text)
+    cls.textActivityArea.setText(text)
 
+def updateTextMomentRateArea(cls, parameters):
+    text = ''
+    text += "<b>Moment Rate</b><br/>"
+    text += "[EQ] %.2e<br/>" % parameters['mr_eq']
+    text += "[Act] %.2e<br/>" % (
+        utils.centralValueOfList(parameters['mr_activity']))
+    text += "[Strain (Bird)] %.2e<br/>" % parameters['mr_strain_bird']
+    text += "[Strain (Barba)] %.2e" % parameters['mr_strain_barba']
+    cls.textMomentRateArea.setText(text)
+    
 def updateMomentRateTableArea(cls, parameters):
     cls.momentRateTableArea.clearContents()
 
@@ -308,11 +319,12 @@ def updateDataFault(cls, feature):
 
 def updateDisplaysFault(cls, parameters):
     """Update UI with computed values for selected fault zone."""
-    updateTextFault(cls, parameters)
+    updateTextActivityFault(cls, parameters)
+    updateTextMomentRateFault(cls, parameters)
     updateMomentRateTableFault(cls, parameters)
     updateMomentRatePlotFault(cls, parameters)
 
-def updateTextFault(cls, parameters):
+def updateTextActivityFault(cls, parameters):
 
     text = ''
     text += "<b>Activity</b><br/>"
@@ -324,8 +336,18 @@ def updateTextFault(cls, parameters):
         parameters['mmax'],
         parameters['eq_count'],
         int(parameters['buffer_area_sqkm']))
-    cls.textFaultActivity.setText(text)
+    cls.textActivityFault.setText(text)
 
+def updateTextMomentRateFault(cls, parameters):
+
+    text = ''
+    text += "<b>Moment Rate</b><br/>"
+    text += "[EQ] %.2e<br/>" % parameters['mr_eq']
+    text += "[Act] %.2e<br/>" % (
+        utils.centralValueOfList(parameters['mr_activity']))
+    text += "[Slip] %.2e" %  parameters['mr_slip'][1]
+    cls.textMomentRateFault.setText(text)
+    
 def updateMomentRateTableFault(cls, parameters):
     cls.momentRateTableFault.clearContents()
 
@@ -545,11 +567,12 @@ def updateDataFaultBackgr(cls, feature):
 
 def updateDisplaysFaultBackgr(cls, parameters):
     """Update UI with computed values for selected fault background zone."""
-    updateTextFaultBackgr(cls, parameters)
+    updateTextActivityFaultBackgr(cls, parameters)
+    updateTextMomentRateFaultBackgr(cls, parameters)
     updateMomentRateTableFaultBackgr(cls, parameters)
     #updateMomentRatePlotFaultBackgr(cls, parameters)
 
-def updateTextFaultBackgr(cls, parameters):
+def updateTextActivityFaultBackgr(cls, parameters):
     text = ''
     text += "<b>Activity</b><br/>"
     text += "(RM) all EQ: a: %s, b: %s (%s EQ)<br/>" % (
@@ -573,8 +596,17 @@ def updateTextFaultBackgr(cls, parameters):
         parameters['fault_count'], 
         int(parameters['area_fault_sqkm']),
         int(parameters['area_background_sqkm']))
-    cls.textFaultBackgrActivity.setText(text)
+    cls.textActivityFaultBackgr.setText(text)
 
+def updateTextMomentRateFaultBackgr(cls, parameters):
+    text = ''
+    text += "<b>Moment Rate</b><br/>"
+    text += "[EQ] %.2e<br/>" % parameters['mr_eq']
+    text += "[Act] %.2e<br/>" % (
+        utils.centralValueOfList(parameters['mr_activity']))
+    text += "[Slip] %.2e" % parameters['mr_slip'][1]
+    cls.textMomentRateFaultBackgr.setText(text)
+    
 def updateMomentRateTableFaultBackgr(cls, parameters):
     cls.momentRateTableFault.clearContents()
 
