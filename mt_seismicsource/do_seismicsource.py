@@ -159,7 +159,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         mapdata.loadBackgroundLayer(self)
         self.loadDefaultLayers()
 
-        self.renderers = render.setRenderers(self.area_source_layer,
+        self.renderers = render.setRenderers(
+            self.area_source_layer,
             self.fault_source_layer,
             self.fault_background_layer,
             self.catalog_layer,
@@ -275,19 +276,47 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         recurrence_result = recurrence.assignRecurrence(
             self.fault_source_layer, self.area_source_layer, self.catalog)
-            
+
     def browseAreaZoneFiles(self):
         """Show Open File dialog for Area Source Zone files."""
-        QMessageBox.information(None, "Area Source Zone", "Area Source Zone")
+        
+        title = "Area Source Zone File"
+        directory = os.path.join(layers.DATA_DIR, areasource.ZONE_FILE_DIR)
+        file_filter = layers.SHAPEFILE_FILTER
+        path = self.browseInputFiles(title, directory, file_filter)
+        QMessageBox.information(None, title, path)
     
     def browseFaultZoneFiles(self):
         """Show Open File dialog for Fault Source files."""
-        QMessageBox.information(None, "Fault Source", "Fault Source")
+        
+        title = "Fault Source File"
+        directory = os.path.join(layers.DATA_DIR, faultsource.FAULT_FILE_DIR)
+        file_filter = layers.SHAPEFILE_FILTER
+        path = self.browseInputFiles(title, directory, file_filter)
+        QMessageBox.information(None, title, path)
     
     def browseFaultBackgrZoneFiles(self):
         """Show Open File dialog for Fault Background Zone files."""
-        QMessageBox.information(None, "Fault Background Zone", "Fault Background Zone")
+        
+        title = "Fault Background Zone File"
+        directory = os.path.join(layers.DATA_DIR, 
+            faultbackground.FAULT_BACKGROUND_FILE_DIR)
+        file_filter = layers.SHAPEFILE_FILTER
+        path = self.browseInputFiles(title, directory, file_filter)
+        QMessageBox.information(None, title, path)
     
     def browseEQCatalogFiles(self):
         """Show Open File dialog for EQ catalog files."""
-        QMessageBox.information(None, "EQ catalog", "EQ catalog")
+        
+        title = "EQ catalog File"
+        directory = os.path.join(layers.DATA_DIR, eqcatalog.CATALOG_DIR)
+        file_filter = layers.EQ_CATALOG_FILTER
+        path = self.browseInputFiles(title, directory, file_filter)
+        QMessageBox.information(None, title, path)
+        
+    def browseInputFiles(self, title='', directory=layers.DATA_DIR, 
+        file_filter=""):
+        """Open File dialog for unspecified input file type."""
+        
+        path = QFileDialog.getOpenFileName(self, title, directory, file_filter)
+        return path
