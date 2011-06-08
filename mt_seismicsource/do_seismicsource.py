@@ -283,8 +283,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         title = "Open Area Source Zone file"
         directory = os.path.join(layers.DATA_DIR, areasource.ZONE_FILE_DIR)
         file_filter = layers.SHAPEFILE_FILTER
-        path = self.browseInputFiles(title, directory, file_filter)
-        QMessageBox.information(None, title, path)
+        combobox = self.comboBoxAreaZoneInput
+        self.selectInputFile(combobox, title, directory, file_filter)
     
     def browseFaultZoneFiles(self):
         """Show Open File dialog for Fault Source files."""
@@ -292,8 +292,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         title = "Open Fault Source file"
         directory = os.path.join(layers.DATA_DIR, faultsource.FAULT_FILE_DIR)
         file_filter = layers.SHAPEFILE_FILTER
-        path = self.browseInputFiles(title, directory, file_filter)
-        QMessageBox.information(None, title, path)
+        combobox = self.comboBoxFaultZoneInput
+        self.selectInputFile(combobox, title, directory, file_filter)
     
     def browseFaultBackgrZoneFiles(self):
         """Show Open File dialog for Fault Background Zone files."""
@@ -302,8 +302,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         directory = os.path.join(layers.DATA_DIR, 
             faultbackground.FAULT_BACKGROUND_FILE_DIR)
         file_filter = layers.SHAPEFILE_FILTER
-        path = self.browseInputFiles(title, directory, file_filter)
-        QMessageBox.information(None, title, path)
+        combobox = self.comboBoxFaultBackgrZoneInput
+        self.selectInputFile(combobox, title, directory, file_filter)
     
     def browseEQCatalogFiles(self):
         """Show Open File dialog for EQ catalog files."""
@@ -311,12 +311,15 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         title = "Open EQ catalog file"
         directory = os.path.join(layers.DATA_DIR, eqcatalog.CATALOG_DIR)
         file_filter = layers.EQ_CATALOG_FILTER
-        path = self.browseInputFiles(title, directory, file_filter)
-        QMessageBox.information(None, title, path)
+        combobox = self.comboBoxEQCatalogInput
+        self.selectInputFile(combobox, title, directory, file_filter)
         
-    def browseInputFiles(self, title='', directory=layers.DATA_DIR, 
+    def selectInputFile(self, widget, title='', directory=layers.DATA_DIR, 
         file_filter=""):
-        """Open File dialog for unspecified input file type."""
+        """Open File dialog for unspecified input file type and add selected
+        file name to specified widget (combobox)."""
         
-        path = QFileDialog.getOpenFileName(self, title, directory, file_filter)
-        return path
+        path = QFileDialog.getOpenFileName(self, title, directory, 
+            file_filter)
+        widget.insertItem(0, os.path.basename(str(path)))
+        widget.setCurrentIndex(0)
