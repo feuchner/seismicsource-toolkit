@@ -24,20 +24,18 @@ Author: Fabian Euchner, fabian@sed.ethz.ch
 #    59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ############################################################################
 
-#import numpy
-#import os
-#import shapely.geometry
-#import shapely.ops
-#import sys
+import csv
+import os
 
-#from PyQt4.QtCore import *
-#from PyQt4.QtGui import *
-
-#from qgis.core import *
-
-#import qpplot
-
+from mt_seismicsource import layers
 from mt_seismicsource.algorithms import strain
+
+MMAX_FILE_DIR = 'mmax'
+MMAX_FILE = 'Mmax_20110520.csv'
+MMAX_CSV_DELIMITER = ','
+MMAX_ID_IDX = 0
+MMAX_NAME_IDX = 1
+MMAX_MMAX_IDX = 10
 
 class Datasets(object):
     """Additional (non-layer) datasets."""
@@ -47,3 +45,25 @@ class Datasets(object):
         self.strain_rate_barba = strain.loadStrainRateDataBarba()
         self.strain_rate_bird = strain.loadStrainRateDataBird()
         self.deformation_regimes_bird = strain.loadDeformationRegimesBird()
+        
+        self.mmax = self.loadMmaxData()
+        
+    def loadMmaxData(self):
+        
+        self.mmax = {}
+        
+        mmax_path = os.path.join(layers.DATA_DIR, MMAX_FILE_DIR, MMAX_FILE)
+        with open(mmax_path, 'r') as fh:
+            reader = csv.reader(fh, delimiter=MMAX_CSV_DELIMITER)
+
+            for line_idx, line in enumerate(reader):
+                
+                # skip first line with field names
+                if line_idx == 0:
+                    continue
+                
+                zone_id = int(line[MMAX_ID_IDX].strip())
+                zone_name = line[MMAX_NAME_IDX].strip()
+                zone_mmax = float(line[MMAX_MMAX_IDX].strip())
+
+                self.mmax[zone_id] = {'name': zone_name, 'mmax': zone_mmax}
