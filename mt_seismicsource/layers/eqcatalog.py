@@ -40,9 +40,9 @@ from mt_seismicsource import utils
 
 CATALOG_DIR = 'eq_catalog'
 CATALOG_FILES = (
-    'SHEEC-declustered-2011-05-02.zmap.dat.gz', 
-    'cenec-zmap.dat', 
-    'SHARE_20110311.dat.gz')
+    'SHEEC-declustered-2011-05-30.zmap.dat.gz', 
+    'SHEEC-declustered-2011-05-03.zmap.dat.gz', 
+    'cenec-zmap.dat')
 
 CATALOG_TIME_SPAN = 1006.0
 
