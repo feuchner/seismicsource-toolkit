@@ -50,7 +50,8 @@ def loadAreaSourceLayer(cls):
     if they are missing.
     """
     area_source_path = os.path.join(layers.DATA_DIR, 
-        ZONE_FILE_DIR, unicode(cls.comboBoxZoneInput.currentText()))
+        ZONE_FILE_DIR, unicode(cls.comboBoxAreaZoneInput.currentText()))
+        
     if not os.path.isfile(area_source_path):
         utils.warning_box_missing_layer_file(area_source_path)
         return

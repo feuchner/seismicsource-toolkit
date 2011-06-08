@@ -36,7 +36,7 @@ from mt_seismicsource import features
 from mt_seismicsource import utils
 
 FAULT_BACKGROUND_FILE_DIR = 'fault_background'
-FAULT_BACKGROUND_FILE = 'FSBGZ01_0_region.shp'
+FAULT_BACKGROUND_FILES = ('FSBGZ01_0_region.shp',)
 
 TEMP_FILENAME = 'fault-background.shp'
 
@@ -44,7 +44,8 @@ def loadFaultBackgroundLayer(cls):
     """Load fault source background layer from Shapefile.
     """
     fault_background_path = os.path.join(layers.DATA_DIR, 
-        FAULT_BACKGROUND_FILE_DIR, FAULT_BACKGROUND_FILE)
+        FAULT_BACKGROUND_FILE_DIR, unicode(
+            cls.comboBoxFaultBackgrZoneInput.currentText()))
 
     if not os.path.isfile(fault_background_path):
         utils.warning_box_missing_layer_file(fault_background_path)

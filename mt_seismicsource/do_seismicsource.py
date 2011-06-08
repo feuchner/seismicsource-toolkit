@@ -70,6 +70,24 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.figures = {}
         self.plot_windows = []
 
+        ## Input data controls
+        
+        # Button: browse Area Source Zone files
+        QObject.connect(self.btnBrowseZone, SIGNAL("clicked()"), 
+            self.browseAreaZoneFiles)
+            
+        # Button: browse Fault Source Zone files
+        QObject.connect(self.btnBrowseFault, SIGNAL("clicked()"), 
+            self.browseFaultZoneFiles)
+            
+        # Button: browse Fault Background Zone files
+        QObject.connect(self.btnBrowseFaultBackgr, SIGNAL("clicked()"), 
+            self.browseFaultBackgrZoneFiles)
+            
+        # Button: browse EQ catalog files
+        QObject.connect(self.btnBrowseEQCatalog, SIGNAL("clicked()"), 
+            self.browseEQCatalogFiles)
+            
         # Button: load data
         QObject.connect(self.btnLoadData, SIGNAL("clicked()"), 
             self.loadDataLayers)
@@ -93,7 +111,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         # Button: recurrence FMD plot
         QObject.connect(self.btnDisplayRecurrence, SIGNAL("clicked()"), 
             self.updateRecurrence)
-
+        
         # FMD plot window
         self.fmd_canvas = None
         self.fmd_toolbar = None
@@ -118,15 +136,13 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.tectonic_layer = None
 
         # prepare data load combo boxes
-        self.comboBoxZoneInput.addItems(areasource.ZONE_FILES)
-        self.comboBoxFaultInput.addItems(faultsource.FAULT_FILES)
+        self.comboBoxAreaZoneInput.addItems(areasource.ZONE_FILES)
+        self.comboBoxFaultZoneInput.addItems(faultsource.FAULT_FILES)
+        self.comboBoxFaultBackgrZoneInput.addItems(
+            faultbackground.FAULT_BACKGROUND_FILES)
         self.comboBoxEQCatalogInput.addItems(eqcatalog.CATALOG_FILES)
-
+        
         self.progressBarLoadData.setValue(0)
-
-        self.labelCatalogEvents.setText("Catalog events: 0")
-        self.labelSelectedZones.setText("Selected zones: 0")
-        self.labelSelectedEvents.setText("Selected events: 0")
 
     def loadDataLayers(self):
 
@@ -259,3 +275,19 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         recurrence_result = recurrence.assignRecurrence(
             self.fault_source_layer, self.area_source_layer, self.catalog)
+            
+    def browseAreaZoneFiles(self):
+        """Show Open File dialog for Area Source Zone files."""
+        QMessageBox.information(None, "Area Source Zone", "Area Source Zone")
+    
+    def browseFaultZoneFiles(self):
+        """Show Open File dialog for Fault Source files."""
+        QMessageBox.information(None, "Fault Source", "Fault Source")
+    
+    def browseFaultBackgrZoneFiles(self):
+        """Show Open File dialog for Fault Background Zone files."""
+        QMessageBox.information(None, "Fault Background Zone", "Fault Background Zone")
+    
+    def browseEQCatalogFiles(self):
+        """Show Open File dialog for EQ catalog files."""
+        QMessageBox.information(None, "EQ catalog", "EQ catalog")

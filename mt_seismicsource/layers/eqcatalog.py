@@ -70,14 +70,10 @@ def loadEQCatalogLayer(cls):
     # cut catalog to years > 1900 (because of datetime)
     # TODO(fab): change the datetime lib to mx.DateTime
     # cls.catalog.cut(mintime='1900-01-01', mintime_exclude=True)
-    cls.labelCatalogEvents.setText(
-        "Catalog events: %s" % cls.catalog.size())
 
     # cut with selected polygons
     cls.catalog_selected = QPCatalog.QPCatalog()
     cls.catalog_selected.merge(cls.catalog)
-    cls.labelSelectedEvents.setText(
-        "Selected events: %s" % cls.catalog_selected.size())
 
     # PostGIS SRID 4326 is allocated for WGS84
     crs = QgsCoordinateReferenceSystem(4326, 

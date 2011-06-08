@@ -35,8 +35,8 @@ from mt_seismicsource import layers
 from mt_seismicsource import features
 from mt_seismicsource import utils
 
-FAULT_FILE_DIR = 'fault_sources/DISS-3.2-2011-04-19'
-FAULT_FILES = ('CSSources_region.shp',)
+FAULT_FILE_DIR = 'fault_sources'
+FAULT_FILES = ('faults-DISS-3.2-2011-04-19.shp',)
 
 TEMP_FILENAME = 'fault-sources.shp'
 
@@ -45,7 +45,7 @@ def loadFaultSourceLayer(cls):
     if they are missing.
     """
     fault_source_path = os.path.join(layers.DATA_DIR, 
-        FAULT_FILE_DIR, unicode(cls.comboBoxFaultInput.currentText()))
+        FAULT_FILE_DIR, unicode(cls.comboBoxFaultZoneInput.currentText()))
 
     if not os.path.isfile(fault_source_path):
         utils.warning_box_missing_layer_file(fault_source_path)
