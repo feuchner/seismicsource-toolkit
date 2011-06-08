@@ -280,7 +280,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
     def browseAreaZoneFiles(self):
         """Show Open File dialog for Area Source Zone files."""
         
-        title = "Area Source Zone File"
+        title = "Open Area Source Zone file"
         directory = os.path.join(layers.DATA_DIR, areasource.ZONE_FILE_DIR)
         file_filter = layers.SHAPEFILE_FILTER
         path = self.browseInputFiles(title, directory, file_filter)
@@ -289,7 +289,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
     def browseFaultZoneFiles(self):
         """Show Open File dialog for Fault Source files."""
         
-        title = "Fault Source File"
+        title = "Open Fault Source file"
         directory = os.path.join(layers.DATA_DIR, faultsource.FAULT_FILE_DIR)
         file_filter = layers.SHAPEFILE_FILTER
         path = self.browseInputFiles(title, directory, file_filter)
@@ -298,7 +298,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
     def browseFaultBackgrZoneFiles(self):
         """Show Open File dialog for Fault Background Zone files."""
         
-        title = "Fault Background Zone File"
+        title = "Open Fault Background Zone file"
         directory = os.path.join(layers.DATA_DIR, 
             faultbackground.FAULT_BACKGROUND_FILE_DIR)
         file_filter = layers.SHAPEFILE_FILTER
@@ -308,7 +308,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
     def browseEQCatalogFiles(self):
         """Show Open File dialog for EQ catalog files."""
         
-        title = "EQ catalog File"
+        title = "Open EQ catalog file"
         directory = os.path.join(layers.DATA_DIR, eqcatalog.CATALOG_DIR)
         file_filter = layers.EQ_CATALOG_FILTER
         path = self.browseInputFiles(title, directory, file_filter)
