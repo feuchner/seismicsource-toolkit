@@ -200,27 +200,16 @@ class SeismicSource(QDialog, Ui_SeismicSource):
     def loadDefaultLayers(self):
 
         self.background_zone_layer = background.loadBackgroundZoneLayer(self)
-        
         self.progressBarLoadData.setValue(30)
-        
         self.area_source_layer = areasource.loadAreaSourceLayer(self)
-        
         self.progressBarLoadData.setValue(40)
-        
         self.fault_source_layer = faultsource.loadFaultSourceLayer(self)
-        
         self.progressBarLoadData.setValue(50)
-        
         self.fault_background_layer = faultbackground.loadFaultBackgroundLayer(self)
-        
         self.progressBarLoadData.setValue(60)
-        
         self.catalog_layer = eqcatalog.loadEQCatalogLayer(self)
-        
         self.progressBarLoadData.setValue(70)
-        
         self.tectonic_layer = tectonic.loadTectonicRegimeLayer(self)
-        
         self.progressBarLoadData.setValue(80)
 
     def updateDataArea(self):
@@ -259,8 +248,16 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             self.fault_background_layer):
             return
 
+        # update zone ID display
         selected_feature = \
             self.fault_background_layer.selectedFeatures()[0]
+        
+        (feature_id, feature_name) = utils.getFeatureAttributes(
+            self.fault_background_layer, selected_feature, 
+            features.FAULT_BACKGROUND_ATTRIBUTES_ID)
+        
+        self.labelMomentRateFaultBackgrID.setText("ID: %s Name: %s" % (
+            int(feature_id.toDouble()[0]), feature_name.toString()))
 
         parameters = momentbalancing.updateDataFaultBackgr(self, 
             selected_feature, m_threshold=self.spinboxFBZMThres.value())
@@ -272,8 +269,16 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         if not utils.check_only_one_feature_selected(self.fault_source_layer):
             return
 
-        # TODO(fab): check if attribute values have been changed
-        # so far, we always recompute
+        # update zone ID display
+        selected_feature = self.fault_source_layer.selectedFeatures()[0]
+        
+        (feature_id, feature_name) = utils.getFeatureAttributes(
+            self.fault_source_layer, selected_feature, 
+            features.FAULT_SOURCE_ATTRIBUTES_ID)
+        
+        self.labelMomentRateFaultID.setText("ID: %s Name: %s" % (
+            feature_id.toString(), feature_name.toString()))
+            
         self.computeRecurrence()
         self.fault_source_layer.commitChanges()
 

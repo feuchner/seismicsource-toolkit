@@ -116,6 +116,12 @@ AREA_SOURCE_ATTRIBUTES_ALL = (
 # ratio: SLIPRATEMA / fault length
 # - if it can be determined automatically, it's implicit, otherwise store it
 
+# ID
+FAULT_SOURCE_ATTR_ID = {'name': 'IDSOURCE', 'type': QVariant.String}
+FAULT_SOURCE_ATTR_NAME = {'name': 'SOURCENAME', 'type': QVariant.String}
+
+FAULT_SOURCE_ATTRIBUTES_ID = (FAULT_SOURCE_ATTR_ID, FAULT_SOURCE_ATTR_NAME)
+
 FAULT_SOURCE_ATTR_ACTIVITYRATE_MIN = {'name': 'actrate_mi', 
     'type': QVariant.String}
 FAULT_SOURCE_ATTR_ACTIVITYRATE_MAX = {'name': 'actrate_ma', 
@@ -146,4 +152,11 @@ FAULT_SOURCE_ATTRIBUTES_RECURRENCE_COMPUTE = (
     FAULT_SOURCE_ATTR_MOMENTRATE_MAX,
     )
 
-    
+## fault background zone attributes
+
+# ID
+FAULT_BACKGROUND_ATTR_ID = {'name': 'ID', 'type': QVariant.Double}
+FAULT_BACKGROUND_ATTR_NAME = {'name': 'NAME', 'type': QVariant.String}
+
+FAULT_BACKGROUND_ATTRIBUTES_ID = (FAULT_BACKGROUND_ATTR_ID, 
+    FAULT_BACKGROUND_ATTR_NAME)

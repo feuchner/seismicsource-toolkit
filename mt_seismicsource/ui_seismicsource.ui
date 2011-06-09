@@ -692,7 +692,7 @@
       </font>
      </property>
      <property name="text">
-      <string>ID Title Name</string>
+      <string>ID Name</string>
      </property>
     </widget>
     <widget class="QPushButton" name="btnDataFaultDisplayMR">
@@ -815,7 +815,7 @@
       </font>
      </property>
      <property name="text">
-      <string>ID Title Name</string>
+      <string>ID Name</string>
      </property>
     </widget>
     <widget class="QPushButton" name="btnDataFaultBackgrDisplayFMD">
