@@ -41,6 +41,8 @@ from mt_seismicsource.algorithms import atticivy
 from mt_seismicsource.algorithms import momentrate
 from mt_seismicsource.algorithms import recurrence
 
+from mt_seismicsource.engine import fmd
+
 from mt_seismicsource.layers import areasource
 from mt_seismicsource.layers import eqcatalog
 
@@ -121,9 +123,12 @@ def updateDataArea(cls, feature):
     parameters['activity_b'] = activity_b 
     parameters['mmax'] = mmax 
     parameters['activity_mmin'] = cls.spinboxAtticIvyMmin.value()
-    
     parameters['mr_activity'] = momentrates_arr.tolist()
 
+    ## Maximum likelihood a/b values
+    fmd.computeZoneFMD(cls, feature)
+    (parameters['ml_a'], parameters['ml_b']) = fmd.displayFMDValues(cls)
+    
     ## moment rate from geodesy (strain)
     momentrate_strain_barba = momentrate.momentrateFromStrainRateBarba(
         poly, cls.data.strain_rate_barba, 
@@ -150,7 +155,9 @@ def updateTextActivityArea(cls, parameters):
     text += "<b>(RM)</b> a: %s, b: %s<br/>" % (
         utils.centralValueOfList(parameters['activity_a']), 
         utils.centralValueOfList(parameters['activity_b']))
-    text += "<b>(ML)</b> a: %s, b: %s<br/>" % (None, None)
+    text += "<b>(ML)</b> a: %.3f, b: %.3f<br/>" % (
+        parameters['ml_a'], 
+        parameters['ml_b'])
     text += "Mmin: %s, Mmax: %s, %s EQ in %s km^2 (area zone)" % (
         parameters['activity_mmin'],
         parameters['mmax'],

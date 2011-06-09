@@ -216,6 +216,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         # TODO(fab): check if attribute values have been changed
         # so far, we always recompute
         self.computeAtticIvy()
+        
         self.area_source_layer.commitChanges()
 
         selected_feature = self.area_source_layer.selectedFeatures()[0]
@@ -245,11 +246,6 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         if not utils.check_only_one_feature_selected(
             self.fault_background_layer):
             return
-
-        # TODO(fab): check if attribute values have been changed
-        # so far, we always recompute
-        #self.computeRecurrence()
-        #self.fault_background_layer.commitChanges()
 
         selected_feature = \
             self.fault_background_layer.selectedFeatures()[0]

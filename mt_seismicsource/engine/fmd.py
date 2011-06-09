@@ -63,27 +63,24 @@ def updateFMDDisplay(cls):
         displayFMDValues(cls)
         plotFMD(cls)
 
-def displayFMDValues(cls):
+def displayFMDValues(cls, normalize=FMD_COMPUTE_ANNUAL_RATE):
     """Updates a and b value display."""
 
-    if FMD_COMPUTE_ANNUAL_RATE is True:
+    if normalize is True:
         aValue = cls.figures['fmd']['fmd'].GR['aValueNormalized']
     else:
         aValue = cls.figures['fmd']['fmd'].GR['aValue']
         
-    #cls.inputAValue.setValue(aValue)
-    #cls.inputBValue.setValue(cls.figures['fmd']['fmd'].GR['bValue'])
-    
     return (aValue, cls.figures['fmd']['fmd'].GR['bValue'])
 
-def plotFMD(cls):
+def plotFMD(cls, normalize=FMD_COMPUTE_ANNUAL_RATE):
 
     window = plots.createPlotWindow(cls)
 
     # new FMD plot (returns figure)
     cls.figures['fmd']['fig'] = cls.figures['fmd']['fmd'].plot(
         imgfile=None, fmdtype='cumulative', 
-        normalize=FMD_COMPUTE_ANNUAL_RATE)
+        normalize=normalize)
 
     cls.fmd_canvas = plots.PlotCanvas(cls.figures['fmd']['fig'], 
         title="FMD")
