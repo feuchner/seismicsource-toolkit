@@ -360,7 +360,8 @@ def updatePlotMomentRateFault(cls, parameters):
 
 # ----------------------------------------------------------------------------
 
-def updateDataFaultBackgr(cls, feature):
+def updateDataFaultBackgr(cls, feature, 
+    m_threshold=FAULT_BACKGROUND_MAG_THRESHOLD):
     """Update or compute moment rates for selected feature of fault background
     zone layer.
 
@@ -441,14 +442,12 @@ def updateDataFaultBackgr(cls, feature):
     # get separate catalogs below and above magnitude threshold
     cat_below_threshold = QPCatalog.QPCatalog()
     cat_below_threshold.merge(poly_cat)
-    cat_below_threshold.cut(maxmag=FAULT_BACKGROUND_MAG_THRESHOLD, 
-        maxmag_excl=True)
+    cat_below_threshold.cut(maxmag=m_threshold, maxmag_excl=True)
     parameters['eq_count_below'] = cat_below_threshold.size()
         
     cat_above_threshold = QPCatalog.QPCatalog()
     cat_above_threshold.merge(poly_cat)
-    cat_above_threshold.cut(minmag=FAULT_BACKGROUND_MAG_THRESHOLD, 
-        maxmag_excl=False)
+    cat_above_threshold.cut(minmag=m_threshold, maxmag_excl=False)
     parameters['eq_count_above'] = cat_above_threshold.size()
 
     activity_below_threshold = atticivy.computeActivityAtticIvy(
@@ -491,6 +490,7 @@ def updateDataFaultBackgr(cls, feature):
     
     parameters['mmax'] = mmax 
     parameters['activity_mmin'] = mmin
+    parameters['activity_m_threshold'] = m_threshold
     
     ## moment rate from slip rate
 
@@ -551,12 +551,12 @@ def updateTextActivityFaultBackgr(cls, parameters):
         utils.centralValueOfList(parameters['activity_b']),
         parameters['eq_count'])
     text += "<b>(RM)</b> below M%s: a: %s, b: %s (%s EQ)<br/>" % (
-        FAULT_BACKGROUND_MAG_THRESHOLD,
+        parameters['activity_m_threshold'],
         utils.centralValueOfList(parameters['activity_below_a']), 
         utils.centralValueOfList(parameters['activity_below_b']),
         parameters['eq_count_below'])
     text += "<b>(RM)</b> above M%s: a: %s, b: %s (%s EQ)<br/>" % (
-        FAULT_BACKGROUND_MAG_THRESHOLD,
+        parameters['activity_m_threshold'],
         utils.centralValueOfList(parameters['activity_above_a']), 
         utils.centralValueOfList(parameters['activity_above_b']),
         parameters['eq_count_above'])

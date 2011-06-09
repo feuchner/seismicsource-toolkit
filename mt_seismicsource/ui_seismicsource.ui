@@ -373,6 +373,69 @@
       </property>
      </widget>
     </widget>
+    <widget class="QGroupBox" name="groupBoxFaultBackgroundZone">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>390</y>
+       <width>291</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Fault Background Zone</string>
+     </property>
+     <widget class="QLabel" name="labelSpinboxFBZMThres">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>81</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>M (threshold)</string>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="spinboxFBZMThres">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>30</y>
+        <width>51</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="decimals">
+       <number>1</number>
+      </property>
+      <property name="singleStep">
+       <double>0.100000000000000</double>
+      </property>
+      <property name="value">
+       <double>5.500000000000000</double>
+      </property>
+     </widget>
+    </widget>
    </widget>
   </widget>
   <widget class="QWidget" name="widgetMomentRateArea" native="true">
