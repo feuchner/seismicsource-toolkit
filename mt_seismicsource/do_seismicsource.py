@@ -99,24 +99,36 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         # Button: FMD plot for area source zones
         QObject.connect(self.btnDataAreaDisplayFMD, SIGNAL("clicked()"), 
-            self.updateDataAreaFMD)
+            self.displayDataAreaFMD)
             
         # Button: Moment rate plot for area source zones
         QObject.connect(self.btnDataAreaDisplayMR, SIGNAL("clicked()"), 
-            self.updateDataAreaMomentRates)
-            
-        # Button: compute parameters for fault zones
-        QObject.connect(self.btnComputeDataFault, SIGNAL("clicked()"), 
-            self.updateDataFault)
-
+            self.displayDataAreaMomentRates)
+        
         # Button: compute parameters for fault background zones
-        QObject.connect(self.btnComputeDataFaultBackgr, 
+        QObject.connect(self.btnDataFaultBackgrCompute, 
             SIGNAL("clicked()"), self.updateDataFaultBackgr)
             
-        # Button: recurrence FMD plot
-        QObject.connect(self.btnDisplayRecurrence, SIGNAL("clicked()"), 
-            self.updateRecurrence)
+        # Button: FMD plot for fault background zones
+        QObject.connect(self.btnDataFaultBackgrDisplayFMD, 
+            SIGNAL("clicked()"), self.displayDataFaultBackgrFMD)
         
+        # Button: Moment rate plot for background zones
+        QObject.connect(self.btnDataFaultBackgrDisplayMR, SIGNAL("clicked()"), 
+            self.displayDataFaultBackgrMomentRates)
+            
+        # Button: compute parameters for fault zones
+        QObject.connect(self.btnDataFaultCompute, SIGNAL("clicked()"), 
+            self.updateDataFault)
+
+        # Button: recurrence FMD plot for fault zones
+        QObject.connect(self.btnDataFaultDisplayRecurrence, 
+            SIGNAL("clicked()"), self.displayRecurrence)
+
+        # Button: Moment rate plot for fault source zones
+        QObject.connect(self.btnDataFaultDisplayMR, SIGNAL("clicked()"), 
+            self.displayDataFaultMomentRates)
+
         # FMD plot window
         self.fmd_canvas = None
         self.fmd_toolbar = None
@@ -240,6 +252,20 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         parameters = momentbalancing.updateDataArea(self, selected_feature)
         momentbalancing.updateDisplaysArea(self, parameters)
 
+    def updateDataFaultBackgr(self):
+        """Update values in moment rate per fault background zone table."""
+
+        if not utils.check_only_one_feature_selected(
+            self.fault_background_layer):
+            return
+
+        selected_feature = \
+            self.fault_background_layer.selectedFeatures()[0]
+
+        parameters = momentbalancing.updateDataFaultBackgr(self, 
+            selected_feature, m_threshold=self.spinboxFBZMThres.value())
+        momentbalancing.updateDisplaysFaultBackgr(self, parameters)
+        
     def updateDataFault(self):
         """Update values in moment rate per fault table."""
 
@@ -256,21 +282,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         parameters = momentbalancing.updateDataFault(self, selected_feature)
         momentbalancing.updateDisplaysFault(self, parameters)
 
-    def updateDataFaultBackgr(self):
-        """Update values in moment rate per fault background zone table."""
-
-        if not utils.check_only_one_feature_selected(
-            self.fault_background_layer):
-            return
-
-        selected_feature = \
-            self.fault_background_layer.selectedFeatures()[0]
-
-        parameters = momentbalancing.updateDataFaultBackgr(self, 
-            selected_feature, m_threshold=self.spinboxFBZMThres.value())
-        momentbalancing.updateDisplaysFaultBackgr(self, parameters)
-
-    def updateDataAreaFMD(self):
+    def displayDataAreaFMD(self):
         """Update FMD display for one selected area zone from
         area zone layer."""
 
@@ -281,13 +293,19 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         fmd.computeZoneFMD(self, selected_feature)
         fmd.updateFMDDisplay(self)
 
-    def updateDataAreaMomentRates(self):
+    def displayDataAreaMomentRates(self):
         """Update moment rate display for one selected area zone from
         area zone layer."""
 
         pass
         
-    def updateRecurrence(self):
+    def displayDataFaultBackgrFMD(self):
+        pass
+    
+    def displayDataFaultBackgrMomentRates(self):
+        pass
+    
+    def displayRecurrence(self):
         """Update recurrence FMD display for one selected fault zone
         in fault zone layer."""
 
@@ -297,6 +315,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         selected_feature = self.fault_source_layer.selectedFeatures()[0]
         fmd.updateRecurrenceDisplay(self, selected_feature)
 
+    def displayDataFaultMomentRates(self):
+        pass
+    
     def computeAtticIvy(self):
         """Compute activity with AtticIvy code."""
 
