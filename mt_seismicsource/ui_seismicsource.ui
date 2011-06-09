@@ -451,9 +451,9 @@
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>10</y>
+      <y>0</y>
       <width>491</width>
-      <height>201</height>
+      <height>211</height>
      </rect>
     </property>
     <property name="font">
@@ -488,7 +488,7 @@
      <property name="geometry">
       <rect>
        <x>360</x>
-       <y>30</y>
+       <y>20</y>
        <width>115</width>
        <height>30</height>
       </rect>
@@ -503,7 +503,7 @@
        <x>10</x>
        <y>60</y>
        <width>281</width>
-       <height>141</height>
+       <height>151</height>
       </rect>
      </property>
      <property name="font">
@@ -516,7 +516,7 @@
      <property name="geometry">
       <rect>
        <x>290</x>
-       <y>30</y>
+       <y>20</y>
        <width>67</width>
        <height>30</height>
       </rect>
@@ -531,7 +531,7 @@
        <x>290</x>
        <y>60</y>
        <width>191</width>
-       <height>141</height>
+       <height>151</height>
       </rect>
      </property>
      <property name="font">
@@ -563,7 +563,7 @@
      <property name="geometry">
       <rect>
        <x>220</x>
-       <y>30</y>
+       <y>20</y>
        <width>67</width>
        <height>30</height>
       </rect>
@@ -577,111 +577,13 @@
   <widget class="QWidget" name="widgetMomentRateFault" native="true">
    <property name="geometry">
     <rect>
-     <x>310</x>
-     <y>500</y>
-     <width>501</width>
-     <height>211</height>
+     <x>320</x>
+     <y>480</y>
+     <width>491</width>
+     <height>231</height>
     </rect>
    </property>
    <widget class="QGroupBox" name="groupBoxMomentRateFault">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>0</y>
-      <width>491</width>
-      <height>211</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <weight>50</weight>
-      <bold>false</bold>
-     </font>
-    </property>
-    <property name="title">
-     <string>Moment Rates from Fault Source</string>
-    </property>
-    <widget class="QLabel" name="labelMomentRateFault">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>30</y>
-       <width>341</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Zone ID:</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="btnComputeDataFault">
-     <property name="geometry">
-      <rect>
-       <x>350</x>
-       <y>20</y>
-       <width>115</width>
-       <height>30</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Compute</string>
-     </property>
-    </widget>
-    <widget class="QTextEdit" name="textActivityFault">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>60</y>
-       <width>291</width>
-       <height>141</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Bitstream Vera Sans Mono</family>
-      </font>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="btnDisplayRecurrence">
-     <property name="geometry">
-      <rect>
-       <x>230</x>
-       <y>20</y>
-       <width>111</width>
-       <height>30</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Recurrence</string>
-     </property>
-    </widget>
-    <widget class="QTextEdit" name="textMomentRateFault">
-     <property name="geometry">
-      <rect>
-       <x>290</x>
-       <y>60</y>
-       <width>191</width>
-       <height>141</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Bitstream Vera Sans Mono</family>
-      </font>
-     </property>
-    </widget>
-   </widget>
-  </widget>
-  <widget class="QWidget" name="widgetMomentRateFaultBackgr" native="true">
-   <property name="geometry">
-    <rect>
-     <x>320</x>
-     <y>250</y>
-     <width>491</width>
-     <height>241</height>
-    </rect>
-   </property>
-   <widget class="QGroupBox" name="groupBoxMomentRateFaultBackgr">
     <property name="geometry">
      <rect>
       <x>0</x>
@@ -697,22 +599,145 @@
      </font>
     </property>
     <property name="title">
-     <string>Moment Rates from Fault Background Zone</string>
+     <string/>
     </property>
-    <widget class="QLabel" name="labelMomentRateFaultBackgr">
+    <widget class="QPushButton" name="btnDataFaultCompute">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>30</y>
-       <width>341</width>
-       <height>21</height>
+       <x>360</x>
+       <y>20</y>
+       <width>115</width>
+       <height>30</height>
       </rect>
      </property>
      <property name="text">
-      <string>Zone ID:</string>
+      <string>Compute</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="btnComputeDataFaultBackgr">
+    <widget class="QTextEdit" name="textActivityFault">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>60</y>
+       <width>281</width>
+       <height>161</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Bitstream Vera Sans Mono</family>
+      </font>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btnDataFaultDisplayRecurrence">
+     <property name="geometry">
+      <rect>
+       <x>240</x>
+       <y>20</y>
+       <width>111</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Recurrence</string>
+     </property>
+    </widget>
+    <widget class="QTextEdit" name="textMomentRateFault">
+     <property name="geometry">
+      <rect>
+       <x>290</x>
+       <y>60</y>
+       <width>191</width>
+       <height>161</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Bitstream Vera Sans Mono</family>
+      </font>
+     </property>
+    </widget>
+    <widget class="QLabel" name="labelMomentRateFaultTitle">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>0</y>
+       <width>111</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Fault Source Zone</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="labelMomentRateFaultID">
+     <property name="geometry">
+      <rect>
+       <x>130</x>
+       <y>0</y>
+       <width>351</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>50</weight>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>ID Title Name</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btnDataFaultDisplayMR">
+     <property name="geometry">
+      <rect>
+       <x>170</x>
+       <y>20</y>
+       <width>67</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>MR</string>
+     </property>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QWidget" name="widgetMomentRateFaultBackgr" native="true">
+   <property name="geometry">
+    <rect>
+     <x>320</x>
+     <y>230</y>
+     <width>491</width>
+     <height>251</height>
+    </rect>
+   </property>
+   <widget class="QGroupBox" name="groupBoxMomentRateFaultBackgr">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>491</width>
+      <height>241</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="title">
+     <string/>
+    </property>
+    <widget class="QPushButton" name="btnDataFaultBackgrCompute">
      <property name="geometry">
       <rect>
        <x>360</x>
@@ -728,10 +753,10 @@
     <widget class="QTextEdit" name="textActivityFaultBackgr">
      <property name="geometry">
       <rect>
-       <x>0</x>
+       <x>10</x>
        <y>60</y>
-       <width>291</width>
-       <height>171</height>
+       <width>281</width>
+       <height>181</height>
       </rect>
      </property>
      <property name="font">
@@ -746,13 +771,77 @@
        <x>290</x>
        <y>60</y>
        <width>191</width>
-       <height>171</height>
+       <height>181</height>
       </rect>
      </property>
      <property name="font">
       <font>
        <family>Bitstream Vera Sans Mono</family>
       </font>
+     </property>
+    </widget>
+    <widget class="QLabel" name="labelMomentRateFaultBackgrTitle">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>0</y>
+       <width>141</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Fault Background Zone</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="labelMomentRateFaultBackgrID">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>0</y>
+       <width>321</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>50</weight>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>ID Title Name</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btnDataFaultBackgrDisplayFMD">
+     <property name="geometry">
+      <rect>
+       <x>290</x>
+       <y>20</y>
+       <width>67</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>FMD</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btnDataFaultBackgrDisplayMR">
+     <property name="geometry">
+      <rect>
+       <x>220</x>
+       <y>20</y>
+       <width>67</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>MR</string>
      </property>
     </widget>
    </widget>
