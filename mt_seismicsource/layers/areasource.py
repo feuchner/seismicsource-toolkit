@@ -42,8 +42,9 @@ ZONE_FILES = ('share-v2.01-150411.shp', 'share-v2.0-301110.shp',
 
 TEMP_FILENAME = 'area-source-zones.shp'
 
-COPY_ATTRIBUTES = (features.AREA_SOURCE_ATTR_MMAX,
-    features.AREA_SOURCE_ATTR_MCDIST)
+MCDIST_ATTRIBUTES = (features.AREA_SOURCE_ATTR_MCDIST,)
+MMAX_ATTRIBUTES = (features.AREA_SOURCE_ATTR_ID, 
+    features.AREA_SOURCE_ATTR_MMAX)
 
 def loadAreaSourceLayer(cls):
     """Load area source layer from Shapefile. Add required feature attributes
@@ -69,6 +70,9 @@ def loadAreaSourceLayer(cls):
     # check if all features are okay
     _checkAreaSourceLayer(layer)
 
+    # assign Mmax from Meletti data set
+    assignMmaxfromMelettiDataset(layer, cls.data.mmax)
+    
     # assign attributes from background zones
     assignAttributesFromBackgroundZones(layer, cls.background_zone_layer)
 
@@ -78,17 +82,59 @@ def loadAreaSourceLayer(cls):
 
     return layer
 
+def assignMmaxfromMelettiDataset(layer, mmax_data):
+    """Assign Mmax from Meletti data set to area source zone layer."""
+    
+    provider = layer.dataProvider()
+    
+    # create missing attributes (if required)
+    for attribute_list in features.AREA_SOURCE_ATTRIBUTES_ALL:
+        utils.getAttributeIndex(provider, attribute_list, create=True)
+        
+    values = {}
+    attribute_map = utils.getAttributeIndex(provider, MMAX_ATTRIBUTES)
+    
+    id_idx, id_type = attribute_map[features.AREA_SOURCE_ATTR_ID['name']]
+    mmax_idx, mmax_type = \
+        attribute_map[features.AREA_SOURCE_ATTR_MMAX['name']]
+            
+    provider.select()
+    provider.rewind()
+    for zone_idx, zone in utils.walkValidPolygonFeatures(provider):
+
+        zone_id = int(zone[id_idx].toInt()[0])
+        
+        # mmax from Meletti data set
+        try:
+            mmax = mmax_data[zone_id]['mmax']
+        except Exception:
+            continue
+
+        try:
+            values[zone.id()] = {mmax_idx: QVariant(mmax)}
+        except Exception, e:
+            error_str = \
+            "error in attribute: zone_idx: %s, zone_id: %s, mmax: %s, %s" % (
+                zone_idx, zone.id(), mmax, e)
+            raise RuntimeError, error_str
+        
+    try:
+        provider.changeAttributeValues(values)
+    except Exception, e:
+        error_str = "cannot update attribute values, %s" % (e)
+        raise RuntimeError, error_str
+
 def assignAttributesFromBackgroundZones(layer, background_layer):
     """Copy attributes from background zone layer."""
     provider = layer.dataProvider()
     provider_back = background_layer.dataProvider()
 
-    # create missing attributes
+    # create missing attributes (if required)
     for attribute_list in features.AREA_SOURCE_ATTRIBUTES_ALL:
         utils.getAttributeIndex(provider, attribute_list, create=True)
 
     values = {}
-    attribute_map = utils.getAttributeIndex(provider, COPY_ATTRIBUTES)
+    attribute_map = utils.getAttributeIndex(provider, MCDIST_ATTRIBUTES)
 
     provider.select()
     provider.rewind()
@@ -103,7 +149,7 @@ def assignAttributesFromBackgroundZones(layer, background_layer):
         copy_attr = getAttributesFromBackgroundZones(centroid,
             provider_back)
 
-        for attr_idx, attr_dict in enumerate(COPY_ATTRIBUTES):
+        for attr_idx, attr_dict in enumerate(MCDIST_ATTRIBUTES):
             (curr_idx, curr_type) = attribute_map[attr_dict['name']]
 
             # if one of the attribute values is None, skip zone
@@ -133,7 +179,7 @@ def getAttributesFromBackgroundZones(point, provider_back):
     """Get mmax and mcdist from background zone at a given
     Shapely point."""
 
-    attribute_map = utils.getAttributeIndex(provider_back, COPY_ATTRIBUTES)
+    attribute_map = utils.getAttributeIndex(provider_back, MCDIST_ATTRIBUTES)
 
     # identify matching background zone
     background_zone = utils.findBackgroundZone(point, provider_back)
@@ -141,7 +187,7 @@ def getAttributesFromBackgroundZones(point, provider_back):
     if background_zone is not None:
         # leave values as QVariant
         background_attrs = [background_zone[attribute_map[x['name']][0]] \
-            for x in COPY_ATTRIBUTES]
+            for x in MCDIST_ATTRIBUTES]
     else:
         background_attrs = [None, None]
 

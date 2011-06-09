@@ -50,7 +50,7 @@ class Datasets(object):
         
     def loadMmaxData(self):
         
-        self.mmax = {}
+        mmax = {}
         
         mmax_path = os.path.join(layers.DATA_DIR, MMAX_FILE_DIR, MMAX_FILE)
         with open(mmax_path, 'r') as fh:
@@ -66,4 +66,6 @@ class Datasets(object):
                 zone_name = line[MMAX_NAME_IDX].strip()
                 zone_mmax = float(line[MMAX_MMAX_IDX].strip())
 
-                self.mmax[zone_id] = {'name': zone_name, 'mmax': zone_mmax}
+                mmax[zone_id] = {'name': zone_name, 'mmax': zone_mmax}
+                
+        return mmax

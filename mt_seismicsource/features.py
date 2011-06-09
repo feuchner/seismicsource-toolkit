@@ -30,6 +30,11 @@ from PyQt4.QtCore import *
 
 ## area source attributes
 
+# ID (integer number)
+AREA_SOURCE_ATTR_ID = {'name': 'Id', 'type': QVariant.Int}
+
+AREA_SOURCE_ATTRIBUTES_ID = (AREA_SOURCE_ATTR_ID, )
+    
 # max/min magnitudes
 AREA_SOURCE_ATTR_MMIN = {'name': 'mmin', 'type': QVariant.Double}
 AREA_SOURCE_ATTR_MMAX = {'name': 'mmax', 'type': QVariant.Double}
@@ -69,8 +74,11 @@ AREA_SOURCE_ATTRIBUTES_AB_RM = (AREA_SOURCE_ATTR_A_RM, AREA_SOURCE_ATTR_B_RM,
 
 # combination of all attribute groups
 # skip: AREA_SOURCE_ATTRIBUTES_AB_PRIOR, AREA_SOURCE_ATTRIBUTES_AB_ML
-AREA_SOURCE_ATTRIBUTES_ALL = (AREA_SOURCE_ATTRIBUTES_MINMAXMAG, 
-    AREA_SOURCE_ATTRIBUTES_MC, AREA_SOURCE_ATTRIBUTES_AB_RM)
+AREA_SOURCE_ATTRIBUTES_ALL = (
+    AREA_SOURCE_ATTRIBUTES_ID, 
+    AREA_SOURCE_ATTRIBUTES_MINMAXMAG, 
+    AREA_SOURCE_ATTRIBUTES_MC, 
+    AREA_SOURCE_ATTRIBUTES_AB_RM)
 
 ## fault source attributes 
 

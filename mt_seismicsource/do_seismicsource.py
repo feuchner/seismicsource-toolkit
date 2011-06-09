@@ -181,8 +181,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.fault_source_layer = faultsource.loadFaultSourceLayer(self)
         self.fault_background_layer = faultbackground.loadFaultBackgroundLayer(self)
         self.catalog_layer = eqcatalog.loadEQCatalogLayer(self)
-        self.tectonic_layer = tectonic.loadTectonicRegimeLayer(self, 
-            self.data.deformation_regimes_bird)
+        self.tectonic_layer = tectonic.loadTectonicRegimeLayer(self)
 
     def updateDataArea(self):
         """Update values in moment rate per area table, if other 

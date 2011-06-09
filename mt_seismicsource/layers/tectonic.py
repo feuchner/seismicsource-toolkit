@@ -32,12 +32,8 @@ from qgis.core import *
 #from mt_seismicsource import layers
 #from mt_seismicsource import utils
 
-def loadTectonicRegimeLayer(cls, regimes):
-    """Load layer of tectonic regime polygons. 
-    
-    Input:
-        regimes     {'C': Multipolygon, 'R': Multipolygon}
-    """
+def loadTectonicRegimeLayer(cls):
+    """Load layer of tectonic regime polygons."""
 
     # PostGIS SRID 4326 is allocated for WGS84
     crs = QgsCoordinateReferenceSystem(4326, 
@@ -52,7 +48,7 @@ def loadTectonicRegimeLayer(cls, regimes):
     # - type
     pr.addAttributes([QgsField("type", QVariant.String)])
 
-    for regime_id, multipoly in regimes.items():
+    for regime_id, multipoly in cls.data.deformation_regimes_bird.items():
         
         for polygon in multipoly.geoms:
 
