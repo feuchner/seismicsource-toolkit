@@ -79,7 +79,7 @@ B prior and weight
 ZONE_ATTRIBUTES = (features.AREA_SOURCE_ATTR_MMAX,
     features.AREA_SOURCE_ATTR_MCDIST)
 
-def assignActivityAtticIvy(layer, catalog):
+def assignActivityAtticIvy(layer, catalog, mmin=ATTICIVY_MMIN):
     """Compute activity with Roger Musson's AtticIvy code and assign a and
     b values to each area source zone.
 
@@ -111,7 +111,7 @@ def assignActivityAtticIvy(layer, catalog):
         mmax.append(float(zone[mmax_idx].toDouble()[0]))
         mcdist.append(str(zone[mcdist_idx].toString()))
 
-    activity = computeActivityAtticIvy(polygons, mmax, mcdist, catalog)
+    activity = computeActivityAtticIvy(polygons, mmax, mcdist, catalog, mmin)
 
     # assemble value dict
     values = {}

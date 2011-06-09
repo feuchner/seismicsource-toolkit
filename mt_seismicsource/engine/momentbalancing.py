@@ -120,6 +120,7 @@ def updateDataArea(cls, feature):
     parameters['activity_a'] = activity_a
     parameters['activity_b'] = activity_b 
     parameters['mmax'] = mmax 
+    parameters['activity_mmin'] = cls.spinboxAtticIvyMmin.value()
     
     parameters['mr_activity'] = momentrates_arr.tolist()
 
@@ -150,7 +151,8 @@ def updateTextActivityArea(cls, parameters):
         utils.centralValueOfList(parameters['activity_a']), 
         utils.centralValueOfList(parameters['activity_b']))
     text += "<b>(ML)</b> a: %s, b: %s<br/>" % (None, None)
-    text += "Mmax: %s, %s EQ in %s km^2 (area zone)" % (
+    text += "Mmin: %s, Mmax: %s, %s EQ in %s km^2 (area zone)" % (
+        parameters['activity_mmin'],
         parameters['mmax'],
         parameters['eq_count'],
         int(parameters['area_sqkm']))
@@ -253,8 +255,9 @@ def updateDataFault(cls, feature):
 
     ## moment rate from activity (RM)
 
+    mmin = cls.spinboxAtticIvyMmin.value()
     activity = atticivy.computeActivityAtticIvy((buffer_poly, ), (mmax, ), 
-        (mcdist, ), cls.catalog)
+        (mcdist, ), cls.catalog, mmin=mmin)
 
     # get RM (weight, a, b) values from feature attribute
     activity_str = activity[0][2]
@@ -272,6 +275,7 @@ def updateDataFault(cls, feature):
     parameters['activity_a'] = activity_a
     parameters['activity_b'] = activity_b 
     parameters['mmax'] = mmax 
+    parameters['activity_mmin'] = mmin
     
     parameters['mr_activity'] = momentrates_arr.tolist()
 
@@ -310,7 +314,8 @@ def updateTextActivityFault(cls, parameters):
         utils.centralValueOfList(parameters['activity_a']), 
         utils.centralValueOfList(parameters['activity_b']))
     text += "<b>(ML)</b> a: %s, b: %s<br/>" % (None, None)
-    text += "Mmax: %s, %s EQ in %s km^2 (buffer zone)" % (
+    text += "Mmin: %s, Mmax: %s, %s EQ in %s km^2 (buffer zone)" % (
+        parameters['activity_mmin'],
         parameters['mmax'],
         parameters['eq_count'],
         int(parameters['buffer_area_sqkm']))
@@ -409,8 +414,9 @@ def updateDataFaultBackgr(cls, feature):
 
     ## moment rate from activity (RM)
     
+    mmin = cls.spinboxAtticIvyMmin.value()
     activity = atticivy.computeActivityAtticIvy(
-        (poly, ), (mmax, ), (mcdist, ), cls.catalog)
+        (poly, ), (mmax, ), (mcdist, ), cls.catalog, mmin=mmin)
     
     # get RM (weight, a, b) values from feature attribute
     activity_str = activity[0][2]
@@ -443,10 +449,10 @@ def updateDataFaultBackgr(cls, feature):
     parameters['eq_count_above'] = cat_above_threshold.size()
 
     activity_below_threshold = atticivy.computeActivityAtticIvy(
-        (poly, ), (mmax, ), (mcdist, ), cat_below_threshold)
+        (poly, ), (mmax, ), (mcdist, ), cat_below_threshold, mmin=mmin)
 
     activity_above_threshold = atticivy.computeActivityAtticIvy(
-        (poly, ), (mmax, ), (mcdist, ), cat_above_threshold)
+        (poly, ), (mmax, ), (mcdist, ), cat_above_threshold, mmin=mmin)
         
     # get RM (weight, a, b) values from feature attribute
     activity_below_str = activity_below_threshold[0][2]
@@ -481,6 +487,7 @@ def updateDataFaultBackgr(cls, feature):
     parameters['mr_activity_above'] = momentrates_above_arr.tolist()
     
     parameters['mmax'] = mmax 
+    parameters['activity_mmin'] = mmin
     
     ## moment rate from slip rate
 
@@ -552,7 +559,8 @@ def updateTextActivityFaultBackgr(cls, parameters):
         parameters['eq_count_above'])
     text += "<b>(ML)</b> all EQ: a: %s, b: %s (%s EQ)<br/>" % (None, None, 
         parameters['eq_count'])
-    text += "Mmax: %s, %s faults with area of %s km^2 in background zone of %s km^2" % (
+    text += "Mmin: %s, Mmax: %s, %s faults with area of %s km^2 in background zone of %s km^2" % (
+        parameters['activity_mmin'],
         parameters['mmax'], 
         parameters['fault_count'], 
         int(parameters['area_fault_sqkm']),

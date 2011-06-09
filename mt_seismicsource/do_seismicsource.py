@@ -142,6 +142,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             faultbackground.FAULT_BACKGROUND_FILES)
         self.comboBoxEQCatalogInput.addItems(eqcatalog.CATALOG_FILES)
         
+        # Spinbox AtticIvy: init value
+        self.spinboxAtticIvyMmin.setValue(atticivy.ATTICIVY_MMIN)
+        
         self.progressBarLoadData.setValue(0)
 
     def loadDataLayers(self):
@@ -264,7 +267,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             return
 
         atticivy_result = atticivy.assignActivityAtticIvy(
-            self.area_source_layer, self.catalog)
+            self.area_source_layer, self.catalog, 
+            mmin=self.spinboxAtticIvyMmin.value())
 
     def computeRecurrence(self):
         """Compute recurrence with Bungum code."""

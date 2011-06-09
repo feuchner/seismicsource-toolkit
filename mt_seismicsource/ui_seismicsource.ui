@@ -43,11 +43,23 @@
        <x>6</x>
        <y>6</y>
        <width>299</width>
-       <height>291</height>
+       <height>301</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
      </property>
      <property name="title">
       <string>Input Data</string>
+     </property>
+     <property name="flat">
+      <bool>false</bool>
+     </property>
+     <property name="checkable">
+      <bool>false</bool>
      </property>
      <widget class="QComboBox" name="comboBoxAreaZoneInput">
       <property name="geometry">
@@ -58,25 +70,43 @@
         <height>31</height>
        </rect>
       </property>
+      <property name="font">
+       <font>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
      </widget>
      <widget class="QComboBox" name="comboBoxFaultZoneInput">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>110</y>
+        <y>100</y>
         <width>181</width>
         <height>31</height>
        </rect>
+      </property>
+      <property name="font">
+       <font>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
       </property>
      </widget>
      <widget class="QComboBox" name="comboBoxEQCatalogInput">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>250</y>
+        <y>220</y>
         <width>181</width>
         <height>31</height>
        </rect>
+      </property>
+      <property name="font">
+       <font>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
       </property>
      </widget>
      <widget class="QLabel" name="labelZoneInput">
@@ -87,6 +117,12 @@
         <width>281</width>
         <height>21</height>
        </rect>
+      </property>
+      <property name="font">
+       <font>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
       </property>
       <property name="text">
        <string>Area Source Zones</string>
@@ -101,6 +137,12 @@
         <height>21</height>
        </rect>
       </property>
+      <property name="font">
+       <font>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
       <property name="text">
        <string>Fault Source Zones</string>
       </property>
@@ -109,10 +151,16 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>220</y>
+        <y>200</y>
         <width>281</width>
         <height>21</height>
        </rect>
+      </property>
+      <property name="font">
+       <font>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
       </property>
       <property name="text">
        <string>EQ Catalog</string>
@@ -127,6 +175,12 @@
         <height>31</height>
        </rect>
       </property>
+      <property name="font">
+       <font>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
       <property name="text">
        <string>Browse ...</string>
       </property>
@@ -135,10 +189,16 @@
       <property name="geometry">
        <rect>
         <x>200</x>
-        <y>110</y>
+        <y>100</y>
         <width>90</width>
         <height>31</height>
        </rect>
+      </property>
+      <property name="font">
+       <font>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
       </property>
       <property name="text">
        <string>Browse ...</string>
@@ -148,10 +208,16 @@
       <property name="geometry">
        <rect>
         <x>200</x>
-        <y>250</y>
+        <y>220</y>
         <width>90</width>
         <height>31</height>
        </rect>
+      </property>
+      <property name="font">
+       <font>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
       </property>
       <property name="text">
        <string>Browse ...</string>
@@ -161,10 +227,16 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>150</y>
+        <y>140</y>
         <width>281</width>
         <height>21</height>
        </rect>
+      </property>
+      <property name="font">
+       <font>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
       </property>
       <property name="text">
        <string>Fault Background Zones</string>
@@ -174,51 +246,132 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>180</y>
+        <y>160</y>
         <width>181</width>
         <height>31</height>
        </rect>
+      </property>
+      <property name="font">
+       <font>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
       </property>
      </widget>
      <widget class="QPushButton" name="btnBrowseFaultBackgr">
       <property name="geometry">
        <rect>
         <x>200</x>
-        <y>180</y>
+        <y>160</y>
         <width>90</width>
         <height>31</height>
        </rect>
+      </property>
+      <property name="font">
+       <font>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
       </property>
       <property name="text">
        <string>Browse ...</string>
       </property>
      </widget>
+     <widget class="QProgressBar" name="progressBarLoadData">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>260</y>
+        <width>181</width>
+        <height>29</height>
+       </rect>
+      </property>
+      <property name="value">
+       <number>24</number>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btnLoadData">
+      <property name="geometry">
+       <rect>
+        <x>200</x>
+        <y>260</y>
+        <width>91</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>load data</string>
+      </property>
+     </widget>
     </widget>
-    <widget class="QProgressBar" name="progressBarLoadData">
+    <widget class="QGroupBox" name="groupBoxAtticIvy">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>330</y>
-       <width>181</width>
-       <height>29</height>
+       <y>310</y>
+       <width>291</width>
+       <height>71</height>
       </rect>
      </property>
-     <property name="value">
-      <number>24</number>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
      </property>
-    </widget>
-    <widget class="QPushButton" name="btnLoadData">
-     <property name="geometry">
-      <rect>
-       <x>200</x>
-       <y>330</y>
-       <width>98</width>
-       <height>30</height>
-      </rect>
+     <property name="title">
+      <string>AtticIvy</string>
      </property>
-     <property name="text">
-      <string>load data</string>
-     </property>
+     <widget class="QLabel" name="labelSpinboxAtticIvyMmin">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>41</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Mmin</string>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="spinboxAtticIvyMmin">
+      <property name="geometry">
+       <rect>
+        <x>50</x>
+        <y>30</y>
+        <width>51</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="decimals">
+       <number>1</number>
+      </property>
+      <property name="singleStep">
+       <double>0.100000000000000</double>
+      </property>
+      <property name="value">
+       <double>3.500000000000000</double>
+      </property>
+     </widget>
     </widget>
    </widget>
   </widget>
@@ -239,6 +392,12 @@
       <width>491</width>
       <height>221</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
     </property>
     <property name="title">
      <string>Moment Rates from Area Source</string>
@@ -332,6 +491,12 @@
       <height>211</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
     <property name="title">
      <string>Moment Rates from Fault Source</string>
     </property>
@@ -423,6 +588,12 @@
       <width>491</width>
       <height>231</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
     </property>
     <property name="title">
      <string>Moment Rates from Fault Background Zone</string>
