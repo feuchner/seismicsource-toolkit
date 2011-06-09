@@ -152,14 +152,18 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         # remove default layers
         # QgsMapLayerRegistry.instance().removeMapLayer(layer_id)
 
-        # "busy" progress bar
-        self.progressBarLoadData.setRange(0, 0)
+        self.progressBarLoadData.setRange(0, 100)
 
         # additional datasets
         self.data = data.Datasets()
         
+        self.progressBarLoadData.setValue(10)
+        
         # load map layers
         mapdata.loadBackgroundLayer(self)
+        
+        self.progressBarLoadData.setValue(20)
+        
         self.loadDefaultLayers()
 
         self.renderers = render.setRenderers(
@@ -172,7 +176,6 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             self.tectonic_layer)
         self.iface.mapCanvas().refresh()
 
-        self.progressBarLoadData.setRange(0, 100)
         self.progressBarLoadData.setValue(100)
 
         # TODO(fab): make zone layer the active layer
@@ -180,11 +183,28 @@ class SeismicSource(QDialog, Ui_SeismicSource):
     def loadDefaultLayers(self):
 
         self.background_zone_layer = background.loadBackgroundZoneLayer(self)
+        
+        self.progressBarLoadData.setValue(30)
+        
         self.area_source_layer = areasource.loadAreaSourceLayer(self)
+        
+        self.progressBarLoadData.setValue(40)
+        
         self.fault_source_layer = faultsource.loadFaultSourceLayer(self)
+        
+        self.progressBarLoadData.setValue(50)
+        
         self.fault_background_layer = faultbackground.loadFaultBackgroundLayer(self)
+        
+        self.progressBarLoadData.setValue(60)
+        
         self.catalog_layer = eqcatalog.loadEQCatalogLayer(self)
+        
+        self.progressBarLoadData.setValue(70)
+        
         self.tectonic_layer = tectonic.loadTectonicRegimeLayer(self)
+        
+        self.progressBarLoadData.setValue(80)
 
     def updateDataArea(self):
         """Update values in moment rate per area table, if other 
