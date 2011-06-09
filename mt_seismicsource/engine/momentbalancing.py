@@ -127,7 +127,8 @@ def updateDataArea(cls, feature):
 
     ## Maximum likelihood a/b values
     fmd.computeZoneFMD(cls, feature)
-    (parameters['ml_a'], parameters['ml_b']) = fmd.displayFMDValues(cls)
+    (parameters['ml_a'], parameters['ml_b'], parameters['ml_mc']) = \
+        fmd.displayFMDValues(cls)
     
     ## moment rate from geodesy (strain)
     momentrate_strain_barba = momentrate.momentrateFromStrainRateBarba(
@@ -155,9 +156,10 @@ def updateTextActivityArea(cls, parameters):
     text += "<b>(RM)</b> a: %s, b: %s<br/>" % (
         utils.centralValueOfList(parameters['activity_a']), 
         utils.centralValueOfList(parameters['activity_b']))
-    text += "<b>(ML)</b> a: %.3f, b: %.3f<br/>" % (
+    text += "<b>(ML)</b> a: %.3f, b: %.3f (Mc %.1f)<br/>" % (
         parameters['ml_a'], 
-        parameters['ml_b'])
+        parameters['ml_b'],
+        parameters['ml_mc'])
     text += "Mmin: %s, Mmax: %s, %s EQ in %s km^2 (area zone)" % (
         parameters['activity_mmin'],
         parameters['mmax'],
