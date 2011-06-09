@@ -299,6 +299,26 @@ def check_at_least_one_feature_selected(layer):
     else:
         return True
 
+def getFeatureAttributes(layer, feature, attributes):
+    """Get feature attributes."""
+    
+    attributes_out = []
+    
+    provider = layer.dataProvider()
+    attribute_map = getAttributeIndex(provider, attributes, create=False)
+    
+    for attr_dict in attributes:
+        (curr_idx, curr_type) = attribute_map[attr_dict['name']]
+        
+        if curr_idx == -1:
+            attribute_value = None
+        else:
+            attribute_value = feature[curr_idx]
+            
+        attributes_out.append(attribute_value)
+    
+    return attributes_out
+
 def centralValueOfList(list_in):
     """Return central value of a list."""
     central_idx = len(list_in) / 2

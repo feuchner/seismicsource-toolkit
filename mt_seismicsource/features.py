@@ -32,9 +32,12 @@ from PyQt4.QtCore import *
 
 # ID (integer number)
 AREA_SOURCE_ATTR_ID = {'name': 'Id', 'type': QVariant.Int}
+AREA_SOURCE_ATTR_TITLE = {'name': 'Title', 'type': QVariant.String}
+AREA_SOURCE_ATTR_NAME = {'name': 'Name', 'type': QVariant.Int}
 
-AREA_SOURCE_ATTRIBUTES_ID = (AREA_SOURCE_ATTR_ID, )
-    
+AREA_SOURCE_ATTRIBUTES_ID = (AREA_SOURCE_ATTR_ID, AREA_SOURCE_ATTR_TITLE,
+    AREA_SOURCE_ATTR_NAME)
+
 # max/min magnitudes
 AREA_SOURCE_ATTR_MMIN = {'name': 'mmin', 'type': QVariant.Double}
 AREA_SOURCE_ATTR_MMAX = {'name': 'mmax', 'type': QVariant.Double}

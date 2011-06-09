@@ -444,16 +444,16 @@
      <x>320</x>
      <y>10</y>
      <width>491</width>
-     <height>231</height>
+     <height>221</height>
     </rect>
    </property>
    <widget class="QGroupBox" name="groupBoxMomentRateArea">
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>0</y>
+      <y>10</y>
       <width>491</width>
-      <height>221</height>
+      <height>201</height>
      </rect>
     </property>
     <property name="font">
@@ -463,26 +463,32 @@
      </font>
     </property>
     <property name="title">
-     <string>Moment Rates from Area Source</string>
+     <string/>
     </property>
-    <widget class="QLabel" name="labelMomentRateArea">
+    <widget class="QLabel" name="labelMomentRateAreaTitle">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>30</y>
-       <width>341</width>
+       <y>0</y>
+       <width>111</width>
        <height>21</height>
       </rect>
      </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
      <property name="text">
-      <string>Zone ID:</string>
+      <string>Area Source Zone</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="btnComputeDataArea">
+    <widget class="QPushButton" name="btnDataAreaCompute">
      <property name="geometry">
       <rect>
        <x>360</x>
-       <y>20</y>
+       <y>30</y>
        <width>115</width>
        <height>30</height>
       </rect>
@@ -494,10 +500,10 @@
     <widget class="QTextEdit" name="textActivityArea">
      <property name="geometry">
       <rect>
-       <x>0</x>
+       <x>10</x>
        <y>60</y>
-       <width>291</width>
-       <height>161</height>
+       <width>281</width>
+       <height>141</height>
       </rect>
      </property>
      <property name="font">
@@ -506,11 +512,11 @@
       </font>
      </property>
     </widget>
-    <widget class="QPushButton" name="btnDisplayFMD">
+    <widget class="QPushButton" name="btnDataAreaDisplayFMD">
      <property name="geometry">
       <rect>
        <x>290</x>
-       <y>20</y>
+       <y>30</y>
        <width>67</width>
        <height>30</height>
       </rect>
@@ -525,13 +531,45 @@
        <x>290</x>
        <y>60</y>
        <width>191</width>
-       <height>161</height>
+       <height>141</height>
       </rect>
      </property>
      <property name="font">
       <font>
        <family>Bitstream Vera Sans Mono</family>
       </font>
+     </property>
+    </widget>
+    <widget class="QLabel" name="labelMomentRateAreaID">
+     <property name="geometry">
+      <rect>
+       <x>130</x>
+       <y>0</y>
+       <width>351</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>50</weight>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>ID Title Name</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btnDataAreaDisplayMR">
+     <property name="geometry">
+      <rect>
+       <x>220</x>
+       <y>30</y>
+       <width>67</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>MR</string>
      </property>
     </widget>
    </widget>

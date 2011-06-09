@@ -41,6 +41,7 @@ from algorithms import atticivy
 from algorithms import recurrence
 
 import data
+import features
 
 from engine import fmd
 from engine import momentbalancing
@@ -92,10 +93,18 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         QObject.connect(self.btnLoadData, SIGNAL("clicked()"), 
             self.loadDataLayers)
 
-        # Button: compute parameters for area zones
-        QObject.connect(self.btnComputeDataArea, SIGNAL("clicked()"), 
+        # Button: compute parameters for area source zones
+        QObject.connect(self.btnDataAreaCompute, SIGNAL("clicked()"), 
             self.updateDataArea)
 
+        # Button: FMD plot for area source zones
+        QObject.connect(self.btnDataAreaDisplayFMD, SIGNAL("clicked()"), 
+            self.updateDataAreaFMD)
+            
+        # Button: Moment rate plot for area source zones
+        QObject.connect(self.btnDataAreaDisplayMR, SIGNAL("clicked()"), 
+            self.updateDataAreaMomentRates)
+            
         # Button: compute parameters for fault zones
         QObject.connect(self.btnComputeDataFault, SIGNAL("clicked()"), 
             self.updateDataFault)
@@ -104,10 +113,6 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         QObject.connect(self.btnComputeDataFaultBackgr, 
             SIGNAL("clicked()"), self.updateDataFaultBackgr)
             
-        # Button: FMD plot
-        QObject.connect(self.btnDisplayFMD, SIGNAL("clicked()"), 
-            self.updateFMD)
-
         # Button: recurrence FMD plot
         QObject.connect(self.btnDisplayRecurrence, SIGNAL("clicked()"), 
             self.updateRecurrence)
@@ -215,10 +220,21 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         # TODO(fab): check if attribute values have been changed
         # so far, we always recompute
+        
+        # update zone ID display
+        selected_feature = self.area_source_layer.selectedFeatures()[0]
+        
+        (feature_id, feature_title, feature_name) = utils.getFeatureAttributes(
+            self.area_source_layer, selected_feature, 
+            features.AREA_SOURCE_ATTRIBUTES_ID)
+        
+        self.labelMomentRateAreaID.setText("ID: %s Title: %s Name: %s" % (
+            feature_id.toInt()[0], feature_title.toString(), 
+            feature_name.toString()))
+        
         self.computeAtticIvy()
         
         self.area_source_layer.commitChanges()
-
         selected_feature = self.area_source_layer.selectedFeatures()[0]
 
         parameters = momentbalancing.updateDataArea(self, selected_feature)
@@ -254,7 +270,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             selected_feature, m_threshold=self.spinboxFBZMThres.value())
         momentbalancing.updateDisplaysFaultBackgr(self, parameters)
 
-    def updateFMD(self):
+    def updateDataAreaFMD(self):
         """Update FMD display for one selected area zone from
         area zone layer."""
 
@@ -265,6 +281,12 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         fmd.computeZoneFMD(self, selected_feature)
         fmd.updateFMDDisplay(self)
 
+    def updateDataAreaMomentRates(self):
+        """Update moment rate display for one selected area zone from
+        area zone layer."""
+
+        pass
+        
     def updateRecurrence(self):
         """Update recurrence FMD display for one selected fault zone
         in fault zone layer."""

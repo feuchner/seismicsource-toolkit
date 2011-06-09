@@ -64,14 +64,14 @@ def updateFMDDisplay(cls):
         plotFMD(cls)
 
 def displayFMDValues(cls, normalize=FMD_COMPUTE_ANNUAL_RATE):
-    """Updates a and b value display."""
+    """Updates a, b, and Mc value display."""
 
     if normalize is True:
         aValue = cls.figures['fmd']['fmd'].GR['aValueNormalized']
     else:
         aValue = cls.figures['fmd']['fmd'].GR['aValue']
-        
-    return (aValue, cls.figures['fmd']['fmd'].GR['bValue'], 
+
+    return (aValue, cls.figures['fmd']['fmd'].GR['bValue'],
         cls.figures['fmd']['fmd'].GR['Mmin'])
 
 def plotFMD(cls, normalize=FMD_COMPUTE_ANNUAL_RATE):
