@@ -226,8 +226,10 @@ def updateDataFault(cls, feature):
     parameters['buffer_area_sqkm'] = utils.polygonAreaFromWGS84(buffer_poly) * 1.0e-6
 
     # get mmax and mcdist for buffer zone from background zone
-    (mmax_qv, mcdist_qv) = areasource.getAttributesFromBackgroundZones(
-        buffer_poly.centroid, provider_back)
+    (mcdist_qv, mmax_qv) = areasource.getAttributesFromBackgroundZones(
+        buffer_poly.centroid, provider_back, 
+        areasource.MCDIST_MMAX_ATTRIBUTES)
+        
     mmax = float(mmax_qv.toDouble()[0])
     mcdist = str(mcdist_qv.toString())
 
@@ -385,8 +387,9 @@ def updateDataFaultBackgr(cls, feature):
         utils.polygonAreaFromWGS84(poly) * 1.0e-6
 
     # get mmax and mcdist for buffer zone from background zone
-    (mmax_qv, mcdist_qv) = areasource.getAttributesFromBackgroundZones(
-        poly.centroid, provider_back)
+    (mcdist_qv, mmax_qv) = areasource.getAttributesFromBackgroundZones(
+        poly.centroid, provider_back, areasource.MCDIST_MMAX_ATTRIBUTES)
+        
     mmax = float(mmax_qv.toDouble()[0])
     mcdist = str(mcdist_qv.toString())
 

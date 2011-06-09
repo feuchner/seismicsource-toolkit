@@ -42,6 +42,9 @@ ZONE_FILES = ('share-v2.01-150411.shp', 'share-v2.0-301110.shp',
 
 TEMP_FILENAME = 'area-source-zones.shp'
 
+MCDIST_MMAX_ATTRIBUTES = (features.AREA_SOURCE_ATTR_MCDIST,
+    features.AREA_SOURCE_ATTR_MMAX)
+
 MCDIST_ATTRIBUTES = (features.AREA_SOURCE_ATTR_MCDIST,)
 MMAX_ATTRIBUTES = (features.AREA_SOURCE_ATTR_ID, 
     features.AREA_SOURCE_ATTR_MMAX)
@@ -74,7 +77,8 @@ def loadAreaSourceLayer(cls):
     assignMmaxfromMelettiDataset(layer, cls.data.mmax)
     
     # assign attributes from background zones
-    assignAttributesFromBackgroundZones(layer, cls.background_zone_layer)
+    assignAttributesFromBackgroundZones(layer, cls.background_zone_layer,
+        MCDIST_ATTRIBUTES)
 
     QgsMapLayerRegistry.instance().addMapLayer(layer)
     utils.writeLayerToShapefile(layer, os.path.join(layers.DATA_DIR, 
@@ -124,8 +128,9 @@ def assignMmaxfromMelettiDataset(layer, mmax_data):
         error_str = "cannot update attribute values, %s" % (e)
         raise RuntimeError, error_str
 
-def assignAttributesFromBackgroundZones(layer, background_layer):
+def assignAttributesFromBackgroundZones(layer, background_layer, attributes_in):
     """Copy attributes from background zone layer."""
+    
     provider = layer.dataProvider()
     provider_back = background_layer.dataProvider()
 
@@ -134,7 +139,7 @@ def assignAttributesFromBackgroundZones(layer, background_layer):
         utils.getAttributeIndex(provider, attribute_list, create=True)
 
     values = {}
-    attribute_map = utils.getAttributeIndex(provider, MCDIST_ATTRIBUTES)
+    attribute_map = utils.getAttributeIndex(provider, attributes_in)
 
     provider.select()
     provider.rewind()
@@ -147,9 +152,9 @@ def assignAttributesFromBackgroundZones(layer, background_layer):
         polygon, vertices = utils.polygonsQGS2Shapely((zone,))
         centroid = polygon[0].centroid
         copy_attr = getAttributesFromBackgroundZones(centroid,
-            provider_back)
+            provider_back, attributes_in)
 
-        for attr_idx, attr_dict in enumerate(MCDIST_ATTRIBUTES):
+        for attr_idx, attr_dict in enumerate(attributes_in):
             (curr_idx, curr_type) = attribute_map[attr_dict['name']]
 
             # if one of the attribute values is None, skip zone
@@ -175,11 +180,11 @@ def assignAttributesFromBackgroundZones(layer, background_layer):
         error_str = "cannot update attribute values, %s" % (e)
         raise RuntimeError, error_str
 
-def getAttributesFromBackgroundZones(point, provider_back):
-    """Get mmax and mcdist from background zone at a given
-    Shapely point."""
+def getAttributesFromBackgroundZones(point, provider_back, attributes):
+    """Get attribute list (from mmax and mcdist) from background zone 
+    at a given Shapely point."""
 
-    attribute_map = utils.getAttributeIndex(provider_back, MCDIST_ATTRIBUTES)
+    attribute_map = utils.getAttributeIndex(provider_back, attributes)
 
     # identify matching background zone
     background_zone = utils.findBackgroundZone(point, provider_back)
@@ -187,9 +192,9 @@ def getAttributesFromBackgroundZones(point, provider_back):
     if background_zone is not None:
         # leave values as QVariant
         background_attrs = [background_zone[attribute_map[x['name']][0]] \
-            for x in MCDIST_ATTRIBUTES]
+            for x in attributes]
     else:
-        background_attrs = [None, None]
+        background_attrs = [None] * len(attributes)
 
     return background_attrs
 
