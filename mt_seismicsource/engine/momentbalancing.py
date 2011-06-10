@@ -148,7 +148,6 @@ def updateDisplaysArea(cls, parameters):
     """Update UI with computed values for selected area zone."""
     updateTextActivityArea(cls, parameters)
     updateTextMomentRateArea(cls, parameters)
-    updatePlotMomentRateArea(cls, parameters)
 
 def updateTextActivityArea(cls, parameters):
     text = ''
@@ -184,17 +183,17 @@ def updatePlotMomentRateArea(cls, parameters):
     # new moment rate plot
     plot = plots.MomentRateComparisonPlotArea()
         
-    cls.feature_data_area_source['mr_fig'] = plot.plot(imgfile=None, 
-        data=parameters)
+    figure = plot.plot(imgfile=None, data=parameters)
 
-    canvas = plots.PlotCanvas(cls.feature_data_area_source['mr_fig'], 
-        title="Seismic Moment Rates")
+    canvas = plots.PlotCanvas(figure, title="Seismic Moment Rates")
     canvas.draw()
 
     # plot widget
     window.layoutPlot.addWidget(canvas)
     toolbar = plots.createToolbar(canvas, window)
     window.layoutPlot.addWidget(toolbar)
+    
+    return figure
 
 # ----------------------------------------------------------------------------
 
@@ -309,7 +308,6 @@ def updateDisplaysFault(cls, parameters):
     """Update UI with computed values for selected fault zone."""
     updateTextActivityFault(cls, parameters)
     updateTextMomentRateFault(cls, parameters)
-    updatePlotMomentRateFault(cls, parameters)
 
 def updateTextActivityFault(cls, parameters):
 
@@ -343,17 +341,17 @@ def updatePlotMomentRateFault(cls, parameters):
     # new moment rate plot
     plot = plots.MomentRateComparisonPlotFault()
         
-    cls.feature_data_fault_source['mr_fig'] = plot.plot(imgfile=None, 
-        data=parameters)
+    figure = plot.plot(imgfile=None, data=parameters)
 
-    canvas = plots.PlotCanvas(cls.feature_data_fault_source['mr_fig'], 
-        title="Seismic Moment Rates")
+    canvas = plots.PlotCanvas(figure, title="Seismic Moment Rates")
     canvas.draw()
 
     # plot widget
     window.layoutPlot.addWidget(canvas)
     toolbar = plots.createToolbar(canvas, window)
     window.layoutPlot.addWidget(toolbar)
+    
+    return figure
 
 # ----------------------------------------------------------------------------
 

@@ -236,8 +236,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.area_source_layer.commitChanges()
         selected_feature = self.area_source_layer.selectedFeatures()[0]
 
-        parameters = momentbalancing.updateDataArea(self, selected_feature)
-        momentbalancing.updateDisplaysArea(self, parameters)
+        self.feature_data_area_source['parameters'] = \
+            momentbalancing.updateDataArea(self, selected_feature)
+        momentbalancing.updateDisplaysArea(self, 
+            self.feature_data_area_source['parameters'])
 
     def updateDataFaultBackgr(self):
         """Update values in moment rate per fault background zone table."""
@@ -257,9 +259,11 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.labelMomentRateFaultBackgrID.setText("ID: %s Name: %s" % (
             int(feature_id.toDouble()[0]), feature_name.toString()))
 
-        parameters = momentbalancing.updateDataFaultBackgr(self, 
+        self.feature_data_fault_background['parameters'] = \
+            momentbalancing.updateDataFaultBackgr(self, 
             selected_feature, m_threshold=self.spinboxFBZMThres.value())
-        momentbalancing.updateDisplaysFaultBackgr(self, parameters)
+        momentbalancing.updateDisplaysFaultBackgr(self, 
+            self.feature_data_fault_background['parameters'])
         
     def updateDataFault(self):
         """Update values in moment rate per fault table."""
@@ -282,8 +286,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         selected_feature = self.fault_source_layer.selectedFeatures()[0]
 
-        parameters = momentbalancing.updateDataFault(self, selected_feature)
-        momentbalancing.updateDisplaysFault(self, parameters)
+        self.feature_data_fault_source['parameters'] = \
+            momentbalancing.updateDataFault(self, selected_feature)
+        momentbalancing.updateDisplaysFault(self, 
+            self.feature_data_fault_source['parameters'])
 
     def displayDataAreaFMD(self):
         """Update FMD display for one selected area zone from
@@ -297,7 +303,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         """Update moment rate display for one selected area zone from
         area zone layer."""
 
-        pass
+        if 'parameters' in self.feature_data_area_source:
+            self.feature_data_area_source['mr_fig'] = \
+                momentbalancing.updatePlotMomentRateArea(self,
+                    self.feature_data_area_source['parameters'])
         
     def displayDataFaultBackgrFMD(self):
         pass
@@ -318,7 +327,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             self, selected_feature)
 
     def displayDataFaultMomentRates(self):
-        pass
+        if 'parameters' in self.feature_data_fault_source:
+            self.feature_data_fault_source['mr_fig'] = \
+                momentbalancing.updatePlotMomentRateFault(self,
+                    self.feature_data_fault_source['parameters'])
     
     def computeAtticIvy(self):
         """Compute activity with AtticIvy code."""
