@@ -162,6 +162,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         # Spinbox AtticIvy: init value
         self.spinboxAtticIvyMmin.setValue(atticivy.ATTICIVY_MMIN)
         
+        # SpinboxFault Background Zones, threshold magnitude: init value
+        self.spinboxFBZMThres.setValue(
+            momentbalancing.FAULT_BACKGROUND_MAG_THRESHOLD)
+        
         self.progressBarLoadData.setValue(0)
 
     def loadDataLayers(self):
