@@ -262,6 +262,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.feature_data_fault_background['parameters'] = \
             momentbalancing.updateDataFaultBackgr(self, 
             selected_feature, m_threshold=self.spinboxFBZMThres.value())
+            
         momentbalancing.updateDisplaysFaultBackgr(self, 
             self.feature_data_fault_background['parameters'])
         
@@ -339,8 +340,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             self.area_source_layer):
             return
 
-        atticivy_result = atticivy.assignActivityAtticIvy(
-            self.area_source_layer, self.catalog, 
+        atticivy.assignActivityAtticIvy(self.area_source_layer, self.catalog, 
             mmin=self.spinboxAtticIvyMmin.value())
 
     def computeRecurrence(self):
@@ -350,8 +350,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             self.fault_source_layer):
             return
 
-        recurrence_result = recurrence.assignRecurrence(
-            self.fault_source_layer, self.area_source_layer, self.catalog)
+        recurrence.assignRecurrence(self.fault_source_layer, 
+            self.fault_background_layer, self.background_zone_layer, 
+            self.catalog, mmin=self.spinboxAtticIvyMmin.value())
 
     def browseAreaZoneFiles(self):
         """Show Open File dialog for Area Source Zone files."""

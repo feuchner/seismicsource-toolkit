@@ -182,7 +182,6 @@ def updatePlotMomentRateArea(cls, parameters):
 
     # new moment rate plot
     plot = plots.MomentRateComparisonPlotArea()
-        
     figure = plot.plot(imgfile=None, data=parameters)
 
     canvas = plots.PlotCanvas(figure, title="Seismic Moment Rates")
@@ -209,7 +208,7 @@ def updateDataFault(cls, feature):
     """
 
     provider = cls.fault_source_layer.dataProvider()
-    provider_area = cls.area_source_layer.dataProvider()
+    provider_fault_back = cls.fault_background_layer.dataProvider()
     provider_back = cls.background_zone_layer.dataProvider()
 
     parameters = {}
@@ -221,26 +220,39 @@ def updateDataFault(cls, feature):
     # get polygon area in square kilometres
     parameters['area_sqkm'] = utils.polygonAreaFromWGS84(poly) * 1.0e-6
 
-    # get buffer polygon with 30 km extension and its area in square km
-    buffer_deg = 360.0 * (recurrence.BUFFER_AROUND_FAULT_POLYGONS / \
-        utils.EARTH_CIRCUMFERENCE_EQUATORIAL_KM)
-    buffer_poly = poly.buffer(buffer_deg)
-    parameters['buffer_area_sqkm'] = utils.polygonAreaFromWGS84(buffer_poly) * 1.0e-6
+    # find fault background zone in which centroid of fault zone lies
+    fault_background_zone = utils.findBackgroundZone(poly.centroid, 
+        provider_fault_back)
+    fb_polylist, vertices = utils.polygonsQGS2Shapely(
+        (fault_background_zone,))
+    fault_background_poly = fb_polylist[0]
+    
+    # get polygon area in square kilometres
+    parameters['area_background_sqkm'] = utils.polygonAreaFromWGS84(
+        fault_background_poly) * 1.0e-6
+        
+    attribute_map_fbz = utils.getAttributeIndex(provider_fault_back, 
+        (features.FAULT_BACKGROUND_ATTR_ID,), create=False)
 
-    # get mmax and mcdist for buffer zone from background zone
+    # get fault background zone ID
+    id_name = features.FAULT_BACKGROUND_ATTR_ID['name']
+    parameters['fbz_id'] = int(
+        feature[attribute_map_fbz[id_name][0]].toDouble()[0])
+
+    # get mmax and mcdist for FBZ from background zone
     (mcdist_qv, mmax_qv) = areasource.getAttributesFromBackgroundZones(
-        buffer_poly.centroid, provider_back, 
+        fault_background_poly.centroid, provider_back, 
         areasource.MCDIST_MMAX_ATTRIBUTES)
         
     mmax = float(mmax_qv.toDouble()[0])
     mcdist = str(mcdist_qv.toString())
-
+    
     ## moment rate from EQs
 
-    # get quakes from catalog (cut with buffer polygon)
+    # get quakes from catalog (cut with fault background polygon)
     poly_cat = QPCatalog.QPCatalog()
     poly_cat.merge(cls.catalog)
-    poly_cat.cut(geometry=buffer_poly)
+    poly_cat.cut(geometry=fault_background_poly)
     
     parameters['eq_count'] = poly_cat.size()
 
@@ -255,45 +267,41 @@ def updateDataFault(cls, feature):
     # scale moment: per year and area (in km^2)
     # TODO(fab): compute real catalog time span
     parameters['mr_eq'] = moment.sum() / (
-        parameters['buffer_area_sqkm'] * eqcatalog.CATALOG_TIME_SPAN)
+        parameters['area_background_sqkm'] * eqcatalog.CATALOG_TIME_SPAN)
 
     ## moment rate from activity (RM)
 
-    mmin = cls.spinboxAtticIvyMmin.value()
-    activity = atticivy.computeActivityAtticIvy((buffer_poly, ), (mmax, ), 
-        (mcdist, ), cls.catalog, mmin=mmin)
+    attribute_map_fault = utils.getAttributeIndex(provider, 
+        features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE, create=False)
+    
+    a_value_name = features.FAULT_SOURCE_ATTR_A_RECURRENCE['name']
+    b_value_name = features.FAULT_SOURCE_ATTR_A_RECURRENCE['name']
+    
+    a_value = feature[attribute_map_fault[a_value_name][0]].toDouble()[0]
+    b_value = feature[attribute_map_fault[b_value_name][0]].toDouble()[0]
 
-    # get RM (weight, a, b) values from feature attribute
-    activity_str = activity[0][2]
-    activity_arr = activity_str.strip().split()
-
-    # ignore weights
-    activity_a = [float(x) for x in activity_arr[1::3]]
-    activity_b = [float(x) for x in activity_arr[2::3]]
-
+    QMessageBox.warning(None, "a/b",  "a: %s, b: %s" % (a_value, b_value))
+        
+    # get mmax from FBZ
+    
     # multiply computed value with area in square kilometres
     momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
-        activity_a, activity_b, mmax)) * parameters['buffer_area_sqkm'] / (
+        [a_value], [b_value], mmax)) * parameters['area_background_sqkm'] / (
             eqcatalog.CATALOG_TIME_SPAN)
 
-    parameters['activity_a'] = activity_a
-    parameters['activity_b'] = activity_b 
-    parameters['mmax'] = mmax 
-    parameters['activity_mmin'] = mmin
+    parameters['activity_recurr_a'] = [a_value]
+    parameters['activity_b'] = [b_value]
     
+    parameters['mmax'] = mmax
     parameters['mr_activity'] = momentrates_arr.tolist()
 
-    ## moment rate from slip rate
-    
-    attribute_map = utils.getAttributeIndex(provider, 
-        (features.FAULT_SOURCE_ATTR_SLIPRATE_MIN,
-         features.FAULT_SOURCE_ATTR_SLIPRATE_MAX), create=False)
-        
+    ## moment rate and activity parameter from slip rate
+
     sliprate_min_name = features.FAULT_SOURCE_ATTR_SLIPRATE_MIN['name']
     sliprate_max_name = features.FAULT_SOURCE_ATTR_SLIPRATE_MAX['name']
     
-    sliprate_min = feature[attribute_map[sliprate_min_name][0]].toDouble()[0]
-    sliprate_max = feature[attribute_map[sliprate_max_name][0]].toDouble()[0]
+    sliprate_min = feature[attribute_map_fault[sliprate_min_name][0]].toDouble()[0]
+    sliprate_max = feature[attribute_map_fault[sliprate_max_name][0]].toDouble()[0]
             
     # TODO(fab): correct scaling of moment rate from slip rate
     (moment_rate_min, moment_rate_max) = \
@@ -301,7 +309,7 @@ def updateDataFault(cls, feature):
             parameters['area_sqkm'] * 1.0e6)
 
     parameters['mr_slip'] = [moment_rate_min, moment_rate_max]
-
+    
     return parameters
 
 def updateDisplaysFault(cls, parameters):
@@ -313,15 +321,14 @@ def updateTextActivityFault(cls, parameters):
 
     text = ''
     text += "<b>Activity</b><br/>"
-    text += "<b>(RM)</b> a: %s, b: %s<br/>" % (
-        utils.centralValueOfList(parameters['activity_a']), 
+    text += "<b>(RM)</b> b: %s (background zone)<br/>" % (
         utils.centralValueOfList(parameters['activity_b']))
-    text += "<b>(ML)</b> a: %s, b: %s<br/>" % (None, None)
-    text += "Mmin: %s, Mmax: %s, %s EQ in %s km^2 (buffer zone)" % (
-        parameters['activity_mmin'],
+    text += "<b>(from slip)</b> a: %s<br/>" % (
+        utils.centralValueOfList(parameters['activity_recurr_a']))
+    text += "Mmax: %s, %s EQ in %s km^2 (background zone)" % (
         parameters['mmax'],
         parameters['eq_count'],
-        int(parameters['buffer_area_sqkm']))
+        int(parameters['area_background_sqkm']))
     cls.textActivityFault.setText(text)
 
 def updateTextMomentRateFault(cls, parameters):
@@ -382,7 +389,7 @@ def updateDataFaultBackgr(cls, feature,
     parameters['area_background_sqkm'] = \
         utils.polygonAreaFromWGS84(poly) * 1.0e-6
 
-    # get mmax and mcdist for buffer zone from background zone
+    # get mmax and mcdist for FBZ from background zone
     (mcdist_qv, mmax_qv) = areasource.getAttributesFromBackgroundZones(
         poly.centroid, provider_back, areasource.MCDIST_MMAX_ATTRIBUTES)
         

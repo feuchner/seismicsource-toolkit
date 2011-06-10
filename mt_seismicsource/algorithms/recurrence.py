@@ -40,7 +40,11 @@ from qgis.core import *
 
 from mt_seismicsource import features
 from mt_seismicsource import utils
+from mt_seismicsource.algorithms import atticivy
 from mt_seismicsource.algorithms import momentrate
+from mt_seismicsource.layers import areasource
+
+import QPCatalog
 
 # minimum magintude for recurrence computation
 MAGNITUDE_MIN = 5.0
@@ -59,20 +63,28 @@ ALPHA_BUNGUM = 1.0e-04
 # to do
 FAULT_ASPECT_RATIO = 2.0
 
-# buffer around fault polygons, in km
-BUFFER_AROUND_FAULT_POLYGONS = 30.0
-
-def assignRecurrence(layer_fault, layer_area=None, catalog=None):
+def assignRecurrence(layer_fault, layer_fault_background=None, 
+    layer_background=None, catalog=None, b_value=None, 
+    mmin=atticivy.ATTICIVY_MMIN):
     """Compute recurrence parameters according to Bungum paper. Add
-    total seismic moment rate and activity rate as attributes to fault polygon
-    layer.
+    activity rates, a/b values, and min/max seismic moment rate 
+    as attributes to fault polygon layer.
 
     Input:
-        layer_fault  QGis layer with fault zone features
-        layer_area   QGis layer with area zone features
-        catalog      earthquake catalog as QuakePy object
+        layer_fault              QGis layer with fault zone features
+        layer_fault_background   QGis layer with fault background zone features
+        layer_background         QGis layer with background zone features
+                                 (provides Mmax and Mc distribution)
+        catalog                  Earthquake catalog as QuakePy object
+        b_value                  b value to be used for computation
     """
 
+    if b_value is None and (layer_fault_background is None or \
+        layer_background is None or catalog is None):
+        error_msg = \
+            "If no b value is given, the other parameters must not be None"
+        raise RuntimeError, error_msg
+        
     # get attribute indexes
     provider_fault = layer_fault.dataProvider()
     fts = layer_fault.selectedFeatures()
@@ -80,7 +92,8 @@ def assignRecurrence(layer_fault, layer_area=None, catalog=None):
     attribute_map = utils.getAttributeIndex(provider_fault, 
         features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE_COMPUTE, create=True)
 
-    recurrence = computeRecurrence(layer_fault, layer_area, catalog)
+    recurrence = computeRecurrence(layer_fault, layer_fault_background, 
+        layer_background, catalog, b_value, mmin)
 
     # assemble value dict
     values = {}
@@ -92,7 +105,7 @@ def assignRecurrence(layer_fault, layer_area=None, catalog=None):
             features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE_COMPUTE):
             (curr_idx, curr_type) = attribute_map[attr_dict['name']]
             try:
-                attributes[curr_idx] = QVariant(recurrence[2][zone_idx][attr_idx])
+                attributes[curr_idx] = QVariant(recurrence[zone_idx][attr_idx])
             except Exception, e:
                 skipZone = True
                 break
@@ -109,17 +122,10 @@ def assignRecurrence(layer_fault, layer_area=None, catalog=None):
         error_str = "cannot update attribute values, %s" % (e)
         raise RuntimeError, error_str
 
-    return recurrence[0:2]
-
-def computeRecurrence(layer_fault, layer_area=None, catalog=None):
+def computeRecurrence(layer_fault, layer_fault_background=None, 
+    layer_background=None, catalog=None, b_value=None, 
+    mmin=atticivy.ATTICIVY_MMIN):
     """Compute recurrence parameters according to Bungum paper. 
-
-    Output:
-        (total seismic moment rate (summed over all fault zones),
-         [activity rate values per fault polygon (string),
-          extrapolated occurrence (M=0) per fault polygon (float)]
-        )
-    
 
     Parameters from Jochen's Matlab implementation:
 
@@ -149,8 +155,6 @@ def computeRecurrence(layer_fault, layer_area=None, catalog=None):
     """
 
     result_values = []
-    total_seismic_moment_rate_min = 0.0
-    total_seismic_moment_rate_max = 0.0
 
     provider_fault = layer_fault.dataProvider()
     fts = layer_fault.selectedFeatures()
@@ -175,11 +179,9 @@ def computeRecurrence(layer_fault, layer_area=None, catalog=None):
         # get maximum of annual slip rate
         slipratema = zone[attribute_map['SLIPRATEMA'][0]].toDouble()[0]
 
-        # TODO(fab): 
-        # find corresponding large background zone (from RM zonation)
-        # get b-value (RM method) from background zone (either already stored
-        # in layer, or compute on-the-fly)
-        b_value = 1.0
+        if b_value is None:
+            b_value = computeBValueFromBackground(zone,
+                layer_fault_background, layer_background, catalog, mmin)
 
         # TODO(fab): 
         # get properties of fault polygon (area, length, width)
@@ -202,6 +204,10 @@ def computeRecurrence(layer_fault, layer_area=None, catalog=None):
         cumulative_number_max = cumulative_occurrence_model_2(mag_arr, maxmag, 
             slipratema, b_value, area)
 
+        # use a value computed with max of slip rate
+        a_value = getAValueFromOccurrence(cumulative_number_max[0], b_value,
+            MAGNITUDE_MIN)
+        
         # compute contribution to total seismic moment
         # TODO(fab): double-check scaling with Laurentiu!
         # shear modulus: Pa = N / m^2 = kg / (m * s^2) = kg / (10^-3 km * s^2)
@@ -216,9 +222,6 @@ def computeRecurrence(layer_fault, layer_area=None, catalog=None):
         (seismic_moment_rate_min, seismic_moment_rate_max) = \
             momentrate.momentrateFromSlipRate(slipratemi, slipratema, area)
 
-        total_seismic_moment_rate_min += seismic_moment_rate_min
-        total_seismic_moment_rate_max += seismic_moment_rate_max
-
         # serialize activity rate FMD
         for value_pair_idx in xrange(mag_arr.shape[0]):
             zone_data_string_min = "%s %.1f %.2e" % (zone_data_string_min, 
@@ -228,12 +231,15 @@ def computeRecurrence(layer_fault, layer_area=None, catalog=None):
                 mag_arr[value_pair_idx], 
                 cumulative_number_max[value_pair_idx])
 
-        result_values.append([zone_data_string_min.lstrip(), 
-            zone_data_string_max.lstrip(), seismic_moment_rate_min,
-            seismic_moment_rate_max])
+        result_values.append(
+            [a_value,
+             b_value,
+             zone_data_string_min.lstrip(), 
+             zone_data_string_max.lstrip(), 
+             seismic_moment_rate_min,
+             seismic_moment_rate_max])
 
-    return (total_seismic_moment_rate_min, total_seismic_moment_rate_max, 
-        result_values)
+    return result_values
 
 def cumulative_occurrence_model_2(mag_arr, maxmag, sliprate, b_value, 
     area_metres):
@@ -288,3 +294,43 @@ def cumulative_occurrence_model_2(mag_arr, maxmag, sliprate, b_value,
     cumulative_number = f1 * f2 * f3 * f4
 
     return cumulative_number
+
+def getAValueFromOccurrence(lg_occurrence, b_value, mmin=MAGNITUDE_MIN):
+    return lg_occurrence + b_value * mmin
+    
+def computeBValueFromBackground(zone, layer_fault_background, layer_background,
+    catalog, mmin=atticivy.ATTICIVY_MMIN):
+    """
+    Input:
+        zone        fault source zone
+    """
+    
+    provider_fault_back = layer_fault_background.dataProvider()
+    provider_background = layer_background.dataProvider()
+    
+    # get Shapely polygon from feature geometry
+    fault_polylist, vertices = utils.polygonsQGS2Shapely((zone,))
+    fault_poly = fault_polylist[0]
+    
+    # find fault background zone in which centroid of fault zone lies
+    provider_fault_back.rewind()
+    fault_background_zone = utils.findBackgroundZone(fault_poly.centroid, 
+        provider_fault_back)
+        
+    fbz_polylist, vertices = utils.polygonsQGS2Shapely((fault_background_zone,))
+    fault_background_poly = fbz_polylist[0]
+    
+    # get mmax and mcdist for fault background zone from large background zone
+    (mcdist_qv, mmax_qv) = areasource.getAttributesFromBackgroundZones(
+        fault_background_poly.centroid, provider_background, 
+        areasource.MCDIST_MMAX_ATTRIBUTES)
+        
+    mmax = float(mmax_qv.toDouble()[0])
+    mcdist = str(mcdist_qv.toString())
+
+    activity = atticivy.computeActivityAtticIvy((fault_background_poly, ), 
+        (mmax, ), (mcdist, ), catalog, mmin)
+
+    return activity[0][1]
+        
+    

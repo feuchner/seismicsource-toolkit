@@ -139,7 +139,6 @@ def assignActivityAtticIvy(layer, catalog, mmin=ATTICIVY_MMIN):
         raise RuntimeError, error_str
 
     layer.commitChanges()
-    return None
 
 def computeActivityAtticIvy(polygons, mmax, mcdist, catalog, 
     mmin=ATTICIVY_MMIN):

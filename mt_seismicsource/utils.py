@@ -143,14 +143,20 @@ def findBackgroundZone(point, provider_back):
     bg_zone = None
 
     # TODO(fab): this can probably be made more efficient
+    
     # loop over background zones
     provider_back.select()
     provider_back.rewind()
-    for bgz in provider_back:
+    for bgz_idx, bgz in walkValidPolygonFeatures(provider_back):
 
         # convert background zone polygon to Shapely
         bg_poly, vertices = polygonsQGS2Shapely((bgz,))
 
+        if len(bg_poly) == 0:
+            QMessageBox.warning(None, "Broken zone", 
+                "Cannot convert zone %s to Shapely" % bgz.id())
+            continue
+    
         if point.within(bg_poly[0]):
             bg_zone = bgz
             break
@@ -335,10 +341,10 @@ def warning_box_broken_area_features(broken_features):
 
 def warning_box_no_feature_selected():
     QMessageBox.warning(None, "No feature selected", 
-    "Please select a feature")
+        "Please select a feature")
 
 def warning_box_more_than_one_feature_selected():
     QMessageBox.warning(None, "Too many features selected", 
-    "Please select one and only one feature")
+        "Please select one and only one feature")
 
 
