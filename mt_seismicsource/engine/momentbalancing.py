@@ -126,9 +126,9 @@ def updateDataArea(cls, feature):
     parameters['mr_activity'] = momentrates_arr.tolist()
 
     ## Maximum likelihood a/b values
-    fmd.computeZoneFMD(cls, feature)
+    cls.feature_data_area_source['fmd'] = fmd.computeZoneFMD(cls, feature)
     (parameters['ml_a'], parameters['ml_b'], parameters['ml_mc']) = \
-        fmd.displayFMDValues(cls)
+        fmd.getFMDValues(cls.feature_data_area_source['fmd'])
     
     ## moment rate from geodesy (strain)
     momentrate_strain_barba = momentrate.momentrateFromStrainRateBarba(
@@ -182,25 +182,19 @@ def updatePlotMomentRateArea(cls, parameters):
     window = plots.createPlotWindow(cls)
 
     # new moment rate plot
-    cls.fig_moment_rate_comparison_area = \
-        plots.MomentRateComparisonPlotArea()
-    cls.fig_moment_rate_comparison_area = \
-        cls.fig_moment_rate_comparison_area.plot(imgfile=None, 
-            data=parameters)
+    plot = plots.MomentRateComparisonPlotArea()
+        
+    cls.feature_data_area_source['mr_fig'] = plot.plot(imgfile=None, 
+        data=parameters)
 
-    cls.canvas_moment_rate_comparison_area = plots.PlotCanvas(
-        cls.fig_moment_rate_comparison_area, 
+    canvas = plots.PlotCanvas(cls.feature_data_area_source['mr_fig'], 
         title="Seismic Moment Rates")
-    cls.canvas_moment_rate_comparison_area.draw()
+    canvas.draw()
 
     # plot widget
-    window.layoutPlot.addWidget(
-        cls.canvas_moment_rate_comparison_area)
-    cls.toolbar_moment_rate_comparison_area = plots.createToolbar(
-        cls.canvas_moment_rate_comparison_area, 
-        window)
-    window.layoutPlot.addWidget(
-        cls.toolbar_moment_rate_comparison_area)
+    window.layoutPlot.addWidget(canvas)
+    toolbar = plots.createToolbar(canvas, window)
+    window.layoutPlot.addWidget(toolbar)
 
 # ----------------------------------------------------------------------------
 
@@ -347,25 +341,19 @@ def updatePlotMomentRateFault(cls, parameters):
     window = plots.createPlotWindow(cls)
 
     # new moment rate plot
-    cls.fig_moment_rate_comparison_fault = \
-        plots.MomentRateComparisonPlotFault()
-    cls.fig_moment_rate_comparison_fault = \
-        cls.fig_moment_rate_comparison_fault.plot(imgfile=None, 
-            data=parameters)
+    plot = plots.MomentRateComparisonPlotFault()
+        
+    cls.feature_data_fault_source['mr_fig'] = plot.plot(imgfile=None, 
+        data=parameters)
 
-    cls.canvas_moment_rate_comparison_fault = plots.PlotCanvas(
-        cls.fig_moment_rate_comparison_fault, 
+    canvas = plots.PlotCanvas(cls.feature_data_fault_source['mr_fig'], 
         title="Seismic Moment Rates")
-    cls.canvas_moment_rate_comparison_fault.draw()
+    canvas.draw()
 
     # plot widget
-    window.layoutPlot.addWidget(
-        cls.canvas_moment_rate_comparison_fault)
-    cls.toolbar_moment_rate_comparison_fault = plots.createToolbar(
-        cls.canvas_moment_rate_comparison_fault, 
-        window)
-    window.layoutPlot.addWidget(
-        cls.toolbar_moment_rate_comparison_fault)
+    window.layoutPlot.addWidget(canvas)
+    toolbar = plots.createToolbar(canvas, window)
+    window.layoutPlot.addWidget(toolbar)
 
 # ----------------------------------------------------------------------------
 
@@ -550,7 +538,6 @@ def updateDisplaysFaultBackgr(cls, parameters):
     """Update UI with computed values for selected fault background zone."""
     updateTextActivityFaultBackgr(cls, parameters)
     updateTextMomentRateFaultBackgr(cls, parameters)
-    #updatePlotMomentRateFaultBackgr(cls, parameters)
 
 def updateTextActivityFaultBackgr(cls, parameters):
     text = ''
@@ -592,28 +579,3 @@ def updateTextMomentRateFaultBackgr(cls, parameters):
     text += "[Strain (Bird)] %s<br/>" % None
     text += "[Strain (Barba)] %s" % None
     cls.textMomentRateFaultBackgr.setText(text)
-
-def updatePlotMomentRateFaultBackgr(cls, parameters):
-
-    window = plots.createPlotWindow(cls)
-
-    # new moment rate plot
-    cls.fig_moment_rate_comparison_fault = \
-        plots.MomentRateComparisonPlotFault()
-    cls.fig_moment_rate_comparison_fault = \
-        cls.fig_moment_rate_comparison_fault.plot(imgfile=None, 
-            data=parameters)
-
-    cls.canvas_moment_rate_comparison_fault = plots.PlotCanvas(
-        cls.fig_moment_rate_comparison_fault, 
-        title="Seismic Moment Rates")
-    cls.canvas_moment_rate_comparison_fault.draw()
-
-    # plot widget
-    window.layoutPlot.addWidget(
-        cls.canvas_moment_rate_comparison_fault)
-    cls.toolbar_moment_rate_comparison_fault = plots.createToolbar(
-        cls.canvas_moment_rate_comparison_fault, 
-        window)
-    window.layoutPlot.addWidget(
-        cls.toolbar_moment_rate_comparison_fault)

@@ -68,9 +68,6 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.iface = iface
         self.setupUi(self)
 
-        self.figures = {}
-        self.plot_windows = []
-
         ## Input data controls
         
         # Button: browse Area Source Zone files
@@ -129,20 +126,17 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         QObject.connect(self.btnDataFaultDisplayMR, SIGNAL("clicked()"), 
             self.displayDataFaultMomentRates)
 
-        # FMD plot window
-        self.fmd_canvas = None
-        self.fmd_toolbar = None
+        # list of all created plot window objects
+        self.plot_windows = []
+        
+        # saved data from selected zones
+        self.feature_data_area_source = {}
+        self.feature_data_fault_source = {}
+        self.feature_data_fault_background = {}
 
-        # Moment rate per area zone comparison plot window
-        self.fig_moment_rate_comparison_area = None
-        self.canvas_moment_rate_comparison_area = None
-        self.toolbar_moment_rate_comparison_area = None
-
-        # Moment rate per fault zone comparison plot window
-        self.fig_moment_rate_comparison_fault = None
-        self.canvas_moment_rate_comparison_fault = None
-        self.toolbar_moment_rate_comparison_fault = None
-
+        # Non-layer datasets
+        self.data = None
+        
         # layers
         self.background_layer = None
         self.background_zone_layer = None
@@ -162,7 +156,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         # Spinbox AtticIvy: init value
         self.spinboxAtticIvyMmin.setValue(atticivy.ATTICIVY_MMIN)
         
-        # SpinboxFault Background Zones, threshold magnitude: init value
+        # Spinbox Fault Background Zones, threshold magnitude: init value
         self.spinboxFBZMThres.setValue(
             momentbalancing.FAULT_BACKGROUND_MAG_THRESHOLD)
         
@@ -295,12 +289,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         """Update FMD display for one selected area zone from
         area zone layer."""
 
-        if not utils.check_only_one_feature_selected(self.area_source_layer):
-            return
-
-        selected_feature = self.area_source_layer.selectedFeatures()[0]
-        fmd.computeZoneFMD(self, selected_feature)
-        fmd.updateFMDDisplay(self)
+        if 'fmd' in self.feature_data_area_source:
+            self.feature_data_area_source['fmd_fig'] = fmd.plotZoneFMD(self, 
+                self.feature_data_area_source['fmd'])
 
     def displayDataAreaMomentRates(self):
         """Update moment rate display for one selected area zone from
@@ -322,7 +313,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             return
 
         selected_feature = self.fault_source_layer.selectedFeatures()[0]
-        fmd.updateRecurrenceDisplay(self, selected_feature)
+        
+        self.feature_data_fault_source['recurrence_fig'] = fmd.plotRecurrence(
+            self, selected_feature)
 
     def displayDataFaultMomentRates(self):
         pass
