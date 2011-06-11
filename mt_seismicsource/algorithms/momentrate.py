@@ -50,6 +50,8 @@ SHEAR_MODULUS = 3.0e10
 
 MMIN_MOMENTRATE_FROM_ACTIVITY = 5.0
 
+BUFFER_AROUND_FAULT_ZONE_KM = 30.0
+
 def magnitude2moment(magnitudes):
     """Compute seismic moment from magnitudes (Mw), acoording to Kanamori
     equation.

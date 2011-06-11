@@ -89,11 +89,13 @@ def assignRecurrence(layer_fault, layer_fault_background=None,
     provider_fault = layer_fault.dataProvider()
     fts = layer_fault.selectedFeatures()
 
-    attribute_map = utils.getAttributeIndex(provider_fault, 
-        features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE_COMPUTE, create=True)
-
     recurrence = computeRecurrence(layer_fault, layer_fault_background, 
         layer_background, catalog, b_value, mmin)
+        
+    attribute_map_fault = utils.getAttributeIndex(provider_fault, 
+        features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE_COMPUTE, create=True)
+        
+    # QMessageBox.information(None, "Attribute map fault", "%s" % attribute_map_fault)
 
     # assemble value dict
     values = {}
@@ -103,7 +105,7 @@ def assignRecurrence(layer_fault, layer_fault_background=None,
         skipZone = False
         for attr_idx, attr_dict in enumerate(
             features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE_COMPUTE):
-            (curr_idx, curr_type) = attribute_map[attr_dict['name']]
+            (curr_idx, curr_type) = attribute_map_fault[attr_dict['name']]
             try:
                 attributes[curr_idx] = QVariant(recurrence[zone_idx][attr_idx])
             except Exception, e:
@@ -121,6 +123,8 @@ def assignRecurrence(layer_fault, layer_fault_background=None,
     except Exception, e:
         error_str = "cannot update attribute values, %s" % (e)
         raise RuntimeError, error_str
+    
+    layer_fault.commitChanges()
 
 def computeRecurrence(layer_fault, layer_fault_background=None, 
     layer_background=None, catalog=None, b_value=None, 
@@ -205,7 +209,7 @@ def computeRecurrence(layer_fault, layer_fault_background=None,
             slipratema, b_value, area)
 
         # use a value computed with max of slip rate
-        a_value = getAValueFromOccurrence(
+        a_value = computeAValueFromOccurrence(
             numpy.log10(cumulative_number_max[0]), b_value, MAGNITUDE_MIN)
         
         # compute contribution to total seismic moment
@@ -231,9 +235,10 @@ def computeRecurrence(layer_fault, layer_fault_background=None,
                 mag_arr[value_pair_idx], 
                 cumulative_number_max[value_pair_idx])
 
-        attribute_list = [a_value, b_value, zone_data_string_min.lstrip(), 
-            zone_data_string_max.lstrip(), seismic_moment_rate_min,
-            seismic_moment_rate_max]
+        attribute_list = [float(a_value), float(b_value), 
+            zone_data_string_min.lstrip(), 
+            zone_data_string_max.lstrip(), float(seismic_moment_rate_min),
+            float(seismic_moment_rate_max)]
             
         QMessageBox.information(None, "Recurrence attributes",  
             "[a, b, occurrence rates]:\n%s" % attribute_list)
@@ -295,7 +300,7 @@ def cumulative_occurrence_model_2(mag_arr, maxmag, sliprate, b_value,
 
     return cumulative_number
 
-def getAValueFromOccurrence(lg_occurrence, b_value, mmin=MAGNITUDE_MIN):
+def computeAValueFromOccurrence(lg_occurrence, b_value, mmin=MAGNITUDE_MIN):
     return lg_occurrence + b_value * mmin
     
 def computeBValueFromBackground(zone, layer_fault_background, layer_background,
@@ -317,7 +322,8 @@ def computeBValueFromBackground(zone, layer_fault_background, layer_background,
     fault_background_zone = utils.findBackgroundZone(fault_poly.centroid, 
         provider_fault_back)
         
-    fbz_polylist, vertices = utils.polygonsQGS2Shapely((fault_background_zone,))
+    fbz_polylist, vertices = utils.polygonsQGS2Shapely(
+        (fault_background_zone,))
     fault_background_poly = fbz_polylist[0]
     
     # get mmax and mcdist for fault background zone from large background zone
@@ -328,8 +334,8 @@ def computeBValueFromBackground(zone, layer_fault_background, layer_background,
     mmax = float(mmax_qv.toDouble()[0])
     mcdist = str(mcdist_qv.toString())
 
-    activity = atticivy.computeActivityAtticIvy((fault_background_poly, ), 
-        (mmax, ), (mcdist, ), catalog, mmin)
+    activity = atticivy.computeActivityAtticIvy((fault_background_poly,), 
+        (mmax,), (mcdist,), catalog, mmin)
 
     QMessageBox.information(None, "Activity of FBZ",  
             "[a, b, (weight, a, b)]:\n%s" % activity)

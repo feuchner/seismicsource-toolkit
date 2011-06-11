@@ -257,8 +257,8 @@ def writeZones2AtticIvy(path, polygons, mmax, mcdist, mmin=ATTICIVY_MMIN):
 def activityFromAtticIvy(path):
     """Read output from AtticIvy program. Returns list of 
     [a, b, activity_string] value triples.
-    a: activity
-    b: b-value
+    a: a value
+    b: b value
     activity_string: string of all [weight, a, b] triples per zone, in a row,
                      separated by white space
     """
@@ -293,12 +293,12 @@ def activityFromAtticIvy(path):
             elif dataLineMode is True:
                 # don't use first value (weight) value from result file
                 # second value: a (activity), third value: b
-                (weight, activity, b_value) = line.strip().split()
-                zone_data.append([float(activity), float(b_value)])
+                (weight, a_value, b_value) = line.strip().split()
+                zone_data.append([float(a_value), float(b_value)])
 
                 # append new line to zone data string
                 zone_data_string = "%s %s %s %s" % (
-                    zone_data_string, weight, activity, b_value)
+                    zone_data_string, weight, a_value, b_value)
                 data_line_idx += 1
 
                 # all lines read

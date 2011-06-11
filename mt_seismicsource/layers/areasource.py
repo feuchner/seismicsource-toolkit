@@ -127,8 +127,11 @@ def assignMmaxfromMelettiDataset(layer, mmax_data):
     except Exception, e:
         error_str = "cannot update attribute values, %s" % (e)
         raise RuntimeError, error_str
+    
+    layer.commitChanges()
 
-def assignAttributesFromBackgroundZones(layer, background_layer, attributes_in):
+def assignAttributesFromBackgroundZones(layer, background_layer, 
+    attributes_in):
     """Copy attributes from background zone layer."""
     
     provider = layer.dataProvider()
@@ -179,6 +182,8 @@ def assignAttributesFromBackgroundZones(layer, background_layer, attributes_in):
     except Exception, e:
         error_str = "cannot update attribute values, %s" % (e)
         raise RuntimeError, error_str
+    
+    layer.commitChanges()
 
 def getAttributesFromBackgroundZones(point, provider_back, attributes):
     """Get attribute list (from mmax and mcdist) from background zone 
