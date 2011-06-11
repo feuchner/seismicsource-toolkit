@@ -70,10 +70,9 @@ def loadEQCatalogLayer(cls):
     # cut catalog to years > 1900 (because of datetime)
     # TODO(fab): change the datetime lib to mx.DateTime
     # cls.catalog.cut(mintime='1900-01-01', mintime_exclude=True)
-
-    # cut with selected polygons
-    cls.catalog_selected = QPCatalog.QPCatalog()
-    cls.catalog_selected.merge(cls.catalog)
+    
+    # cut catalog below M=0 and remove potential NaN magnitudes
+    cls.catalog.cut(minmag=0.0, removeNaN=True)
 
     # PostGIS SRID 4326 is allocated for WGS84
     crs = QgsCoordinateReferenceSystem(4326, 
@@ -89,7 +88,7 @@ def loadEQCatalogLayer(cls):
                       QgsField("depth",  QVariant.Double)])
 
     # add EQs as features
-    for curr_event in cls.catalog_selected.eventParameters.event:
+    for curr_event in cls.catalog.eventParameters.event:
         curr_ori = curr_event.getPreferredOrigin()
 
         # skip events without magnitude

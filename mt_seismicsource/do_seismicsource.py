@@ -135,6 +135,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.feature_data_fault_background = {}
 
         # Non-layer datasets
+        self.catalog = None
         self.data = None
         
         # layers

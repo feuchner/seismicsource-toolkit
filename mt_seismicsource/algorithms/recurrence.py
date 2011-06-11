@@ -205,8 +205,8 @@ def computeRecurrence(layer_fault, layer_fault_background=None,
             slipratema, b_value, area)
 
         # use a value computed with max of slip rate
-        a_value = getAValueFromOccurrence(cumulative_number_max[0], b_value,
-            MAGNITUDE_MIN)
+        a_value = getAValueFromOccurrence(
+            numpy.log10(cumulative_number_max[0]), b_value, MAGNITUDE_MIN)
         
         # compute contribution to total seismic moment
         # TODO(fab): double-check scaling with Laurentiu!
@@ -231,13 +231,13 @@ def computeRecurrence(layer_fault, layer_fault_background=None,
                 mag_arr[value_pair_idx], 
                 cumulative_number_max[value_pair_idx])
 
-        result_values.append(
-            [a_value,
-             b_value,
-             zone_data_string_min.lstrip(), 
-             zone_data_string_max.lstrip(), 
-             seismic_moment_rate_min,
-             seismic_moment_rate_max])
+        attribute_list = [a_value, b_value, zone_data_string_min.lstrip(), 
+            zone_data_string_max.lstrip(), seismic_moment_rate_min,
+            seismic_moment_rate_max]
+            
+        QMessageBox.information(None, "Recurrence attributes",  
+            "[a, b, occurrence rates]:\n%s" % attribute_list)
+        result_values.append(attribute_list)
 
     return result_values
 
@@ -331,6 +331,8 @@ def computeBValueFromBackground(zone, layer_fault_background, layer_background,
     activity = atticivy.computeActivityAtticIvy((fault_background_poly, ), 
         (mmax, ), (mcdist, ), catalog, mmin)
 
+    QMessageBox.information(None, "Activity of FBZ",  
+            "[a, b, (weight, a, b)]:\n%s" % activity)
     return activity[0][1]
         
     

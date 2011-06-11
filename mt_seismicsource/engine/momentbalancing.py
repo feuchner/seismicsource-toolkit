@@ -280,17 +280,13 @@ def updateDataFault(cls, feature):
     a_value = feature[attribute_map_fault[a_value_name][0]].toDouble()[0]
     b_value = feature[attribute_map_fault[b_value_name][0]].toDouble()[0]
 
-    QMessageBox.warning(None, "a/b",  "a: %s, b: %s" % (a_value, b_value))
-        
-    # get mmax from FBZ
-    
     # multiply computed value with area in square kilometres
     momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
         [a_value], [b_value], mmax)) * parameters['area_background_sqkm'] / (
             eqcatalog.CATALOG_TIME_SPAN)
 
-    parameters['activity_recurr_a'] = [a_value]
-    parameters['activity_b'] = [b_value]
+    parameters['activity_recurr_a'] = a_value
+    parameters['activity_b'] = b_value
     
     parameters['mmax'] = mmax
     parameters['mr_activity'] = momentrates_arr.tolist()
@@ -322,9 +318,9 @@ def updateTextActivityFault(cls, parameters):
     text = ''
     text += "<b>Activity</b><br/>"
     text += "<b>(RM)</b> b: %s (background zone)<br/>" % (
-        utils.centralValueOfList(parameters['activity_b']))
+        parameters['activity_b'])
     text += "<b>(from slip)</b> a: %s<br/>" % (
-        utils.centralValueOfList(parameters['activity_recurr_a']))
+        parameters['activity_recurr_a'])
     text += "Mmax: %s, %s EQ in %s km^2 (background zone)" % (
         parameters['mmax'],
         parameters['eq_count'],
