@@ -192,7 +192,8 @@ def getAttributesFromBackgroundZones(point, provider_back, attributes):
     attribute_map = utils.getAttributeIndex(provider_back, attributes)
 
     # identify matching background zone
-    background_zone = utils.findBackgroundZone(point, provider_back)
+    (background_zone, bgz_poly, bgz_area) = utils.findBackgroundZone(
+        point, provider_back)
     
     if background_zone is not None:
         # leave values as QVariant

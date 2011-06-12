@@ -138,9 +138,14 @@ def polygonsQGS2Shapely(polygons, getVertices=False):
     return (polygons_shapely, vertices_shapely)
 
 def findBackgroundZone(point, provider_back):
-    """Find background zone in which a given Shapely point lies."""
+    """Find background zone in which a given Shapely point lies.
+    Returns (i) zone as QGis feature, (ii) zone as Shapely polygon,
+    (iii) zone area in square kilometres
+    """
     
     bg_zone = None
+    bg_poly = None 
+    bg_area = None
 
     # TODO(fab): this can probably be made more efficient
     
@@ -150,19 +155,35 @@ def findBackgroundZone(point, provider_back):
     for bgz_idx, bgz in walkValidPolygonFeatures(provider_back):
 
         # convert background zone polygon to Shapely
-        bg_poly, vertices = polygonsQGS2Shapely((bgz,))
-
-        if len(bg_poly) == 0:
+        bg_polylist, vertices = polygonsQGS2Shapely((bgz,))
+        
+        if len(bg_polylist) == 0:
             QMessageBox.warning(None, "Broken zone", 
                 "Cannot convert zone %s to Shapely" % bgz.id())
             continue
+        else:
+            bg_poly = bg_polylist[0]
     
-        if point.within(bg_poly[0]):
+        if point.within(bg_poly):
             bg_zone = bgz
+            
+            # get polygon area in square kilometres
+            bg_area = polygonAreaFromWGS84(bg_poly) * 1.0e-6
             break
 
-    return bg_zone
+    return (bg_zone, bg_poly, bg_area)
 
+def computeBufferZone(zone_poly_shapely, buffer_km):
+    """Compute buffer zone polygon and its area in square km around given
+    polygon."""
+    
+    buffer_distance_deg = 360.0 * buffer_km / (
+        EARTH_CIRCUMFERENCE_EQUATORIAL_KM)
+    buffer_zone = zone_poly_shapely.buffer(buffer_distance_deg)
+    buffer_zone_area = polygonAreaFromWGS84(buffer_zone) * 1.0e-6
+    
+    return (buffer_zone, buffer_zone_area)
+    
 def getSelectedRefZoneIndices(reference_zones):
     """Get indices of selected zones from list of all source zones.
     reference_zones is list of selected QGis features."""

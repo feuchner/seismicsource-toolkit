@@ -122,7 +122,7 @@ def updateDataArea(cls, feature):
     parameters['activity_a'] = activity_a
     parameters['activity_b'] = activity_b 
     parameters['mmax'] = mmax 
-    parameters['activity_mmin'] = cls.spinboxAtticIvyMmin.value()
+    parameters['activity_mmin'] = cls.spinboxAreaAtticIvyMmin.value()
     parameters['mr_activity'] = momentrates_arr.tolist()
 
     ## Maximum likelihood a/b values
@@ -218,44 +218,32 @@ def updateDataFault(cls, feature):
     fault_poly = polylist[0]
 
     # fault zone polygon area in square kilometres
-    parameters['area_sqkm'] = utils.polygonAreaFromWGS84(fault_poly) * 1.0e-6
+    parameters['area_fault_sqkm'] = utils.polygonAreaFromWGS84(
+        fault_poly) * 1.0e-6
 
     # get buffer zone around fault zone (convert buffer distance to degrees)
-    buffer_distance_deg = 360.0 * momentrate.BUFFER_AROUND_FAULT_ZONE_KM / (
-        utils.EARTH_CIRCUMFERENCE_EQUATORIAL_KM)
-    buffer_zone = fault_poly.buffer(buffer_distance_deg)
-    
-    # buffer polygon area in square kilometres
-    parameters['area_buffer_sqkm'] = utils.polygonAreaFromWGS84(
-        buffer_zone) * 1.0e-6
+    (bz_poly, parameters['area_bz_sqkm']) = utils.computeBufferZone(
+        fault_poly, momentrate.BUFFER_AROUND_FAULT_ZONE_KM)
 
     # find fault background zone in which centroid of fault zone lies
     # NOTE: this can yield a wrong background zone if the fault zone
     # is curved and at the edge of background zone.
     # TODO(fab): use GIS "within" function instead, but note that fault
     # zone can overlap several BG zones
-    fault_background_zone = utils.findBackgroundZone(fault_poly.centroid, 
-        provider_fault_back)
-    fb_polylist, vertices = utils.polygonsQGS2Shapely(
-        (fault_background_zone,))
-    fault_background_poly = fb_polylist[0]
-    
-    # get polygon area in square kilometres
-    parameters['area_background_sqkm'] = utils.polygonAreaFromWGS84(
-        fault_background_poly) * 1.0e-6
+    (fbz, fbz_poly, parameters['area_fbz_sqkm']) = utils.findBackgroundZone(
+        fault_poly.centroid, provider_fault_back)
+
+    attribute_map_fault = utils.getAttributeIndex(provider, 
+        features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE, create=False)
         
-    attribute_map_fbz = utils.getAttributeIndex(provider_fault_back, 
-        (features.FAULT_BACKGROUND_ATTR_ID,), create=False)
-
     # get fault background zone ID
-    id_name = features.FAULT_BACKGROUND_ATTR_ID['name']
-    parameters['fbz_id'] = int(
-        feature[attribute_map_fbz[id_name][0]].toDouble()[0])
-
+    id_name = features.FAULT_SOURCE_ATTR_ID_FBZ['name']
+    parameters['fbz_id'] = str(
+        feature[attribute_map_fault[id_name][0]].toString())
+        
     # get mmax and mcdist for FBZ from background zone
     (mcdist_qv, mmax_qv) = areasource.getAttributesFromBackgroundZones(
-        fault_background_poly.centroid, provider_back, 
-        areasource.MCDIST_MMAX_ATTRIBUTES)
+        fbz_poly.centroid, provider_back, areasource.MCDIST_MMAX_ATTRIBUTES)
         
     mmax = float(mmax_qv.toDouble()[0])
     mcdist = str(mcdist_qv.toString())
@@ -265,19 +253,19 @@ def updateDataFault(cls, feature):
     # get quakes from catalog (cut with fault background polygon)
     fbz_cat = QPCatalog.QPCatalog()
     fbz_cat.merge(cls.catalog)
-    fbz_cat.cut(geometry=fault_background_poly)
+    fbz_cat.cut(geometry=fbz_poly)
     
-    buffer_cat = QPCatalog.QPCatalog()
-    buffer_cat.merge(cls.catalog)
-    buffer_cat.cut(geometry=buffer_zone)
+    bz_cat = QPCatalog.QPCatalog()
+    bz_cat.merge(cls.catalog)
+    bz_cat.cut(geometry=bz_poly)
     
     parameters['eq_count_fbz'] = fbz_cat.size()
-    parameters['eq_count_buffer'] = buffer_cat.size()
+    parameters['eq_count_bz'] = bz_cat.size()
     
     # sum up moment from quakes (converted from Mw with Kanamori eq.)
     # use quakes in buffer zone
     magnitudes = []
-    for ev in buffer_cat.eventParameters.event:
+    for ev in bz_cat.eventParameters.event:
         mag = ev.getPreferredMagnitude()
         magnitudes.append(mag.mag.value)
 
@@ -286,39 +274,55 @@ def updateDataFault(cls, feature):
     # scale moment: per year and area (in km^2)
     # TODO(fab): compute real catalog time span
     parameters['mr_eq'] = moment.sum() / (
-        parameters['area_buffer_sqkm'] * eqcatalog.CATALOG_TIME_SPAN)
+        parameters['area_bz_sqkm'] * eqcatalog.CATALOG_TIME_SPAN)
 
     ## moment rate from activity (RM)
 
     # a and b value from FBZ (fault layer attributes)
-    
-    attribute_map_fault = utils.getAttributeIndex(provider, 
-        features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE, create=False)
-    
-    a_value_name = features.FAULT_SOURCE_ATTR_A_RECURRENCE['name']
-    b_value_name = features.FAULT_SOURCE_ATTR_B_RECURRENCE['name']
-    
-    parameters['activity_recurr_a'] = \
-        feature[attribute_map_fault[a_value_name][0]].toDouble()[0]
-    parameters['activity_recurr_b'] = \
-        feature[attribute_map_fault[b_value_name][0]].toDouble()[0]
 
-    parameters['activity_fbz_a'] = parameters['activity_recurr_a']
-    parameters['activity_fbz_b'] = parameters['activity_recurr_b']
-    
-    # get activity parameters on buffer zone
-    
-    mmin = cls.spinboxAtticIvyMmin.value()
-    activity = atticivy.computeActivityAtticIvy((buffer_zone,), (mmax,), 
-        (mcdist,), cls.catalog, mmin=mmin)
-    
-    parameters['activity_buffer_a'] = activity[0][0]
-    parameters['activity_buffer_b'] = activity[0][1]
+    a_fbz_name = features.FAULT_SOURCE_ATTR_A_FBZ['name']
+    b_fbz_name = features.FAULT_SOURCE_ATTR_B_FBZ['name']
+    act_fbz_name = features.FAULT_SOURCE_ATTR_ACT_FBZ['name']
 
-    # multiply computed value with area in square kilometres
+    parameters['activity_fbz_a'] = \
+        feature[attribute_map_fault[a_fbz_name][0]].toDouble()[0]
+    parameters['activity_fbz_b'] = \
+        feature[attribute_map_fault[b_fbz_name][0]].toDouble()[0]
+    parameters['activity_fbz'] = str(
+        feature[attribute_map_fault[act_fbz_name][0]].toString())
+    
+    # a and b value from buffer zone (fault layer attributes)
+
+    a_bz_name = features.FAULT_SOURCE_ATTR_A_BUF['name']
+    b_bz_name = features.FAULT_SOURCE_ATTR_B_BUF['name']
+    act_bz_name = features.FAULT_SOURCE_ATTR_ACT_BUF['name']
+
+    parameters['activity_bz_a'] = \
+        feature[attribute_map_fault[a_bz_name][0]].toDouble()[0]
+    parameters['activity_bz_b'] = \
+        feature[attribute_map_fault[b_bz_name][0]].toDouble()[0]
+    parameters['activity_bz'] = str(
+        feature[attribute_map_fault[act_bz_name][0]].toString())
+    
+    # a values from recurrence (fault layer attributes)
+    
+    a_rec_min_name = features.FAULT_SOURCE_ATTR_A_REC_MIN['name']
+    a_rec_max_name = features.FAULT_SOURCE_ATTR_A_REC_MAX['name']
+    
+    parameters['activity_rec_a_min'] = \
+        feature[attribute_map_fault[a_rec_min_name][0]].toDouble()[0]
+    parameters['activity_rec_a_max'] = \
+        feature[attribute_map_fault[a_rec_max_name][0]].toDouble()[0]
+        
+    # compute moment rates from activity: use a and b values from
+    # buffer zone
+
+    act_bz_arr = parameters['activity_bz'].strip().split()
+    a_bz_arr = [float(x) for x in act_bz_arr[1::3]]
+    b_bz_arr = [float(x) for x in act_bz_arr[2::3]]
+    
     momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
-        [parameters['activity_buffer_a']], [parameters['activity_buffer_b']], 
-        mmax)) * parameters['area_background_sqkm'] / (
+        a_bz_arr, b_bz_arr, mmax)) * parameters['area_bz_sqkm'] / (
             eqcatalog.CATALOG_TIME_SPAN)
 
     parameters['mmax'] = mmax
@@ -335,12 +339,12 @@ def updateDataFault(cls, feature):
     sliprate_max = \
         feature[attribute_map_fault[sliprate_max_name][0]].toDouble()[0]
     parameters['mmax_fault'] = \
-        feature[attribute_map_fault[mmax_fault_name][0]].toInt()[0]
+        feature[attribute_map_fault[mmax_fault_name][0]].toDouble()[0]
             
     # TODO(fab): correct scaling of moment rate from slip rate
     (moment_rate_min, moment_rate_max) = \
         momentrate.momentrateFromSlipRate(sliprate_min, sliprate_max, 
-            parameters['area_sqkm'] * 1.0e6)
+            parameters['area_fault_sqkm'] * 1.0e6)
 
     parameters['mr_slip'] = [moment_rate_min, moment_rate_max]
     
@@ -356,19 +360,27 @@ def updateTextActivityFault(cls, parameters):
     text = ''
     text += "<b>Activity</b><br/>"
     text += "<b>(RM)</b> a: %.3f b: %.3f (%s km buffer zone)<br/>" % (
-        (parameters['activity_buffer_a'], parameters['activity_buffer_b'], 
+        (parameters['activity_bz_a'], 
+        parameters['activity_bz_b'], 
         int(momentrate.BUFFER_AROUND_FAULT_ZONE_KM)))
+        
     text += "<b>(RM)</b> a: %.3f b: %.3f (FBZ, ID %s)<br/>" % (
-        (parameters['activity_fbz_a'], parameters['activity_fbz_b'], 
+        (parameters['activity_fbz_a'], 
+        parameters['activity_fbz_b'], 
         parameters['fbz_id']))
-    text += "<b>(from slip)</b> a: %.3f<br/>" % (
-        parameters['activity_recurr_a'])
+        
+    text += "<b>(from slip)</b> a: %.3f (min), %.3f (max)<br/>" % (
+        parameters['activity_rec_a_min'],
+        parameters['activity_rec_a_max'])
+        
     text += "%s EQ in %s km<sup>2</sup> (buffer zone)<br/>" % (
-        parameters['eq_count_buffer'],
-        int(parameters['area_buffer_sqkm']))
+        parameters['eq_count_bz'],
+        int(parameters['area_bz_sqkm']))
+        
     text += "%s EQ in %s km<sup>2</sup> (FBZ)<br/>" % (
         parameters['eq_count_fbz'],
-        int(parameters['area_background_sqkm']))
+        int(parameters['area_fbz_sqkm']))
+        
     text += "Mmax: %s (background), %s (fault) " % (
         parameters['mmax'],
         parameters['mmax_fault'])
@@ -463,7 +475,7 @@ def updateDataFaultBackgr(cls, feature,
 
     ## moment rate from activity (RM)
     
-    mmin = cls.spinboxAtticIvyMmin.value()
+    mmin = cls.spinboxFaultAtticIvyMmin.value()
     activity = atticivy.computeActivityAtticIvy(
         (poly, ), (mmax, ), (mcdist, ), cls.catalog, mmin=mmin)
     

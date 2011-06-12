@@ -310,7 +310,7 @@
       </property>
      </widget>
     </widget>
-    <widget class="QGroupBox" name="groupBoxAtticIvy">
+    <widget class="QGroupBox" name="groupBoxAreaZone">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -326,14 +326,14 @@
       </font>
      </property>
      <property name="title">
-      <string>AtticIvy</string>
+      <string>Area Source Zone</string>
      </property>
-     <widget class="QLabel" name="labelSpinboxAtticIvyMmin">
+     <widget class="QLabel" name="labelSpinboxAreaAtticIvyMmin">
       <property name="geometry">
        <rect>
         <x>10</x>
         <y>30</y>
-        <width>41</width>
+        <width>81</width>
         <height>21</height>
        </rect>
       </property>
@@ -344,13 +344,13 @@
        </font>
       </property>
       <property name="text">
-       <string>Mmin</string>
+       <string>AtticIvy Mmin</string>
       </property>
      </widget>
-     <widget class="QDoubleSpinBox" name="spinboxAtticIvyMmin">
+     <widget class="QDoubleSpinBox" name="spinboxAreaAtticIvyMmin">
       <property name="geometry">
        <rect>
-        <x>50</x>
+        <x>90</x>
         <y>30</y>
         <width>51</width>
         <height>22</height>
@@ -433,6 +433,69 @@
       </property>
       <property name="value">
        <double>5.500000000000000</double>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="groupBoxFaultZone">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>470</y>
+       <width>291</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Fault Source Zone</string>
+     </property>
+     <widget class="QLabel" name="labelSpinboxFaultAtticIvyMmin">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>81</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>AtticIvy Mmin</string>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="spinboxFaultAtticIvyMmin">
+      <property name="geometry">
+       <rect>
+        <x>90</x>
+        <y>30</y>
+        <width>51</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="decimals">
+       <number>1</number>
+      </property>
+      <property name="singleStep">
+       <double>0.100000000000000</double>
+      </property>
+      <property name="value">
+       <double>5.000000000000000</double>
       </property>
      </widget>
     </widget>

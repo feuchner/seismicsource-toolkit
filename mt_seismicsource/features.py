@@ -122,25 +122,47 @@ FAULT_SOURCE_ATTR_NAME = {'name': 'SOURCENAME', 'type': QVariant.String}
 
 FAULT_SOURCE_ATTRIBUTES_ID = (FAULT_SOURCE_ATTR_ID, FAULT_SOURCE_ATTR_NAME)
 
-FAULT_SOURCE_ATTR_A_RECURRENCE = {'name': 'a_recurr', 'type': QVariant.Double}
-FAULT_SOURCE_ATTR_B_RECURRENCE = {'name': 'b_recurr', 'type': QVariant.Double}
+# Fault data
+FAULT_SOURCE_ATTR_ID_FBZ = {'name': 'id_fbz', 'type': QVariant.String}
+
+FAULT_SOURCE_ATTR_A_FBZ = {'name': 'a_fbz', 'type': QVariant.Double}
+FAULT_SOURCE_ATTR_B_FBZ = {'name': 'b_fbz', 'type': QVariant.Double}
+FAULT_SOURCE_ATTR_ACT_FBZ = {'name': 'act_fbz', 'type': QVariant.String}
+
+FAULT_SOURCE_ATTR_A_BUF = {'name': 'a_buf', 'type': QVariant.Double}
+FAULT_SOURCE_ATTR_B_BUF = {'name': 'b_buf', 'type': QVariant.Double}
+FAULT_SOURCE_ATTR_ACT_BUF = {'name': 'act_buf', 'type': QVariant.String}
+
+FAULT_SOURCE_ATTR_A_REC_MIN = {'name': 'a_rec_min', 'type': QVariant.Double}
+FAULT_SOURCE_ATTR_A_REC_MAX = {'name': 'a_rec_max', 'type': QVariant.Double}
+
 FAULT_SOURCE_ATTR_ACTIVITYRATE_MIN = {'name': 'actrate_mi', 
     'type': QVariant.String}
 FAULT_SOURCE_ATTR_ACTIVITYRATE_MAX = {'name': 'actrate_ma', 
     'type': QVariant.String}
+    
 FAULT_SOURCE_ATTR_MOMENTRATE_MIN = {'name': 'momrate_mi', 
     'type': QVariant.Double}
 FAULT_SOURCE_ATTR_MOMENTRATE_MAX = {'name': 'momrate_ma', 
     'type': QVariant.Double}
+    
 FAULT_SOURCE_ATTR_SLIPRATE_MIN = {'name': 'SLIPRATEMI', 
     'type': QVariant.Double}
 FAULT_SOURCE_ATTR_SLIPRATE_MAX = {'name': 'SLIPRATEMA', 
     'type': QVariant.Double}
+
 FAULT_SOURCE_ATTR_MAGNITUDE_MAX = {'name': 'MAXMAG', 'type': QVariant.Double}
 
 FAULT_SOURCE_ATTRIBUTES_RECURRENCE = (
-    FAULT_SOURCE_ATTR_A_RECURRENCE,
-    FAULT_SOURCE_ATTR_B_RECURRENCE,
+    FAULT_SOURCE_ATTR_ID_FBZ,
+    FAULT_SOURCE_ATTR_A_FBZ,
+    FAULT_SOURCE_ATTR_B_FBZ,
+    FAULT_SOURCE_ATTR_ACT_FBZ,
+    FAULT_SOURCE_ATTR_A_BUF,
+    FAULT_SOURCE_ATTR_B_BUF,
+    FAULT_SOURCE_ATTR_ACT_BUF,
+    FAULT_SOURCE_ATTR_A_REC_MIN,
+    FAULT_SOURCE_ATTR_A_REC_MAX,
     FAULT_SOURCE_ATTR_ACTIVITYRATE_MIN, 
     FAULT_SOURCE_ATTR_ACTIVITYRATE_MAX,
     FAULT_SOURCE_ATTR_MOMENTRATE_MIN,
@@ -150,8 +172,15 @@ FAULT_SOURCE_ATTRIBUTES_RECURRENCE = (
     FAULT_SOURCE_ATTR_MAGNITUDE_MAX)
 
 FAULT_SOURCE_ATTRIBUTES_RECURRENCE_COMPUTE = (
-    FAULT_SOURCE_ATTR_A_RECURRENCE,
-    FAULT_SOURCE_ATTR_B_RECURRENCE,
+    FAULT_SOURCE_ATTR_ID_FBZ,
+    FAULT_SOURCE_ATTR_A_FBZ,
+    FAULT_SOURCE_ATTR_B_FBZ,
+    FAULT_SOURCE_ATTR_ACT_FBZ,
+    FAULT_SOURCE_ATTR_A_BUF,
+    FAULT_SOURCE_ATTR_B_BUF,
+    FAULT_SOURCE_ATTR_ACT_BUF,
+    FAULT_SOURCE_ATTR_A_REC_MIN,
+    FAULT_SOURCE_ATTR_A_REC_MAX,
     FAULT_SOURCE_ATTR_ACTIVITYRATE_MIN,
     FAULT_SOURCE_ATTR_ACTIVITYRATE_MAX,
     FAULT_SOURCE_ATTR_MOMENTRATE_MIN,
