@@ -578,14 +578,14 @@
     <widget class="QPushButton" name="btnDataAreaDisplayFMD">
      <property name="geometry">
       <rect>
-       <x>290</x>
+       <x>130</x>
        <y>20</y>
-       <width>67</width>
+       <width>71</width>
        <height>30</height>
       </rect>
      </property>
      <property name="text">
-      <string>FMD</string>
+      <string>Plot FMD</string>
      </property>
     </widget>
     <widget class="QTextEdit" name="textMomentRateArea">
@@ -625,14 +625,14 @@
     <widget class="QPushButton" name="btnDataAreaDisplayMR">
      <property name="geometry">
       <rect>
-       <x>220</x>
+       <x>10</x>
        <y>20</y>
-       <width>67</width>
+       <width>111</width>
        <height>30</height>
       </rect>
      </property>
      <property name="text">
-      <string>MR</string>
+      <string>Plot Moment Rate</string>
      </property>
     </widget>
    </widget>
@@ -695,14 +695,14 @@
     <widget class="QPushButton" name="btnDataFaultDisplayRecurrence">
      <property name="geometry">
       <rect>
-       <x>240</x>
+       <x>130</x>
        <y>20</y>
        <width>111</width>
        <height>30</height>
       </rect>
      </property>
      <property name="text">
-      <string>Recurrence</string>
+      <string>Plot Recurrence</string>
      </property>
     </widget>
     <widget class="QTextEdit" name="textMomentRateFault">
@@ -761,14 +761,14 @@
     <widget class="QPushButton" name="btnDataFaultDisplayMR">
      <property name="geometry">
       <rect>
-       <x>170</x>
+       <x>10</x>
        <y>20</y>
-       <width>67</width>
+       <width>111</width>
        <height>30</height>
       </rect>
      </property>
      <property name="text">
-      <string>MR</string>
+      <string>Plot Moment Rate</string>
      </property>
     </widget>
    </widget>
@@ -887,14 +887,14 @@
      </property>
      <property name="geometry">
       <rect>
-       <x>290</x>
+       <x>130</x>
        <y>20</y>
-       <width>67</width>
+       <width>71</width>
        <height>30</height>
       </rect>
      </property>
      <property name="text">
-      <string>FMD</string>
+      <string>Plot FMD</string>
      </property>
     </widget>
     <widget class="QPushButton" name="btnDataFaultBackgrDisplayMR">
@@ -903,14 +903,14 @@
      </property>
      <property name="geometry">
       <rect>
-       <x>220</x>
+       <x>10</x>
        <y>20</y>
-       <width>67</width>
+       <width>111</width>
        <height>30</height>
       </rect>
      </property>
      <property name="text">
-      <string>MR</string>
+      <string>Plot Moment Rate</string>
      </property>
     </widget>
    </widget>
