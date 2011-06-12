@@ -359,7 +359,7 @@ def updateTextActivityFault(cls, parameters):
 
     text = ''
     text += "<b>Activity</b><br/>"
-    text += "<b>(RM)</b> a: %.3f b: %.3f (%s km buffer zone)<br/>" % (
+    text += "<b>(RM)</b> a: %.3f b: %.3f (%s km buffer)<br/>" % (
         (parameters['activity_bz_a'], 
         parameters['activity_bz_b'], 
         int(momentrate.BUFFER_AROUND_FAULT_ZONE_KM)))
@@ -369,9 +369,11 @@ def updateTextActivityFault(cls, parameters):
         parameters['activity_fbz_b'], 
         parameters['fbz_id']))
         
-    text += "<b>(from slip)</b> a: %.3f (min), %.3f (max)<br/>" % (
+    text += \
+        "<b>(from slip)</b> a: %.3f (min), %.3f (max), b: %.3f (FBZ)<br/>" % (
         parameters['activity_rec_a_min'],
-        parameters['activity_rec_a_max'])
+        parameters['activity_rec_a_max'],
+        parameters['activity_fbz_b'])
         
     text += "%s EQ in %s km<sup>2</sup> (buffer zone)<br/>" % (
         parameters['eq_count_bz'],
