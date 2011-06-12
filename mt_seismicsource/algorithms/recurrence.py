@@ -39,6 +39,7 @@ from mt_seismicsource import utils
 from mt_seismicsource.algorithms import atticivy
 from mt_seismicsource.algorithms import momentrate
 from mt_seismicsource.layers import areasource
+from mt_seismicsource.layers import eqcatalog
 
 import QPCatalog
 
@@ -211,10 +212,10 @@ def computeRecurrence(layer_fault, layer_fault_background=None,
         mag_arr = numpy.arange(MAGNITUDE_MIN, maxmag, MAGNITUDE_BINNING)
 
         cumulative_number_min = cumulative_occurrence_model_2(mag_arr, maxmag, 
-            slipratemi, b_value, fault_area)
+            slipratemi, b_value, fault_area) / eqcatalog.CATALOG_TIME_SPAN
 
         cumulative_number_max = cumulative_occurrence_model_2(mag_arr, maxmag, 
-            slipratema, b_value, fault_area)
+            slipratema, b_value, fault_area) / eqcatalog.CATALOG_TIME_SPAN
 
         # use a value computed with max of slip rate
         a_value_min = computeAValueFromOccurrence(
@@ -262,8 +263,6 @@ def computeRecurrence(layer_fault, layer_fault_background=None,
             float(seismic_moment_rate_min),
             float(seismic_moment_rate_max)]
             
-        QMessageBox.information(None, "Recurrence attributes",  
-            "[a, b, occurrence rates]:\n%s" % attribute_list)
         result_values.append(attribute_list)
 
     return result_values
@@ -390,7 +389,4 @@ def computeActivityFromBackground(feature, layer_fault_background, layer_backgro
             
     activity['background'] = {'mmax': mmax, 'mcdist': mcdist}
 
-    QMessageBox.information(None, "Activity of FBZ/BZ",  
-            "[a, b, (weight, a, b)]:\n%s" % activity)
-    
     return activity
