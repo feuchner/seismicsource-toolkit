@@ -520,10 +520,10 @@ def updateDataFaultBackgr(cls, feature,
     parameters['eq_count_above'] = cat_above_threshold.size()
 
     activity_below_threshold = atticivy.computeActivityAtticIvy(
-        (poly, ), (mmax, ), (mcdist, ), cat_below_threshold, mmin=mmin)
+        (poly,), (mmax,), (mcdist,), cat_below_threshold, mmin=mmin)
 
     activity_above_threshold = atticivy.computeActivityAtticIvy(
-        (poly, ), (mmax, ), (mcdist, ), cat_above_threshold, mmin=mmin)
+        (poly,), (mmax,), (mcdist,), cat_above_threshold, mmin=mmin)
         
     # get RM (weight, a, b) values from feature attribute
     activity_below_str = activity_below_threshold[0][2]
@@ -609,6 +609,19 @@ def updateDataFaultBackgr(cls, feature,
     parameters['mr_slip'] = [moment_rate_min, moment_rate_max]
     parameters['area_fault_sqkm'] *= 1.0e-6
 
+    ## moment rate from geodesy (strain)
+    
+    momentrate_strain_barba = momentrate.momentrateFromStrainRateBarba(
+        poly, cls.data.strain_rate_barba, 
+        cls.data.deformation_regimes_bird)
+    parameters['mr_strain_barba'] = momentrate_strain_barba / (
+        eqcatalog.CATALOG_TIME_SPAN)
+
+    momentrate_strain_bird = momentrate.momentrateFromStrainRateBird(poly, 
+        cls.data.strain_rate_bird, cls.data.deformation_regimes_bird)
+    parameters['mr_strain_bird'] = momentrate_strain_bird / (
+        eqcatalog.CATALOG_TIME_SPAN)
+        
     return parameters
 
 def updateDisplaysFaultBackgr(cls, parameters):
@@ -654,6 +667,6 @@ def updateTextMomentRateFaultBackgr(cls, parameters):
     
     # TODO(fab): compute and display moment rate from strain rate
     # on fault background zone
-    text += "[Strain (Bird)] %s<br/>" % None
-    text += "[Strain (Barba)] %s" % None
+    text += "[Strain (Bird)] %.2e<br/>" % parameters['mr_strain_bird']
+    text += "[Strain (Barba)] %.2e" % parameters['mr_strain_barba']
     cls.textMomentRateFaultBackgr.setText(text)
