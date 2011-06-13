@@ -71,8 +71,8 @@ def loadEQCatalogLayer(cls):
     # TODO(fab): change the datetime lib to mx.DateTime
     # cls.catalog.cut(mintime='1900-01-01', mintime_exclude=True)
     
-    # cut catalog below M=0 and remove potential NaN magnitudes
-    cls.catalog.cut(minmag=0.0, minmag_exclude=True, removeNaN=True)
+    # cut catalog below M=2.0 and remove potential NaN magnitudes
+    cls.catalog.cut(minmag=2.0, minmag_exclude=False, removeNaN=True)
 
     # PostGIS SRID 4326 is allocated for WGS84
     crs = QgsCoordinateReferenceSystem(4326, 

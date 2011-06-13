@@ -114,10 +114,13 @@ def updateDataArea(cls, feature):
     activity_b = [float(x) for x in activity_arr[2::3]]
     mmax = float(feature[attribute_mmax_idx].toDouble()[0])
 
+    # TODO(fab): CHECK
     # multiply computed value with area in square kilometres
     momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
-        activity_a, activity_b, mmax)) * parameters['area_sqkm'] / (
-            eqcatalog.CATALOG_TIME_SPAN)
+        activity_a, activity_b, mmax)) / eqcatalog.CATALOG_TIME_SPAN
+    #momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
+        #activity_a, activity_b, mmax)) * parameters['area_sqkm'] / (
+            #eqcatalog.CATALOG_TIME_SPAN)
 
     parameters['activity_a'] = activity_a
     parameters['activity_b'] = activity_b 
@@ -321,9 +324,12 @@ def updateDataFault(cls, feature):
     a_bz_arr = [float(x) for x in act_bz_arr[1::3]]
     b_bz_arr = [float(x) for x in act_bz_arr[2::3]]
     
+    # TODO(fab): CHECK
     momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
-        a_bz_arr, b_bz_arr, mmax)) * parameters['area_bz_sqkm'] / (
-            eqcatalog.CATALOG_TIME_SPAN)
+        a_bz_arr, b_bz_arr, mmax)) / eqcatalog.CATALOG_TIME_SPAN
+    #momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
+        #a_bz_arr, b_bz_arr, mmax)) * parameters['area_bz_sqkm'] / (
+            #eqcatalog.CATALOG_TIME_SPAN)
 
     parameters['mmax'] = mmax
     parameters['mr_activity'] = momentrates_arr.tolist()
@@ -395,7 +401,8 @@ def updateTextMomentRateFault(cls, parameters):
     text += "[EQ] %.2e<br/>" % parameters['mr_eq']
     text += "[Act] %.2e<br/>" % (
         utils.centralValueOfList(parameters['mr_activity']))
-    text += "[Slip] %.2e" %  parameters['mr_slip'][1]
+    text += "[Slip (min)] %.2e<br/>" %  parameters['mr_slip'][0]
+    text += "[Slip (max)] %.2e" %  parameters['mr_slip'][1]
     cls.textMomentRateFault.setText(text)
 
 def updatePlotMomentRateFault(cls, parameters):
@@ -489,10 +496,13 @@ def updateDataFaultBackgr(cls, feature,
     activity_a = [float(x) for x in activity_arr[1::3]]
     activity_b = [float(x) for x in activity_arr[2::3]]
     
+    # TODO(fab): CHECK
     # multiply computed value with area in square kilometres
     momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
-        activity_a, activity_b, mmax)) * parameters['area_background_sqkm'] / (
-            eqcatalog.CATALOG_TIME_SPAN)
+        activity_a, activity_b, mmax)) / eqcatalog.CATALOG_TIME_SPAN
+    #momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
+        #activity_a, activity_b, mmax)) * parameters['area_background_sqkm'] / (
+            #eqcatalog.CATALOG_TIME_SPAN)
 
     parameters['activity_a'] = activity_a
     parameters['activity_b'] = activity_b 
@@ -529,15 +539,20 @@ def updateDataFaultBackgr(cls, feature,
     activity_above_a = [float(x) for x in activity_above_arr[1::3]]
     activity_above_b = [float(x) for x in activity_above_arr[2::3]]
     
+    # TODO(fab): CHECK
     # multiply computed value with area in square kilometres
     momentrates_below_arr = numpy.array(momentrate.momentrateFromActivity(
-        activity_below_a, activity_below_b, mmax)) * \
-            parameters['area_background_sqkm'] / eqcatalog.CATALOG_TIME_SPAN
+        activity_below_a, activity_below_b, mmax)) / eqcatalog.CATALOG_TIME_SPAN
+    #momentrates_below_arr = numpy.array(momentrate.momentrateFromActivity(
+        #activity_below_a, activity_below_b, mmax)) * \
+            #parameters['area_background_sqkm'] / eqcatalog.CATALOG_TIME_SPAN
             
     momentrates_above_arr = numpy.array(momentrate.momentrateFromActivity(
-        activity_above_a, activity_above_b, mmax)) * \
-            parameters['area_background_sqkm'] / eqcatalog.CATALOG_TIME_SPAN
-
+        activity_above_a, activity_above_b, mmax)) / eqcatalog.CATALOG_TIME_SPAN
+    #momentrates_above_arr = numpy.array(momentrate.momentrateFromActivity(
+        #activity_above_a, activity_above_b, mmax)) * \
+            #parameters['area_background_sqkm'] / eqcatalog.CATALOG_TIME_SPAN
+            
     parameters['activity_below_a'] = activity_below_a
     parameters['activity_below_b'] = activity_below_b 
     
@@ -590,7 +605,7 @@ def updateDataFaultBackgr(cls, feature,
             
     moment_rate_min /= eqcatalog.CATALOG_TIME_SPAN
     moment_rate_max /= eqcatalog.CATALOG_TIME_SPAN
-            
+    
     parameters['mr_slip'] = [moment_rate_min, moment_rate_max]
     parameters['area_fault_sqkm'] *= 1.0e-6
 
@@ -634,7 +649,8 @@ def updateTextMomentRateFaultBackgr(cls, parameters):
     text += "[EQ] %.2e<br/>" % parameters['mr_eq']
     text += "[Act] %.2e<br/>" % (
         utils.centralValueOfList(parameters['mr_activity']))
-    text += "[Slip] %.2e<br/>" % parameters['mr_slip'][1]
+    text += "[Slip (min)] %.2e<br/>" %  parameters['mr_slip'][0]
+    text += "[Slip (max)] %.2e<br/>" %  parameters['mr_slip'][1]
     
     # TODO(fab): compute and display moment rate from strain rate
     # on fault background zone

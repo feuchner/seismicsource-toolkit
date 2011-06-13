@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>816</width>
+    <width>871</width>
     <height>720</height>
    </rect>
   </property>
@@ -560,7 +560,7 @@
     <rect>
      <x>320</x>
      <y>10</y>
-     <width>491</width>
+     <width>551</width>
      <height>221</height>
     </rect>
    </property>
@@ -569,7 +569,7 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>491</width>
+      <width>551</width>
       <height>211</height>
      </rect>
     </property>
@@ -604,7 +604,7 @@
     <widget class="QPushButton" name="btnDataAreaCompute">
      <property name="geometry">
       <rect>
-       <x>360</x>
+       <x>420</x>
        <y>20</y>
        <width>115</width>
        <height>30</height>
@@ -619,7 +619,7 @@
       <rect>
        <x>10</x>
        <y>60</y>
-       <width>281</width>
+       <width>321</width>
        <height>151</height>
       </rect>
      </property>
@@ -645,9 +645,9 @@
     <widget class="QTextEdit" name="textMomentRateArea">
      <property name="geometry">
       <rect>
-       <x>290</x>
+       <x>330</x>
        <y>60</y>
-       <width>191</width>
+       <width>211</width>
        <height>151</height>
       </rect>
      </property>
@@ -662,7 +662,7 @@
       <rect>
        <x>160</x>
        <y>0</y>
-       <width>321</width>
+       <width>381</width>
        <height>21</height>
       </rect>
      </property>
@@ -704,7 +704,7 @@
     <rect>
      <x>320</x>
      <y>480</y>
-     <width>491</width>
+     <width>551</width>
      <height>231</height>
     </rect>
    </property>
@@ -713,7 +713,7 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>491</width>
+      <width>551</width>
       <height>231</height>
      </rect>
     </property>
@@ -729,7 +729,7 @@
     <widget class="QPushButton" name="btnDataFaultCompute">
      <property name="geometry">
       <rect>
-       <x>360</x>
+       <x>420</x>
        <y>20</y>
        <width>115</width>
        <height>30</height>
@@ -744,7 +744,7 @@
       <rect>
        <x>10</x>
        <y>60</y>
-       <width>281</width>
+       <width>321</width>
        <height>161</height>
       </rect>
      </property>
@@ -770,9 +770,9 @@
     <widget class="QTextEdit" name="textMomentRateFault">
      <property name="geometry">
       <rect>
-       <x>290</x>
+       <x>330</x>
        <y>60</y>
-       <width>191</width>
+       <width>211</width>
        <height>161</height>
       </rect>
      </property>
@@ -806,7 +806,7 @@
       <rect>
        <x>210</x>
        <y>0</y>
-       <width>271</width>
+       <width>331</width>
        <height>21</height>
       </rect>
      </property>
@@ -840,7 +840,7 @@
     <rect>
      <x>320</x>
      <y>230</y>
-     <width>491</width>
+     <width>551</width>
      <height>251</height>
     </rect>
    </property>
@@ -849,7 +849,7 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>491</width>
+      <width>551</width>
       <height>241</height>
      </rect>
     </property>
@@ -865,7 +865,7 @@
     <widget class="QPushButton" name="btnDataFaultBackgrCompute">
      <property name="geometry">
       <rect>
-       <x>360</x>
+       <x>420</x>
        <y>20</y>
        <width>115</width>
        <height>30</height>
@@ -880,7 +880,7 @@
       <rect>
        <x>10</x>
        <y>60</y>
-       <width>281</width>
+       <width>321</width>
        <height>181</height>
       </rect>
      </property>
@@ -893,9 +893,9 @@
     <widget class="QTextEdit" name="textMomentRateFaultBackgr">
      <property name="geometry">
       <rect>
-       <x>290</x>
+       <x>330</x>
        <y>60</y>
-       <width>191</width>
+       <width>211</width>
        <height>181</height>
       </rect>
      </property>
@@ -929,7 +929,7 @@
       <rect>
        <x>150</x>
        <y>0</y>
-       <width>331</width>
+       <width>391</width>
        <height>21</height>
       </rect>
      </property>
