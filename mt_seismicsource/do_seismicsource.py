@@ -164,7 +164,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         
         # Spinbox Fault Background Zones, threshold magnitude: init value
         self.spinboxFBZMThres.setValue(
-            momentbalancing.FAULT_BACKGROUND_MAG_THRESHOLD)
+            recurrence.FAULT_BACKGROUND_MAG_THRESHOLD)
         
         self.progressBarLoadData.setValue(0)
 
@@ -358,7 +358,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         recurrence.assignRecurrence(self.fault_source_layer, 
             self.fault_background_layer, self.background_zone_layer, 
-            self.catalog, mmin=self.spinboxFaultAtticIvyMmin.value())
+            self.catalog, mmin=self.spinboxFaultAtticIvyMmin.value(),
+            m_threshold=self.spinboxFBZMThres.value())
 
     def browseAreaZoneFiles(self):
         """Show Open File dialog for Area Source Zone files."""

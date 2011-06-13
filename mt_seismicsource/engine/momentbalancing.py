@@ -46,8 +46,6 @@ from mt_seismicsource.engine import fmd
 from mt_seismicsource.layers import areasource
 from mt_seismicsource.layers import eqcatalog
 
-FAULT_BACKGROUND_MAG_THRESHOLD = 5.5
-
 # ----------------------------------------------------------------------------
 
 def updateDataArea(cls, feature):
@@ -302,6 +300,19 @@ def updateDataFault(cls, feature):
     parameters['activity_bz'] = str(
         feature[attribute_map_fault[act_bz_name][0]].toString())
     
+    # a and b value from FBZ, above magnitude threshold
+
+    a_fbz_at_name = features.FAULT_SOURCE_ATTR_A_FBZ_AT['name']
+    b_fbz_at_name = features.FAULT_SOURCE_ATTR_B_FBZ_AT['name']
+    act_fbz_at_name = features.FAULT_SOURCE_ATTR_ACT_FBZ_AT['name']
+
+    parameters['activity_fbz_at_a'] = \
+        feature[attribute_map_fault[a_fbz_at_name][0]].toDouble()[0]
+    parameters['activity_fbz_at_b'] = \
+        feature[attribute_map_fault[b_fbz_at_name][0]].toDouble()[0]
+    parameters['activity_fbz_at'] = str(
+        feature[attribute_map_fault[act_fbz_at_name][0]].toString())
+    
     # a values from recurrence (fault layer attributes)
     
     a_rec_min_name = features.FAULT_SOURCE_ATTR_A_REC_MIN['name']
@@ -312,8 +323,7 @@ def updateDataFault(cls, feature):
     parameters['activity_rec_a_max'] = \
         feature[attribute_map_fault[a_rec_max_name][0]].toDouble()[0]
         
-    # compute moment rates from activity: use a and b values from
-    # buffer zone
+    # moment rates from activity: use a and b values from buffer zone
 
     act_bz_arr = parameters['activity_bz'].strip().split()
     a_bz_arr = [float(x) for x in act_bz_arr[1::3]]
@@ -322,9 +332,22 @@ def updateDataFault(cls, feature):
     momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
         a_bz_arr, b_bz_arr, mmax)) / eqcatalog.CATALOG_TIME_SPAN
 
-    parameters['mmax'] = mmax
     parameters['mr_activity'] = momentrates_arr.tolist()
 
+    # moment rates from activity: use a and b values from FBZ 
+    # (above threshold)
+
+    act_fbz_at_arr = parameters['activity_fbz_at'].strip().split()
+    a_fbz_at_arr = [float(x) for x in act_fbz_at_arr[1::3]]
+    b_fbz_at_arr = [float(x) for x in act_fbz_at_arr[2::3]]
+    
+    momentrates_fbz_at_arr = numpy.array(momentrate.momentrateFromActivity(
+        a_fbz_at_arr, b_fbz_at_arr, mmax)) / eqcatalog.CATALOG_TIME_SPAN
+
+    parameters['mr_activity_fbz_at'] = momentrates_fbz_at_arr.tolist()
+    
+    parameters['mmax'] = mmax
+    
     ## moment rate from slip rate
 
     sliprate_min_name = features.FAULT_SOURCE_ATTR_SLIPRATE_MIN['name']
@@ -366,6 +389,10 @@ def updateTextActivityFault(cls, parameters):
         parameters['activity_fbz_b'], 
         parameters['fbz_id']))
         
+    text += "<b>(RM)</b> a: %.3f b: %.3f (FBZ, above M threshold)<br/>" % (
+        (parameters['activity_fbz_at_a'], 
+        parameters['activity_fbz_at_b']))
+        
     text += \
         "<b>(from slip)</b> a: %.3f (min), %.3f (max), b: %.3f (FBZ)<br/>" % (
         parameters['activity_rec_a_min'],
@@ -390,8 +417,10 @@ def updateTextMomentRateFault(cls, parameters):
     text = ''
     text += "<b>Moment Rate</b><br/>"
     text += "[EQ] %.2e<br/>" % parameters['mr_eq']
-    text += "[Act] %.2e<br/>" % (
+    text += "[Act (buffer)] %.2e<br/>" % (
         utils.centralValueOfList(parameters['mr_activity']))
+    text += "[Act (FBZ)] %.2e<br/>" % (
+        utils.centralValueOfList(parameters['mr_activity_fbz_at']))
     text += "[Slip (min)] %.2e<br/>" %  parameters['mr_slip'][0]
     text += "[Slip (max)] %.2e" %  parameters['mr_slip'][1]
     cls.textMomentRateFault.setText(text)
@@ -418,7 +447,7 @@ def updatePlotMomentRateFault(cls, parameters):
 # ----------------------------------------------------------------------------
 
 def updateDataFaultBackgr(cls, feature, 
-    m_threshold=FAULT_BACKGROUND_MAG_THRESHOLD):
+    m_threshold=recurrence.FAULT_BACKGROUND_MAG_THRESHOLD):
     """Update or compute moment rates for selected feature of fault background
     zone layer.
 
