@@ -310,13 +310,13 @@
       </property>
      </widget>
     </widget>
-    <widget class="QGroupBox" name="groupBoxAreaZone">
+    <widget class="QGroupBox" name="groupBoxSettings">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>310</y>
        <width>291</width>
-       <height>71</height>
+       <height>391</height>
       </rect>
      </property>
      <property name="font">
@@ -326,177 +326,231 @@
       </font>
      </property>
      <property name="title">
-      <string>Area Source Zone</string>
+      <string>Settings</string>
      </property>
-     <widget class="QLabel" name="labelSpinboxAreaAtticIvyMmin">
+     <widget class="QGroupBox" name="groupBoxAreaZone">
       <property name="geometry">
        <rect>
         <x>10</x>
         <y>30</y>
-        <width>81</width>
-        <height>21</height>
+        <width>271</width>
+        <height>61</height>
        </rect>
       </property>
       <property name="font">
        <font>
-        <weight>50</weight>
-        <bold>false</bold>
+        <weight>75</weight>
+        <bold>true</bold>
        </font>
       </property>
-      <property name="text">
-       <string>AtticIvy Mmin</string>
+      <property name="title">
+       <string>Area Source Zone (ASZ)</string>
       </property>
+      <widget class="QLabel" name="labelSpinboxAreaAtticIvyMmin">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>30</y>
+         <width>81</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>AtticIvy Mmin</string>
+       </property>
+      </widget>
+      <widget class="QDoubleSpinBox" name="spinboxAreaAtticIvyMmin">
+       <property name="geometry">
+        <rect>
+         <x>90</x>
+         <y>30</y>
+         <width>51</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="decimals">
+        <number>1</number>
+       </property>
+       <property name="singleStep">
+        <double>0.100000000000000</double>
+       </property>
+       <property name="value">
+        <double>3.500000000000000</double>
+       </property>
+      </widget>
      </widget>
-     <widget class="QDoubleSpinBox" name="spinboxAreaAtticIvyMmin">
-      <property name="geometry">
-       <rect>
-        <x>90</x>
-        <y>30</y>
-        <width>51</width>
-        <height>22</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <weight>50</weight>
-        <bold>false</bold>
-       </font>
-      </property>
-      <property name="decimals">
-       <number>1</number>
-      </property>
-      <property name="singleStep">
-       <double>0.100000000000000</double>
-      </property>
-      <property name="value">
-       <double>3.500000000000000</double>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QGroupBox" name="groupBoxFaultBackgroundZone">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>390</y>
-       <width>291</width>
-       <height>71</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="title">
-      <string>Fault Background Zone</string>
-     </property>
-     <widget class="QLabel" name="labelSpinboxFBZMThres">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>30</y>
-        <width>81</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <weight>50</weight>
-        <bold>false</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>M (threshold)</string>
-      </property>
-     </widget>
-     <widget class="QDoubleSpinBox" name="spinboxFBZMThres">
-      <property name="geometry">
-       <rect>
-        <x>100</x>
-        <y>30</y>
-        <width>51</width>
-        <height>22</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <weight>50</weight>
-        <bold>false</bold>
-       </font>
-      </property>
-      <property name="decimals">
-       <number>1</number>
-      </property>
-      <property name="singleStep">
-       <double>0.100000000000000</double>
-      </property>
-      <property name="value">
-       <double>5.500000000000000</double>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QGroupBox" name="groupBoxFaultZone">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>470</y>
-       <width>291</width>
-       <height>71</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="title">
-      <string>Fault Source Zone</string>
-     </property>
-     <widget class="QLabel" name="labelSpinboxFaultAtticIvyMmin">
+     <widget class="QGroupBox" name="groupBoxFaultBackgroundZone">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>30</y>
-        <width>81</width>
-        <height>21</height>
+        <y>100</y>
+        <width>271</width>
+        <height>61</height>
        </rect>
       </property>
       <property name="font">
        <font>
-        <weight>50</weight>
-        <bold>false</bold>
+        <weight>75</weight>
+        <bold>true</bold>
        </font>
       </property>
-      <property name="text">
-       <string>AtticIvy Mmin</string>
+      <property name="title">
+       <string>SSZ Background Zone</string>
       </property>
+      <widget class="QLabel" name="labelSpinboxFBZMThres">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>30</y>
+         <width>81</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>M (threshold)</string>
+       </property>
+      </widget>
+      <widget class="QDoubleSpinBox" name="spinboxFBZMThres">
+       <property name="geometry">
+        <rect>
+         <x>100</x>
+         <y>30</y>
+         <width>51</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="decimals">
+        <number>1</number>
+       </property>
+       <property name="singleStep">
+        <double>0.100000000000000</double>
+       </property>
+       <property name="value">
+        <double>5.500000000000000</double>
+       </property>
+      </widget>
      </widget>
-     <widget class="QDoubleSpinBox" name="spinboxFaultAtticIvyMmin">
+     <widget class="QGroupBox" name="groupBoxFaultZone">
       <property name="geometry">
        <rect>
-        <x>90</x>
-        <y>30</y>
-        <width>51</width>
-        <height>22</height>
+        <x>10</x>
+        <y>170</y>
+        <width>271</width>
+        <height>131</height>
        </rect>
       </property>
       <property name="font">
        <font>
-        <weight>50</weight>
-        <bold>false</bold>
+        <weight>75</weight>
+        <bold>true</bold>
        </font>
       </property>
-      <property name="decimals">
-       <number>1</number>
+      <property name="title">
+       <string>Seismogenic Source Zone (SSZ)</string>
       </property>
-      <property name="singleStep">
-       <double>0.100000000000000</double>
-      </property>
-      <property name="value">
-       <double>5.000000000000000</double>
-      </property>
+      <widget class="QLabel" name="labelSpinboxFaultAtticIvyMmin">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>30</y>
+         <width>81</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>AtticIvy Mmin</string>
+       </property>
+      </widget>
+      <widget class="QDoubleSpinBox" name="spinboxFaultAtticIvyMmin">
+       <property name="geometry">
+        <rect>
+         <x>90</x>
+         <y>30</y>
+         <width>51</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="decimals">
+        <number>1</number>
+       </property>
+       <property name="singleStep">
+        <double>0.100000000000000</double>
+       </property>
+       <property name="value">
+        <double>5.000000000000000</double>
+       </property>
+      </widget>
+      <widget class="QLabel" name="labelRecurrenceModel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>60</y>
+         <width>101</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Recurrence Model</string>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="comboBoxRecurrenceModel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>80</y>
+         <width>251</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+      </widget>
      </widget>
     </widget>
    </widget>
@@ -533,7 +587,7 @@
       <rect>
        <x>10</x>
        <y>0</y>
-       <width>111</width>
+       <width>141</width>
        <height>21</height>
       </rect>
      </property>
@@ -544,7 +598,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Area Source Zone</string>
+      <string>Area Source Zone (ASZ)</string>
      </property>
     </widget>
     <widget class="QPushButton" name="btnDataAreaCompute">
@@ -606,9 +660,9 @@
     <widget class="QLabel" name="labelMomentRateAreaID">
      <property name="geometry">
       <rect>
-       <x>130</x>
+       <x>160</x>
        <y>0</y>
-       <width>351</width>
+       <width>321</width>
        <height>21</height>
       </rect>
      </property>
@@ -635,6 +689,14 @@
       <string>Plot Moment Rate</string>
      </property>
     </widget>
+    <zorder>labelMomentRateAreaTitle</zorder>
+    <zorder>btnDataAreaCompute</zorder>
+    <zorder>textActivityArea</zorder>
+    <zorder>btnDataAreaDisplayFMD</zorder>
+    <zorder>textMomentRateArea</zorder>
+    <zorder>labelMomentRateAreaID</zorder>
+    <zorder>btnDataAreaDisplayMR</zorder>
+    <zorder>groupBoxControl</zorder>
    </widget>
   </widget>
   <widget class="QWidget" name="widgetMomentRateFault" native="true">
@@ -725,7 +787,7 @@
       <rect>
        <x>10</x>
        <y>0</y>
-       <width>111</width>
+       <width>191</width>
        <height>21</height>
       </rect>
      </property>
@@ -736,15 +798,15 @@
       </font>
      </property>
      <property name="text">
-      <string>Fault Source Zone</string>
+      <string>Seismogenic Source Zone (SSZ)</string>
      </property>
     </widget>
     <widget class="QLabel" name="labelMomentRateFaultID">
      <property name="geometry">
       <rect>
-       <x>130</x>
+       <x>210</x>
        <y>0</y>
-       <width>351</width>
+       <width>271</width>
        <height>21</height>
       </rect>
      </property>
@@ -848,7 +910,7 @@
       <rect>
        <x>10</x>
        <y>0</y>
-       <width>141</width>
+       <width>131</width>
        <height>21</height>
       </rect>
      </property>
@@ -859,15 +921,15 @@
       </font>
      </property>
      <property name="text">
-      <string>Fault Background Zone</string>
+      <string>SSZ Background Zone</string>
      </property>
     </widget>
     <widget class="QLabel" name="labelMomentRateFaultBackgrID">
      <property name="geometry">
       <rect>
-       <x>160</x>
+       <x>150</x>
        <y>0</y>
-       <width>321</width>
+       <width>331</width>
        <height>21</height>
       </rect>
      </property>

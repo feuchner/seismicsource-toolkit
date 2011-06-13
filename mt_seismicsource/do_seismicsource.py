@@ -154,6 +154,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             faultbackground.FAULT_BACKGROUND_FILES)
         self.comboBoxEQCatalogInput.addItems(eqcatalog.CATALOG_FILES)
         
+        # combobox: Recurrence model
+        self.comboBoxRecurrenceModel.addItems(
+            recurrence.RECURRENCE_MODEL_NAMES)
+        
         # Spinboxes AtticIvy Mmin: init values
         self.spinboxAreaAtticIvyMmin.setValue(atticivy.AREA_ATTICIVY_MMIN)
         self.spinboxFaultAtticIvyMmin.setValue(atticivy.FAULT_ATTICIVY_MMIN)

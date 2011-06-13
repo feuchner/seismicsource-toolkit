@@ -60,6 +60,8 @@ ALPHA_BUNGUM = 1.0e-04
 # to do
 FAULT_ASPECT_RATIO = 2.0
 
+RECURRENCE_MODEL_NAMES = ("Anderson-Luco (1983) Model 2",)
+
 def assignRecurrence(layer_fault, layer_fault_background=None, 
     layer_background=None, catalog=None, b_value=None, 
     mmin=atticivy.FAULT_ATTICIVY_MMIN):
