@@ -294,7 +294,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         selected_feature = self.fault_source_layer.selectedFeatures()[0]
 
         self.feature_data_fault_source['parameters'] = \
-            momentbalancing.updateDataFault(self, selected_feature)
+            momentbalancing.updateDataFault(self, selected_feature,
+            m_threshold=self.spinboxFBZMThres.value())
         momentbalancing.updateDisplaysFault(self, 
             self.feature_data_fault_source['parameters'])
 

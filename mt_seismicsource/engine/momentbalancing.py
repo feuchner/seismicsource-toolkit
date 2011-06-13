@@ -192,7 +192,8 @@ def updatePlotMomentRateArea(cls, parameters):
 
 # ----------------------------------------------------------------------------
 
-def updateDataFault(cls, feature):
+def updateDataFault(cls, feature,
+    m_threshold=recurrence.FAULT_BACKGROUND_MAG_THRESHOLD):
     """Update or compute moment rates for selected feature of fault source
     zone layer.
 
@@ -229,20 +230,17 @@ def updateDataFault(cls, feature):
     (fbz, fbz_poly, parameters['area_fbz_sqkm']) = utils.findBackgroundZone(
         fault_poly.centroid, provider_fault_back)
 
-    attribute_map_fault = utils.getAttributeIndex(provider, 
-        features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE, create=False)
-        
-    # get fault background zone ID
-    id_name = features.FAULT_SOURCE_ATTR_ID_FBZ['name']
-    parameters['fbz_id'] = str(
-        feature[attribute_map_fault[id_name][0]].toString())
-        
+    recurrence_attributes = getAttributesFromRecurrence(provider, feature)
+    parameters.update(recurrence_attributes)
+    
     # get mmax and mcdist for FBZ from background zone
     (mcdist_qv, mmax_qv) = areasource.getAttributesFromBackgroundZones(
         fbz_poly.centroid, provider_back, areasource.MCDIST_MMAX_ATTRIBUTES)
         
     mmax = float(mmax_qv.toDouble()[0])
     mcdist = str(mcdist_qv.toString())
+    
+    parameters['mmax'] = mmax
     
     ## moment rate from EQs
 
@@ -274,55 +272,6 @@ def updateDataFault(cls, feature):
 
     ## moment rate from activity (RM)
 
-    # a and b value from FBZ (fault layer attributes)
-
-    a_fbz_name = features.FAULT_SOURCE_ATTR_A_FBZ['name']
-    b_fbz_name = features.FAULT_SOURCE_ATTR_B_FBZ['name']
-    act_fbz_name = features.FAULT_SOURCE_ATTR_ACT_FBZ['name']
-
-    parameters['activity_fbz_a'] = \
-        feature[attribute_map_fault[a_fbz_name][0]].toDouble()[0]
-    parameters['activity_fbz_b'] = \
-        feature[attribute_map_fault[b_fbz_name][0]].toDouble()[0]
-    parameters['activity_fbz'] = str(
-        feature[attribute_map_fault[act_fbz_name][0]].toString())
-    
-    # a and b value from buffer zone (fault layer attributes)
-
-    a_bz_name = features.FAULT_SOURCE_ATTR_A_BUF['name']
-    b_bz_name = features.FAULT_SOURCE_ATTR_B_BUF['name']
-    act_bz_name = features.FAULT_SOURCE_ATTR_ACT_BUF['name']
-
-    parameters['activity_bz_a'] = \
-        feature[attribute_map_fault[a_bz_name][0]].toDouble()[0]
-    parameters['activity_bz_b'] = \
-        feature[attribute_map_fault[b_bz_name][0]].toDouble()[0]
-    parameters['activity_bz'] = str(
-        feature[attribute_map_fault[act_bz_name][0]].toString())
-    
-    # a and b value from FBZ, above magnitude threshold
-
-    a_fbz_at_name = features.FAULT_SOURCE_ATTR_A_FBZ_AT['name']
-    b_fbz_at_name = features.FAULT_SOURCE_ATTR_B_FBZ_AT['name']
-    act_fbz_at_name = features.FAULT_SOURCE_ATTR_ACT_FBZ_AT['name']
-
-    parameters['activity_fbz_at_a'] = \
-        feature[attribute_map_fault[a_fbz_at_name][0]].toDouble()[0]
-    parameters['activity_fbz_at_b'] = \
-        feature[attribute_map_fault[b_fbz_at_name][0]].toDouble()[0]
-    parameters['activity_fbz_at'] = str(
-        feature[attribute_map_fault[act_fbz_at_name][0]].toString())
-    
-    # a values from recurrence (fault layer attributes)
-    
-    a_rec_min_name = features.FAULT_SOURCE_ATTR_A_REC_MIN['name']
-    a_rec_max_name = features.FAULT_SOURCE_ATTR_A_REC_MAX['name']
-    
-    parameters['activity_rec_a_min'] = \
-        feature[attribute_map_fault[a_rec_min_name][0]].toDouble()[0]
-    parameters['activity_rec_a_max'] = \
-        feature[attribute_map_fault[a_rec_max_name][0]].toDouble()[0]
-        
     # moment rates from activity: use a and b values from buffer zone
 
     act_bz_arr = parameters['activity_bz'].strip().split()
@@ -346,24 +295,14 @@ def updateDataFault(cls, feature):
 
     parameters['mr_activity_fbz_at'] = momentrates_fbz_at_arr.tolist()
     
-    parameters['mmax'] = mmax
-    
+    parameters['activity_m_threshold'] = m_threshold
+
     ## moment rate from slip rate
 
-    sliprate_min_name = features.FAULT_SOURCE_ATTR_SLIPRATE_MIN['name']
-    sliprate_max_name = features.FAULT_SOURCE_ATTR_SLIPRATE_MAX['name']
-    mmax_fault_name = features.FAULT_SOURCE_ATTR_MAGNITUDE_MAX['name']
-    
-    sliprate_min = \
-        feature[attribute_map_fault[sliprate_min_name][0]].toDouble()[0]
-    sliprate_max = \
-        feature[attribute_map_fault[sliprate_max_name][0]].toDouble()[0]
-    parameters['mmax_fault'] = \
-        feature[attribute_map_fault[mmax_fault_name][0]].toDouble()[0]
-            
     # TODO(fab): check correct scaling of moment rate from slip rate
     (moment_rate_min, moment_rate_max) = \
-        momentrate.momentrateFromSlipRate(sliprate_min, sliprate_max, 
+        momentrate.momentrateFromSlipRate(parameters['sliprate_min'], 
+            parameters['sliprate_max'], 
             parameters['area_fault_sqkm'] * 1.0e6)
 
     parameters['mr_slip'] = [moment_rate_min, moment_rate_max]
@@ -380,18 +319,19 @@ def updateTextActivityFault(cls, parameters):
     text = ''
     text += "<b>Activity</b><br/>"
     text += "<b>(RM)</b> a: %.3f b: %.3f (%s km buffer)<br/>" % (
-        (parameters['activity_bz_a'], 
+        parameters['activity_bz_a'], 
         parameters['activity_bz_b'], 
-        int(momentrate.BUFFER_AROUND_FAULT_ZONE_KM)))
+        int(momentrate.BUFFER_AROUND_FAULT_ZONE_KM))
         
     text += "<b>(RM)</b> a: %.3f b: %.3f (FBZ, ID %s)<br/>" % (
-        (parameters['activity_fbz_a'], 
+        parameters['activity_fbz_a'], 
         parameters['activity_fbz_b'], 
-        parameters['fbz_id']))
+        parameters['fbz_id'])
         
-    text += "<b>(RM)</b> a: %.3f b: %.3f (FBZ, above M threshold)<br/>" % (
-        (parameters['activity_fbz_at_a'], 
-        parameters['activity_fbz_at_b']))
+    text += "<b>(RM)</b> a: %.3f b: %.3f (FBZ, above M%s)<br/>" % (
+        parameters['activity_fbz_at_a'], 
+        parameters['activity_fbz_at_b'],
+        parameters['activity_m_threshold'])
         
     text += \
         "<b>(from slip)</b> a: %.3f (min), %.3f (max), b: %.3f (FBZ)<br/>" % (
@@ -480,6 +420,8 @@ def updateDataFaultBackgr(cls, feature,
     mmax = float(mmax_qv.toDouble()[0])
     mcdist = str(mcdist_qv.toString())
 
+    parameters['mmax'] = mmax 
+    
     ## moment rate from EQs
 
     # get quakes from catalog (cut with fault background zone polygon)
@@ -569,7 +511,6 @@ def updateDataFaultBackgr(cls, feature,
     parameters['mr_activity_below'] = momentrates_below_arr.tolist()
     parameters['mr_activity_above'] = momentrates_above_arr.tolist()
     
-    parameters['mmax'] = mmax 
     parameters['activity_mmin'] = mmin
     parameters['activity_m_threshold'] = m_threshold
     
@@ -668,9 +609,93 @@ def updateTextMomentRateFaultBackgr(cls, parameters):
     text += "[EQ] %.2e<br/>" % parameters['mr_eq']
     text += "[Act] %.2e<br/>" % (
         utils.centralValueOfList(parameters['mr_activity']))
+    text += "[Act (below M%s)] %.2e<br/>" % (
+        parameters['activity_m_threshold'],
+        utils.centralValueOfList(parameters['mr_activity_below']))
+    text += "[Act (above M%s)] %.2e<br/>" % (
+        parameters['activity_m_threshold'],
+        utils.centralValueOfList(parameters['mr_activity_above']))
     text += "[Slip (min)] %.2e<br/>" %  parameters['mr_slip'][0]
     text += "[Slip (max)] %.2e<br/>" %  parameters['mr_slip'][1]
     
     text += "[Strain (Bird)] %.2e<br/>" % parameters['mr_strain_bird']
     text += "[Strain (Barba)] %.2e" % parameters['mr_strain_barba']
     cls.textMomentRateFaultBackgr.setText(text)
+
+# ----------------------------------------------------------------------------
+
+def getAttributesFromRecurrence(provider, feature):
+    """Read recurrence attributes from fault layer."""
+    
+    parameters = {}
+    
+    attribute_map_fault = utils.getAttributeIndex(provider, 
+        features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE, create=False)
+        
+    # get fault background zone ID
+    id_name = features.FAULT_SOURCE_ATTR_ID_FBZ['name']
+    parameters['fbz_id'] = str(
+        feature[attribute_map_fault[id_name][0]].toString())
+        
+    # a and b value from FBZ (fault layer attributes)
+
+    a_fbz_name = features.FAULT_SOURCE_ATTR_A_FBZ['name']
+    b_fbz_name = features.FAULT_SOURCE_ATTR_B_FBZ['name']
+    act_fbz_name = features.FAULT_SOURCE_ATTR_ACT_FBZ['name']
+
+    parameters['activity_fbz_a'] = \
+        feature[attribute_map_fault[a_fbz_name][0]].toDouble()[0]
+    parameters['activity_fbz_b'] = \
+        feature[attribute_map_fault[b_fbz_name][0]].toDouble()[0]
+    parameters['activity_fbz'] = str(
+        feature[attribute_map_fault[act_fbz_name][0]].toString())
+    
+    # a and b value from buffer zone (fault layer attributes)
+
+    a_bz_name = features.FAULT_SOURCE_ATTR_A_BUF['name']
+    b_bz_name = features.FAULT_SOURCE_ATTR_B_BUF['name']
+    act_bz_name = features.FAULT_SOURCE_ATTR_ACT_BUF['name']
+
+    parameters['activity_bz_a'] = \
+        feature[attribute_map_fault[a_bz_name][0]].toDouble()[0]
+    parameters['activity_bz_b'] = \
+        feature[attribute_map_fault[b_bz_name][0]].toDouble()[0]
+    parameters['activity_bz'] = str(
+        feature[attribute_map_fault[act_bz_name][0]].toString())
+    
+    # a and b value from FBZ, above magnitude threshold
+
+    a_fbz_at_name = features.FAULT_SOURCE_ATTR_A_FBZ_AT['name']
+    b_fbz_at_name = features.FAULT_SOURCE_ATTR_B_FBZ_AT['name']
+    act_fbz_at_name = features.FAULT_SOURCE_ATTR_ACT_FBZ_AT['name']
+
+    parameters['activity_fbz_at_a'] = \
+        feature[attribute_map_fault[a_fbz_at_name][0]].toDouble()[0]
+    parameters['activity_fbz_at_b'] = \
+        feature[attribute_map_fault[b_fbz_at_name][0]].toDouble()[0]
+    parameters['activity_fbz_at'] = str(
+        feature[attribute_map_fault[act_fbz_at_name][0]].toString())
+    
+    # a values from recurrence (fault layer attributes)
+    
+    a_rec_min_name = features.FAULT_SOURCE_ATTR_A_REC_MIN['name']
+    a_rec_max_name = features.FAULT_SOURCE_ATTR_A_REC_MAX['name']
+    
+    parameters['activity_rec_a_min'] = \
+        feature[attribute_map_fault[a_rec_min_name][0]].toDouble()[0]
+    parameters['activity_rec_a_max'] = \
+        feature[attribute_map_fault[a_rec_max_name][0]].toDouble()[0]
+        
+    sliprate_min_name = features.FAULT_SOURCE_ATTR_SLIPRATE_MIN['name']
+    sliprate_max_name = features.FAULT_SOURCE_ATTR_SLIPRATE_MAX['name']
+    mmax_fault_name = features.FAULT_SOURCE_ATTR_MAGNITUDE_MAX['name']
+    
+    parameters['sliprate_min'] = \
+        feature[attribute_map_fault[sliprate_min_name][0]].toDouble()[0]
+    parameters['sliprate_max'] = \
+        feature[attribute_map_fault[sliprate_max_name][0]].toDouble()[0]
+    parameters['mmax_fault'] = \
+        feature[attribute_map_fault[mmax_fault_name][0]].toDouble()[0]
+
+    return parameters
+    
