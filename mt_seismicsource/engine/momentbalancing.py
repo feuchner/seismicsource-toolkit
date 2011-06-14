@@ -297,6 +297,9 @@ def updateDataFault(cls, feature,
     
     parameters['activity_m_threshold'] = m_threshold
 
+    # TODO(fab): compute FMD from quakes and write to parameters
+    # needed in recurrence plot
+    
     ## moment rate from slip rate
 
     # TODO(fab): check correct scaling of moment rate from slip rate

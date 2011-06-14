@@ -137,8 +137,8 @@ class MomentRateComparisonPlotArea(qpplot.QPPlot):
         # self.pyplot.rcParams['figure.figsize'] = (5, 5)
         self.ax = self.figure.add_subplot(111)
 
-        for key_idx, key in enumerate(('mr_eq', 'mr_activity', 'mr_strain_barba', 
-            'mr_strain_bird')):
+        for key_idx, key in enumerate(('mr_eq', 'mr_activity', 
+            'mr_strain_barba', 'mr_strain_bird')):
 
             if isinstance(data[key], list):
                 ordinate_length = len(data[key])

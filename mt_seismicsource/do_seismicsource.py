@@ -333,7 +333,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         selected_feature = self.fault_source_layer.selectedFeatures()[0]
         
         self.feature_data_fault_source['recurrence_fig'] = fmd.plotRecurrence(
-            self, selected_feature)
+            self, selected_feature, 
+            self.feature_data_fault_source['parameters'])
 
     def displayDataFaultMomentRates(self):
         if 'parameters' in self.feature_data_fault_source:

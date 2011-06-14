@@ -129,7 +129,7 @@ def computeFMDArray(a_value, b_value, mag_arr, area=None):
         
     return numpy.vstack((mag_arr, occurrence))
 
-def plotRecurrence(cls, feature):
+def plotRecurrence(cls, feature, parameters=None):
 
     window = plots.createPlotWindow(cls)
 
@@ -146,7 +146,7 @@ def plotRecurrence(cls, feature):
 
     # new recurrence FMD plot (returns figure)
     plot = qpplot.FMDPlotRecurrence()
-    figure = plot.plot(imgfile=None, data=distrodata)
+    figure = plot.plot(imgfile=None, occurrence=distrodata)
 
     canvas = plots.PlotCanvas(figure, title="Recurrence")
     canvas.draw()
