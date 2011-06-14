@@ -69,7 +69,6 @@ def computeZoneFMD(cls, feature):
     catalog_selected.merge(cls.catalog)
     catalog_selected.cut(geometry=poly)
 
-    # return catalog_selected.getFmd(minEventsGR=MIN_EVENTS_FOR_GR)
     return FMDMulti(catalog_selected.eventParameters, 
         minEventsGR=MIN_EVENTS_FOR_GR, time_span=eqcatalog.CATALOG_TIME_SPAN)
 
@@ -84,13 +83,16 @@ def plotZoneFMD(cls, fmd, parameters, normalize=FMD_COMPUTE_ANNUAL_RATE):
         fits.append({'data': activity_ml_arr, 'label': "Activity (ML)"})
         
     # TODO(fab): do we have to scale RM occurrences with zone area?
+    # it seems to be the case (double-check)
     activity_rm_arr = computeFMDArray(
         utils.centralValueOfList(parameters['activity_a']), 
         utils.centralValueOfList(parameters['activity_b']), 
         fmd.fmd[0, :], 
         area=parameters['area_sqkm'])
     
-    fits.append({'data': activity_rm_arr, 'label': "Activity (RM)"})
+    # TODO(fab): at the moment, do not show RM fit results (check correctness
+    # first)
+    # fits.append({'data': activity_rm_arr, 'label': "Activity (RM)"})
     
     # new FMD plot 
     figure = fmd.plot(imgfile=None, fits=fits, fmdtype='cumulative', 
