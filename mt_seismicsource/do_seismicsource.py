@@ -305,7 +305,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         if 'fmd' in self.feature_data_area_source:
             self.feature_data_area_source['fmd_fig'] = fmd.plotZoneFMD(self, 
-                self.feature_data_area_source['fmd'])
+                self.feature_data_area_source['fmd'], 
+                self.feature_data_area_source['parameters'])
 
     def displayDataAreaMomentRates(self):
         """Update moment rate display for one selected area zone from
