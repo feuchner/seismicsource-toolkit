@@ -122,7 +122,8 @@ def updateDataArea(cls, feature):
     parameters['mr_activity'] = momentrates_arr.tolist()
 
     ## Maximum likelihood a/b values
-    cls.feature_data_area_source['fmd'] = fmd.computeZoneFMD(cls, feature)
+    cls.feature_data_area_source['fmd'] = fmd.computeZoneFMD(cls, feature, 
+        poly_cat)
     (parameters['ml_a'], parameters['ml_b'], parameters['ml_mc']) = \
         fmd.getFMDValues(cls.feature_data_area_source['fmd'])
     
@@ -297,9 +298,12 @@ def updateDataFault(cls, feature,
     
     parameters['activity_m_threshold'] = m_threshold
 
-    # TODO(fab): compute FMD from quakes and write to parameters
-    # needed in recurrence plot
-    
+    # FMD from quakes in FBZ
+    cls.feature_data_fault_source['fmd'] = fmd.computeZoneFMD(cls, feature, 
+        fbz_cat)
+    (parameters['ml_a'], parameters['ml_b'], parameters['ml_mc']) = \
+        fmd.getFMDValues(cls.feature_data_fault_source['fmd'])
+        
     ## moment rate from slip rate
 
     # TODO(fab): check correct scaling of moment rate from slip rate

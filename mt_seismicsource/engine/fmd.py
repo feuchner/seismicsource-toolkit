@@ -57,20 +57,21 @@ class FMDMulti(qpfmd.FrequencyMagnitudeDistribution):
         return qpplot.FMDPlotCombinedMulti().plot(imgfile, self.fmd, fits, 
             **kwargs)
             
-def computeZoneFMD(cls, feature):
+def computeZoneFMD(cls, feature, catalog=None):
     """Compute FMD for selected feature."""
 
-    # cut catalog to feature
-    polylist, vertices = utils.polygonsQGS2Shapely((feature,))
-    poly = polylist[0]
+    if catalog is None:
+        # cut catalog to feature
+        polylist, vertices = utils.polygonsQGS2Shapely((feature,))
+        poly = polylist[0]
     
-    # cut catalog with selected polygons
-    catalog_selected = QPCatalog.QPCatalog()
-    catalog_selected.merge(cls.catalog)
-    catalog_selected.cut(geometry=poly)
+        # cut catalog with selected polygon
+        catalog = QPCatalog.QPCatalog()
+        catalog.merge(cls.catalog)
+        catalog.cut(geometry=poly)
 
-    return FMDMulti(catalog_selected.eventParameters, 
-        minEventsGR=MIN_EVENTS_FOR_GR, time_span=eqcatalog.CATALOG_TIME_SPAN)
+    return FMDMulti(catalog.eventParameters, minEventsGR=MIN_EVENTS_FOR_GR, 
+        time_span=eqcatalog.CATALOG_TIME_SPAN)
 
 def plotZoneFMD(cls, fmd, parameters, normalize=FMD_COMPUTE_ANNUAL_RATE):
 
@@ -129,7 +130,7 @@ def computeFMDArray(a_value, b_value, mag_arr, area=None):
         
     return numpy.vstack((mag_arr, occurrence))
 
-def plotRecurrence(cls, feature, parameters=None):
+def plotRecurrence(cls, feature, fault_data=None):
 
     window = plots.createPlotWindow(cls)
 
@@ -144,9 +145,23 @@ def plotRecurrence(cls, feature, parameters=None):
 
     distrodata = numpy.vstack((distrodata_min, distrodata_max[1, :]))
 
+    fits = []
+    if fault_data['fmd'].GR is not None:
+        activity_ml_arr = numpy.vstack((
+            fault_data['fmd'].GR['mag_fit'], 
+            fault_data['fmd'].GR['fit'] / eqcatalog.CATALOG_TIME_SPAN))
+        fits.append({'data': activity_ml_arr, 'label': "FBZ (ML)"})
+        
+    # scale EQ rates per year
+    fmd = numpy.vstack((
+            fault_data['fmd'].fmd[0, :], 
+            fault_data['fmd'].fmd[1, :] / eqcatalog.CATALOG_TIME_SPAN,
+            fault_data['fmd'].fmd[2, :] / eqcatalog.CATALOG_TIME_SPAN))
+    
     # new recurrence FMD plot (returns figure)
     plot = qpplot.FMDPlotRecurrence()
-    figure = plot.plot(imgfile=None, occurrence=distrodata)
+    figure = plot.plot(imgfile=None, occurrence=distrodata, fmd=fmd, 
+        fits=fits)
 
     canvas = plots.PlotCanvas(figure, title="Recurrence")
     canvas.draw()
