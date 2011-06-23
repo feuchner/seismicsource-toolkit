@@ -35,6 +35,8 @@ from mt_seismicsource import layers
 from mt_seismicsource import features
 from mt_seismicsource import utils
 
+from mt_seismicsource.layers import render
+
 FAULT_BACKGROUND_FILE_DIR = 'fault_background'
 FAULT_BACKGROUND_FILES = ('FSBGZ01_1_region.shp',)
 
@@ -65,4 +67,8 @@ def loadFaultBackgroundLayer(cls):
     utils.writeLayerToShapefile(layer, os.path.join(layers.DATA_DIR, 
         FAULT_BACKGROUND_FILE_DIR, TEMP_FILENAME), crs)
 
+    # set layer visibility
+    cls.legend.setLayerVisible(layer, 
+        render.FAULT_BACKGROUND_LAYER_STYLE['visible'])
+    
     return layer

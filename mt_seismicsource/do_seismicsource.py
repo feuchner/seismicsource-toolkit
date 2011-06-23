@@ -170,9 +170,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
     def loadDataLayers(self):
 
-        # remove default layers
-        # QgsMapLayerRegistry.instance().removeMapLayer(layer_id)
-
+        # get legend
+        self.legend = self.iface.legendInterface()
+        
         self.progressBarLoadData.setRange(0, 100)
 
         # additional datasets

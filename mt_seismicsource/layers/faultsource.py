@@ -35,6 +35,8 @@ from mt_seismicsource import layers
 from mt_seismicsource import features
 from mt_seismicsource import utils
 
+from mt_seismicsource.layers import render
+
 FAULT_FILE_DIR = 'fault_sources'
 FAULT_FILES = ('faults-DISS-3.2-2011-04-19.shp',)
 
@@ -65,4 +67,7 @@ def loadFaultSourceLayer(cls):
     utils.writeLayerToShapefile(layer, os.path.join(layers.DATA_DIR, 
         FAULT_FILE_DIR, TEMP_FILENAME), crs)
 
+    # set layer visibility
+    cls.legend.setLayerVisible(layer, render.FAULT_LAYER_STYLE['visible'])
+        
     return layer

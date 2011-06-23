@@ -29,8 +29,7 @@ from PyQt4.QtGui import *
 
 from qgis.core import *
 
-#from mt_seismicsource import layers
-#from mt_seismicsource import utils
+from mt_seismicsource.layers import render
 
 def loadTectonicRegimeLayer(cls):
     """Load layer of tectonic regime polygons."""
@@ -66,5 +65,8 @@ def loadTectonicRegimeLayer(cls):
     # propagated to the layer
     layer.updateExtents()
     QgsMapLayerRegistry.instance().addMapLayer(layer)
+    
+    # set layer visibility
+    cls.legend.setLayerVisible(layer, render.TECTONIC_LAYER_STYLE['visible'])
 
     return layer

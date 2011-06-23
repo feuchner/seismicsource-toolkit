@@ -37,6 +37,8 @@ import QPCatalog
 from mt_seismicsource import layers
 from mt_seismicsource import utils
 
+from mt_seismicsource.layers import render
+
 BACKGROUND_DIR = 'background_zones'
 BACKGROUND_ZONES_MMAX_FILE = 'background-zones-mmax.dat'
 BACKGROUND_ZONES_COMPLETENESS_FILE = 'background-zones-completeness.dat'
@@ -103,10 +105,17 @@ def loadBackgroundZoneLayer(cls):
     # propagated to the layer
     layer.updateExtents()
     QgsMapLayerRegistry.instance().addMapLayer(layer)
+    
+    # set layer as not visible
+    cls.legend.setLayerVisible(layer, False)
 
     utils.writeLayerToShapefile(layer, os.path.join(layers.DATA_DIR, 
         BACKGROUND_DIR, TEMP_FILENAME), crs)
 
+    # set layer visibility
+    cls.legend.setLayerVisible(layer, 
+        render.BACKGROUND_ZONE_LAYER_STYLE['visible'])
+    
     return layer
 
 def readBackgroundMmax(path):
@@ -270,49 +279,5 @@ def readBackgroundCompleteness(path):
         QMessageBox.warning(None, "Zone count", 
             "Zone count mismatch in zone file %s: found %s, expected %s" % (
                 path, mc_idx, mc_count))
-
-    return completeness
-
-def readBackgroundCompleteness_old(path):
-    """Load completeness history for background zones from CSV file.
-
-    Output:
-        ID
-        descr
-        eqcount
-        mcdist
-    """
-
-    completeness = {}
-
-    # open file for reading
-    with open(path, 'r') as fh:
-        reader = csv.reader(fh, delimiter=CSV_DELIMITER, 
-            quotechar=CSV_QUOTECHAR)
-
-        # over lines (= events) in ZMAP input stream
-        for line_ctr, line in enumerate(reader):
-
-            # skip first header line
-            if line_ctr == 0:
-                continue
-            
-            zone_id = line[0].strip()
-            zone_descr = line[1].strip()
-            zone_eqcount = int(line[2].strip())
-
-            # max. number of (Mc, year) pairs
-            mc_pair_count = len(line) - START_COL_COMPLETENESS + 1
-            zone_mchist = ""
-            for idx in xrange(mc_pair_count):
-                curr_year = line[START_COL_COMPLETENESS - 1 + idx]
-                if len(curr_year.strip()) > 0:
-                    zone_mchist = "%s %s %s" % (zone_mchist, 
-                        COMPLETENESS_REF_MAGNITUDES[idx], curr_year.strip())
-                else:
-                    break
-
-            completeness[zone_id] = {'descr': zone_descr,  
-                'eqcount': zone_eqcount, 'mcdist': zone_mchist.lstrip()}
 
     return completeness

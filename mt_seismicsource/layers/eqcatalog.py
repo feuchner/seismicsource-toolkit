@@ -37,6 +37,7 @@ from mt_seismicsource import layers
 from mt_seismicsource import features
 from mt_seismicsource import utils
 
+from mt_seismicsource.layers import render
 
 CATALOG_DIR = 'eq_catalog'
 CATALOG_FILES = (
@@ -117,4 +118,8 @@ def loadEQCatalogLayer(cls):
     # propagated to the layer
     layer.updateExtents()
     QgsMapLayerRegistry.instance().addMapLayer(layer)
+    
+    # set layer visibility
+    cls.legend.setLayerVisible(layer, render.EQ_LAYER_STYLE['visible'])
+        
     return layer

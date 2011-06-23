@@ -37,7 +37,6 @@ from mt_seismicsource import layers
 
 STRAIN_DATA_DIR = 'strain'
 
-
 # strain rate data file from Salvatore Barba
 
 STRAIN_DATA_BARBA_FILE = 'strain_rate_ns_d09.dat'

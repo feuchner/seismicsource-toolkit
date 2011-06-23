@@ -34,6 +34,8 @@ from qgis.core import *
 from mt_seismicsource import layers
 from mt_seismicsource import utils
 
+from mt_seismicsource.layers import render
+
 MAP_OVERLAY_DIR = 'map_overlay'
 MAP_OVERLAY_POLITICAL_FILE = '10m-admin-0-countries.shp'
 
@@ -49,4 +51,8 @@ def loadBackgroundLayer(cls):
         cls.background_layer = QgsVectorLayer(background_path, 
             "Political Boundaries", "ogr")
         QgsMapLayerRegistry.instance().addMapLayer(cls.background_layer)
+        
+        # set layer visibility
+        cls.legend.setLayerVisible(cls.background_layer, 
+            render.BACKGROUND_LAYER_STYLE['visible'])
 

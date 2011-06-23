@@ -31,14 +31,23 @@ from PyQt4.QtGui import *
 
 from qgis.core import *
 
-AREA_LAYER_STYLE_FILE = 'style/layer-style-area-zones.qml'
-FAULT_LAYER_STYLE_FILE = 'style/layer-style-fault-zones.qml'
-FAULT_BACKGROUND_LAYER_STYLE_FILE = \
-    'style/layer-style-faultsource-background.qml'
-EQ_LAYER_STYLE_FILE = 'style/layer-style-eq-catalog-base.qml'
-BACKGROUND_ZONE_LAYER_STYLE_FILE = 'style/layer-style-background-zones.qml'
-BACKGROUND_LAYER_STYLE_FILE = 'style/layer-style-political-boundaries.qml'
-TECTONIC_LAYER_STYLE_FILE = 'style/layer-style-tectonic-regimes.qml'
+AREA_LAYER_STYLE = {'file': 'style/layer-style-area-zones.qml', 
+                    'visible': True}
+FAULT_LAYER_STYLE = {'file': 'style/layer-style-fault-zones.qml', 
+                     'visible': True}
+FAULT_BACKGROUND_LAYER_STYLE = \
+    {'file': 'style/layer-style-faultsource-background.qml', 
+     'visible': True}
+EQ_LAYER_STYLE = {'file': 'style/layer-style-eq-catalog-base.qml', 
+                  'visible': True}
+BACKGROUND_ZONE_LAYER_STYLE = \
+    {'file': 'style/layer-style-background-zones.qml', 
+     'visible': False}
+TECTONIC_LAYER_STYLE = {'file': 'style/layer-style-tectonic-regimes.qml', 
+                        'visible': False}
+BACKGROUND_LAYER_STYLE = \
+    {'file': 'style/layer-style-political-boundaries.qml', 
+     'visible': True}
 
 # extent of map view at startup
 
@@ -51,23 +60,23 @@ def setRenderers(area_layer, fault_layer, fault_background_layer, eq_layer,
     background_zone_layer, background_layer, tectonic_layer):
 
     area_layer.loadNamedStyle(os.path.join(os.path.dirname(__file__), 
-        AREA_LAYER_STYLE_FILE))
+        AREA_LAYER_STYLE['file']))
 
     fault_layer.loadNamedStyle(os.path.join(os.path.dirname(__file__), 
-        FAULT_LAYER_STYLE_FILE))
+        FAULT_LAYER_STYLE['file']))
 
     fault_background_layer.loadNamedStyle(os.path.join(
-        os.path.dirname(__file__), FAULT_BACKGROUND_LAYER_STYLE_FILE))
+        os.path.dirname(__file__), FAULT_BACKGROUND_LAYER_STYLE['file']))
         
     eq_layer.loadNamedStyle(os.path.join(os.path.dirname(__file__), 
-        EQ_LAYER_STYLE_FILE))
+        EQ_LAYER_STYLE['file']))
 
     background_zone_layer.loadNamedStyle(
         os.path.join(os.path.dirname(__file__), 
-        BACKGROUND_ZONE_LAYER_STYLE_FILE))
+        BACKGROUND_ZONE_LAYER_STYLE['file']))
 
     background_layer.loadNamedStyle(os.path.join(os.path.dirname(__file__), 
-        BACKGROUND_LAYER_STYLE_FILE))
+        BACKGROUND_LAYER_STYLE['file']))
         
     tectonic_layer.loadNamedStyle(os.path.join(os.path.dirname(__file__), 
-        TECTONIC_LAYER_STYLE_FILE))
+        TECTONIC_LAYER_STYLE['file']))

@@ -36,6 +36,8 @@ from mt_seismicsource import layers
 from mt_seismicsource import features
 from mt_seismicsource import utils
 
+from mt_seismicsource.layers import render
+
 ZONE_FILE_DIR = 'area_sources'
 ZONE_FILES = ('share-v2.01-150411.shp', 'share-v2.0-301110.shp', 
     'GEM1_europe_source_model.shp')
@@ -84,6 +86,9 @@ def loadAreaSourceLayer(cls):
     utils.writeLayerToShapefile(layer, os.path.join(layers.DATA_DIR, 
         ZONE_FILE_DIR, TEMP_FILENAME), crs)
 
+    # set layer visibility
+    cls.legend.setLayerVisible(layer, render.AREA_LAYER_STYLE['visible'])
+    
     return layer
 
 def assignMmaxfromMelettiDataset(layer, mmax_data):
