@@ -195,11 +195,15 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             self.background_zone_layer,
             self.background_layer,
             self.tectonic_layer)
+            
+        # set map extent
+        self.iface.mapCanvas().setExtent(QgsRectangle(render.EXTENT_LON_MIN, 
+            render.EXTENT_LAT_MIN, render.EXTENT_LON_MAX, 
+            render.EXTENT_LAT_MAX))
         self.iface.mapCanvas().refresh()
-
         self.progressBarLoadData.setValue(100)
 
-        # TODO(fab): make zone layer the active layer
+        # TODO(fab): make area source layer the active layer
 
     def loadDefaultLayers(self):
 

@@ -40,6 +40,13 @@ BACKGROUND_ZONE_LAYER_STYLE_FILE = 'style/layer-style-background-zones.qml'
 BACKGROUND_LAYER_STYLE_FILE = 'style/layer-style-political-boundaries.qml'
 TECTONIC_LAYER_STYLE_FILE = 'style/layer-style-tectonic-regimes.qml'
 
+# extent of map view at startup
+
+EXTENT_LON_MIN = -26.0
+EXTENT_LON_MAX = 46.0
+EXTENT_LAT_MIN = 25.0
+EXTENT_LAT_MAX = 72.0
+
 def setRenderers(area_layer, fault_layer, fault_background_layer, eq_layer,
     background_zone_layer, background_layer, tectonic_layer):
 
