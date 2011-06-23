@@ -73,11 +73,15 @@ def computeZoneFMD(cls, feature, catalog=None):
     return FMDMulti(catalog.eventParameters, minEventsGR=MIN_EVENTS_FOR_GR, 
         time_span=eqcatalog.CATALOG_TIME_SPAN)
 
-def plotZoneFMD(cls, fmd, parameters, normalize=FMD_COMPUTE_ANNUAL_RATE):
+def plotZoneFMD(cls, feature_data, normalize=FMD_COMPUTE_ANNUAL_RATE, 
+    title=''):
 
     window = plots.createPlotWindow(cls)
 
     fits = []
+    
+    fmd = feature_data['fmd']
+    parameters = feature_data['parameters']
     
     if fmd.GR is not None:
         activity_ml_arr = numpy.vstack((fmd.GR['mag_fit'], fmd.GR['fit']))
@@ -91,15 +95,16 @@ def plotZoneFMD(cls, fmd, parameters, normalize=FMD_COMPUTE_ANNUAL_RATE):
         fmd.fmd[0, :], 
         area=parameters['area_sqkm'])
     
-    # TODO(fab): at the moment, do not show RM fit results (check correctness
-    # first)
-    # fits.append({'data': activity_rm_arr, 'label': "Activity (RM)"})
+    fits.append({'data': activity_rm_arr, 'label': "Activity (RM)"})
     
     # new FMD plot 
     figure = fmd.plot(imgfile=None, fits=fits, fmdtype='cumulative', 
         normalize=normalize)
 
-    canvas = plots.PlotCanvas(figure, title="FMD")
+    if title == '':
+        title = parameters['plot_title_fmd']
+        
+    canvas = plots.PlotCanvas(figure, title=title)
     canvas.draw()
 
     # FMD plot window, re-populate layout
@@ -130,7 +135,7 @@ def computeFMDArray(a_value, b_value, mag_arr, area=None):
         
     return numpy.vstack((mag_arr, occurrence))
 
-def plotRecurrence(cls, feature, fault_data=None):
+def plotRecurrence(cls, feature, feature_data=None, title=''):
 
     window = plots.createPlotWindow(cls)
 
@@ -146,24 +151,27 @@ def plotRecurrence(cls, feature, fault_data=None):
     distrodata = numpy.vstack((distrodata_min, distrodata_max[1, :]))
 
     fits = []
-    if fault_data['fmd'].GR is not None:
+    if feature_data['fmd'].GR is not None:
         activity_ml_arr = numpy.vstack((
-            fault_data['fmd'].GR['mag_fit'], 
-            fault_data['fmd'].GR['fit'] / eqcatalog.CATALOG_TIME_SPAN))
+            feature_data['fmd'].GR['mag_fit'], 
+            feature_data['fmd'].GR['fit'] / eqcatalog.CATALOG_TIME_SPAN))
         fits.append({'data': activity_ml_arr, 'label': "FBZ (ML)"})
         
     # scale EQ rates per year
     fmd = numpy.vstack((
-            fault_data['fmd'].fmd[0, :], 
-            fault_data['fmd'].fmd[1, :] / eqcatalog.CATALOG_TIME_SPAN,
-            fault_data['fmd'].fmd[2, :] / eqcatalog.CATALOG_TIME_SPAN))
+            feature_data['fmd'].fmd[0, :], 
+            feature_data['fmd'].fmd[1, :] / eqcatalog.CATALOG_TIME_SPAN,
+            feature_data['fmd'].fmd[2, :] / eqcatalog.CATALOG_TIME_SPAN))
     
     # new recurrence FMD plot (returns figure)
     plot = qpplot.FMDPlotRecurrence()
     figure = plot.plot(imgfile=None, occurrence=distrodata, fmd=fmd, 
         fits=fits)
 
-    canvas = plots.PlotCanvas(figure, title="Recurrence")
+    if title == '':
+        title = feature_data['parameters']['plot_title_recurrence']
+        
+    canvas = plots.PlotCanvas(figure, title=title)
     canvas.draw()
 
     # FMD plot window, re-populate layout

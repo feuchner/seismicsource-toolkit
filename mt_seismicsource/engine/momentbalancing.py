@@ -69,6 +69,23 @@ def updateDataArea(cls, feature):
     # get polygon area in square kilometres
     parameters['area_sqkm'] = utils.polygonAreaFromWGS84(poly) * 1.0e-6
 
+    # zone ID and title
+    (feature_id, feature_title, feature_name) = utils.getFeatureAttributes(
+        cls.area_source_layer, feature, features.AREA_SOURCE_ATTRIBUTES_ID)
+        
+    if feature_title.toString() == '' and feature_name.toString() == '':
+        zone_name_str = ""
+    elif feature_title.toString() == '' and feature_name.toString() != '':
+        zone_name_str = feature_name.toString()
+    elif feature_title.toString() != '' and feature_name.toString() == '':
+        zone_name_str = feature_title.toString()
+    else:
+        zone_name_str = "%s, %s" % (
+            feature_title.toString(), feature_name.toString())
+    
+    parameters['plot_title_fmd'] = 'Zone %s, %s' % (
+        feature_id.toInt()[0], zone_name_str)
+
     ## moment rate from EQs
 
     # get quakes from catalog (cut with polygon)
@@ -181,7 +198,7 @@ def updatePlotMomentRateArea(cls, parameters):
     plot = plots.MomentRateComparisonPlotArea()
     figure = plot.plot(imgfile=None, data=parameters)
 
-    canvas = plots.PlotCanvas(figure, title="Seismic Moment Rates")
+    canvas = plots.PlotCanvas(figure, title=parameters['plot_title_fmd'])
     canvas.draw()
 
     # plot widget
@@ -211,6 +228,19 @@ def updateDataFault(cls, feature,
 
     parameters = {}
 
+    # zone ID and title
+    (feature_id, feature_name) = utils.getFeatureAttributes(
+        cls.fault_background_layer, feature, 
+        features.FAULT_BACKGROUND_ATTRIBUTES_ID)
+
+    if feature_name.toString() != '':
+        zone_name_str = feature_name.toString()
+    else:
+        zone_name_str = ""
+    
+    parameters['plot_title_recurrence'] = 'Zone %s, %s' % (
+        feature_id.toString(), zone_name_str)
+        
     # get Shapely polygon from feature geometry
     polylist, vertices = utils.polygonsQGS2Shapely((feature,))
     fault_poly = polylist[0]
@@ -381,7 +411,8 @@ def updatePlotMomentRateFault(cls, parameters):
         
     figure = plot.plot(imgfile=None, data=parameters)
 
-    canvas = plots.PlotCanvas(figure, title="Seismic Moment Rates")
+    canvas = plots.PlotCanvas(figure, 
+        title=parameters['plot_title_recurrence'])
     canvas.draw()
 
     # plot widget
