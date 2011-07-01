@@ -66,7 +66,7 @@ RECURRENCE_MODEL_NAMES = ("Anderson-Luco (1983) Model 2",)
 
 def assignRecurrence(layer_fault, layer_fault_background=None, 
     layer_background=None, catalog=None, b_value=None, 
-    mmin=atticivy.FAULT_ATTICIVY_MMIN,
+    mmin=atticivy.ATTICIVY_MMIN,
     m_threshold=FAULT_BACKGROUND_MAG_THRESHOLD):
     """Compute recurrence parameters according to Bungum paper. Add
     activity rates, a/b values, and min/max seismic moment rate 
@@ -130,7 +130,7 @@ def assignRecurrence(layer_fault, layer_fault_background=None,
 
 def computeRecurrence(layer_fault, layer_fault_background=None, 
     layer_background=None, catalog=None, b_value=None, 
-    mmin=atticivy.FAULT_ATTICIVY_MMIN,
+    mmin=atticivy.ATTICIVY_MMIN,
     m_threshold=FAULT_BACKGROUND_MAG_THRESHOLD):
     """Compute recurrence parameters according to Bungum paper. 
 
@@ -339,7 +339,7 @@ def computeAValueFromOccurrence(lg_occurrence, b_value, mmin=MAGNITUDE_MIN):
     return lg_occurrence + b_value * mmin
     
 def computeActivityFromBackground(feature, layer_fault_background, layer_background,
-    catalog, mmin=atticivy.FAULT_ATTICIVY_MMIN, 
+    catalog, mmin=atticivy.ATTICIVY_MMIN, 
     m_threshold=FAULT_BACKGROUND_MAG_THRESHOLD):
     """Compute activity parameters a and b for (i) fault background zone, and 
     (ii) from buffer zone around fault zone.

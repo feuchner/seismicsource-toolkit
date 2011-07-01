@@ -125,7 +125,7 @@ def updateDataArea(cls, feature):
     activity_arr = activity_str.strip().split()
 
     # ignore weights
-    parameters['activity_mmin'] = cls.spinboxAreaAtticIvyMmin.value()
+    parameters['activity_mmin'] = atticivy.ATTICIVY_MMIN
     activity_a = [float(x) for x in activity_arr[1::3]]
     activity_b = [float(x) for x in activity_arr[2::3]]
     mmax = float(feature[attribute_mmax_idx].toDouble()[0])
@@ -493,7 +493,7 @@ def updateDataFaultBackgr(cls, feature,
 
     ## moment rate from activity (RM)
     
-    mmin = cls.spinboxFaultAtticIvyMmin.value()
+    mmin = atticivy.ATTICIVY_MMIN
     activity = atticivy.computeActivityAtticIvy(
         (poly, ), (mmax, ), (mcdist, ), cls.catalog, mmin=mmin)
     

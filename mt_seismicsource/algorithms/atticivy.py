@@ -39,8 +39,7 @@ from qgis.core import *
 from mt_seismicsource import features
 from mt_seismicsource import utils
 
-AREA_ATTICIVY_MMIN = 3.5
-FAULT_ATTICIVY_MMIN = 5.0
+ATTICIVY_MMIN = 3.5
 
 # full path of AtticIvy executable
 ATTICIVY_EXECUTABLE = os.path.join(os.path.dirname(os.path.dirname(__file__)),
@@ -81,7 +80,7 @@ B prior and weight
 ZONE_ATTRIBUTES = (features.AREA_SOURCE_ATTR_MMAX,
     features.AREA_SOURCE_ATTR_MCDIST)
 
-def assignActivityAtticIvy(layer, catalog, mmin=AREA_ATTICIVY_MMIN):
+def assignActivityAtticIvy(layer, catalog, mmin=ATTICIVY_MMIN):
     """Compute activity with Roger Musson's AtticIvy code and assign a and
     b values to each area source zone.
 
@@ -143,7 +142,7 @@ def assignActivityAtticIvy(layer, catalog, mmin=AREA_ATTICIVY_MMIN):
     layer.commitChanges()
 
 def computeActivityAtticIvy(polygons, mmax, mcdist, catalog, 
-    mmin=AREA_ATTICIVY_MMIN):
+    mmin=ATTICIVY_MMIN):
     """Computes a-and b values using Roger Musson's AtticIvy code for
     a set of source zone polygons.
     
@@ -195,7 +194,7 @@ def computeActivityAtticIvy(polygons, mmax, mcdist, catalog,
 
     return activity_list
 
-def writeZones2AtticIvy(path, polygons, mmax, mcdist, mmin=AREA_ATTICIVY_MMIN):
+def writeZones2AtticIvy(path, polygons, mmax, mcdist, mmin=ATTICIVY_MMIN):
     """Write AtticIvy zone file.
 
     Input:
@@ -316,7 +315,7 @@ def activityFromAtticIvy(path):
 
     return result_values
     
-def activity2aValue(A_value, b_value, m_min=AREA_ATTICIVY_MMIN):
+def activity2aValue(A_value, b_value, m_min=ATTICIVY_MMIN):
     """The resulting activity parameter A from AtticIvy is the 
     non-logarithmic annual occurrence at M=Mmin (default M=3.5). This 
     function converts this to log10 of the annual occurrence at 

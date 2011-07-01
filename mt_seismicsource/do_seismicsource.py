@@ -159,8 +159,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             recurrence.RECURRENCE_MODEL_NAMES)
         
         # Spinboxes AtticIvy Mmin: init values
-        self.spinboxAreaAtticIvyMmin.setValue(atticivy.AREA_ATTICIVY_MMIN)
-        self.spinboxFaultAtticIvyMmin.setValue(atticivy.FAULT_ATTICIVY_MMIN)
+        #self.spinboxAreaAtticIvyMmin.setValue(atticivy.ATTICIVY_MMIN)
+        #self.spinboxFaultAtticIvyMmin.setValue(atticivy.FAULT_ATTICIVY_MMIN)
         
         # Spinbox Fault Background Zones, threshold magnitude: init value
         self.spinboxFBZMThres.setValue(
@@ -353,7 +353,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             return
 
         atticivy.assignActivityAtticIvy(self.area_source_layer, self.catalog, 
-            mmin=self.spinboxAreaAtticIvyMmin.value())
+            mmin=atticivy.ATTICIVY_MMIN)
 
     def computeRecurrence(self):
         """Compute recurrence with Bungum code."""
@@ -364,7 +364,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         recurrence.assignRecurrence(self.fault_source_layer, 
             self.fault_background_layer, self.background_zone_layer, 
-            self.catalog, mmin=self.spinboxFaultAtticIvyMmin.value(),
+            self.catalog, mmin=atticivy.ATTICIVY_MMIN,
             m_threshold=self.spinboxFBZMThres.value())
 
     def browseAreaZoneFiles(self):
