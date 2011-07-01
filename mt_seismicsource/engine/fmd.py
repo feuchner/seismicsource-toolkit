@@ -37,6 +37,7 @@ import qpplot
 
 from mt_seismicsource import plots
 from mt_seismicsource import utils
+from mt_seismicsource.algorithms import atticivy
 from mt_seismicsource.layers import eqcatalog
 
 MIN_EVENTS_FOR_GR = 50
@@ -87,13 +88,13 @@ def plotZoneFMD(cls, feature_data, normalize=FMD_COMPUTE_ANNUAL_RATE,
         activity_ml_arr = numpy.vstack((fmd.GR['mag_fit'], fmd.GR['fit']))
         fits.append({'data': activity_ml_arr, 'label': "Activity (ML)"})
         
-    # TODO(fab): do we have to scale RM occurrences with zone area?
-    # it seems to be the case (double-check)
-    activity_rm_arr = computeFMDArray(
-        utils.centralValueOfList(parameters['activity_a']), 
-        utils.centralValueOfList(parameters['activity_b']), 
-        fmd.fmd[0, :], 
-        area=parameters['area_sqkm'])
+    central_A = utils.centralValueOfList(parameters['activity_a'])
+    central_b = utils.centralValueOfList(parameters['activity_b'])
+    
+    a_value = atticivy.activity2aValue(central_A, central_b, 
+        parameters['activity_mmin'])
+    activity_rm_arr = computeFMDArray(a_value, central_b, fmd.fmd[0, :], 
+        timespan=eqcatalog.CATALOG_TIME_SPAN)
     
     fits.append({'data': activity_rm_arr, 'label': "Activity (RM)"})
     
@@ -127,12 +128,14 @@ def getFMDValues(fmd, normalize=FMD_COMPUTE_ANNUAL_RATE):
 
         return (aValue, fmd.GR['bValue'], fmd.GR['Mmin'])
 
-def computeFMDArray(a_value, b_value, mag_arr, area=None):
+def computeFMDArray(a_value, b_value, mag_arr, timespan=None, area=None):
     
     occurrence = numpy.power(10, (-(b_value * mag_arr) + a_value))
+    if timespan is not None:
+        occurrence *= timespan
     if area is not None:
         occurrence *= area
-        
+
     return numpy.vstack((mag_arr, occurrence))
 
 def plotRecurrence(cls, feature, feature_data=None, title=''):

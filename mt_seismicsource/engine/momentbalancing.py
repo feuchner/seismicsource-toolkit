@@ -125,25 +125,28 @@ def updateDataArea(cls, feature):
     activity_arr = activity_str.strip().split()
 
     # ignore weights
+    parameters['activity_mmin'] = cls.spinboxAreaAtticIvyMmin.value()
     activity_a = [float(x) for x in activity_arr[1::3]]
     activity_b = [float(x) for x in activity_arr[2::3]]
     mmax = float(feature[attribute_mmax_idx].toDouble()[0])
-
-    momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
-        activity_a, activity_b, mmax)) / eqcatalog.CATALOG_TIME_SPAN
-
+    
     parameters['activity_a'] = activity_a
     parameters['activity_b'] = activity_b 
     parameters['mmax'] = mmax 
-    parameters['activity_mmin'] = cls.spinboxAreaAtticIvyMmin.value()
-    parameters['mr_activity'] = momentrates_arr.tolist()
 
     ## Maximum likelihood a/b values
     cls.feature_data_area_source['fmd'] = fmd.computeZoneFMD(cls, feature, 
         poly_cat)
     (parameters['ml_a'], parameters['ml_b'], parameters['ml_mc']) = \
         fmd.getFMDValues(cls.feature_data_area_source['fmd'])
-    
+
+    ## moment rate from activity
+    a_values = atticivy.activity2aValue(activity_a, activity_b, 
+        parameters['activity_mmin'])
+    momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
+        a_values, activity_b, mmax)) / eqcatalog.CATALOG_TIME_SPAN
+    parameters['mr_activity'] = momentrates_arr.tolist()
+
     ## moment rate from geodesy (strain)
     momentrate_strain_barba = momentrate.momentrateFromStrainRateBarba(
         poly, cls.data.strain_rate_barba, 
@@ -164,11 +167,17 @@ def updateDisplaysArea(cls, parameters):
     updateTextMomentRateArea(cls, parameters)
 
 def updateTextActivityArea(cls, parameters):
+    
+    central_A = utils.centralValueOfList(parameters['activity_a'])
+    central_b = utils.centralValueOfList(parameters['activity_b'])
+    
     text = ''
     text += "<b>Activity</b><br/>"
-    text += "<b>(RM)</b> a: %s, b: %s<br/>" % (
-        utils.centralValueOfList(parameters['activity_a']), 
-        utils.centralValueOfList(parameters['activity_b']))
+    text += "<b>(RM)</b> a: %.3f, b: %s, A: %s<br/>" % (
+        atticivy.activity2aValue(central_A, central_b, 
+            parameters['activity_mmin']), 
+        central_b,
+        central_A)
     text += "<b>(ML)</b> a: %.3f, b: %.3f (Mc %.1f)<br/>" % (
         parameters['ml_a'], 
         parameters['ml_b'],

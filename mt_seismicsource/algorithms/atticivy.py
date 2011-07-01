@@ -24,6 +24,7 @@ Author: Fabian Euchner, fabian@sed.ethz.ch
 #    59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ############################################################################
 
+import numpy
 import os
 import shutil
 import stat
@@ -314,3 +315,23 @@ def activityFromAtticIvy(path):
                     dataLineMode = False
 
     return result_values
+    
+def activity2aValue(A_value, b_value, m_min=AREA_ATTICIVY_MMIN):
+    """The resulting activity parameter A from AtticIvy is the 
+    non-logarithmic annual occurrence at M=Mmin (default M=3.5). This 
+    function converts this to log10 of the annual occurrence at 
+    M=0 (the usual a parameter).
+    
+    a = log10(A) + b * Mmin
+    
+    Input:
+        A_value     list of AtticIvy A parameters
+        b_value     list of AtticIvy b parameters
+        m_min       Mmin for which AtticIvy activity has been computed
+    """
+    A = numpy.array(A_value)
+    b = numpy.array(b_value)
+    
+    a = numpy.log10(A) + b * m_min
+    
+    return a
