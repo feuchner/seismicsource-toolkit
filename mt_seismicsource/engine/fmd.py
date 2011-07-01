@@ -71,8 +71,14 @@ def computeZoneFMD(cls, feature, catalog=None):
         catalog.merge(cls.catalog)
         catalog.cut(geometry=poly)
 
-    return FMDMulti(catalog.eventParameters, minEventsGR=MIN_EVENTS_FOR_GR, 
-        time_span=eqcatalog.CATALOG_TIME_SPAN)
+    # Mc method
+    if unicode(cls.comboBoxMcMethod.currentText()) == 'userDefined':
+        mc = cls.spinboxFMDMcMethod.value()
+    else:
+        mc = unicode(cls.comboBoxMcMethod.currentText())
+        
+    return FMDMulti(catalog.eventParameters, Mc=mc, 
+        minEventsGR=MIN_EVENTS_FOR_GR, time_span=eqcatalog.CATALOG_TIME_SPAN)
 
 def plotZoneFMD(cls, feature_data, normalize=FMD_COMPUTE_ANNUAL_RATE, 
     title=''):
