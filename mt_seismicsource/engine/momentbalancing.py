@@ -318,8 +318,9 @@ def updateDataFault(cls, feature,
     a_bz_arr = [float(x) for x in act_bz_arr[1::3]]
     b_bz_arr = [float(x) for x in act_bz_arr[2::3]]
     
+    a_values = atticivy.activity2aValue(a_bz_arr, b_bz_arr)
     momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
-        a_bz_arr, b_bz_arr, mmax)) / eqcatalog.CATALOG_TIME_SPAN
+        a_values, b_bz_arr, mmax)) / eqcatalog.CATALOG_TIME_SPAN
 
     parameters['mr_activity'] = momentrates_arr.tolist()
 
@@ -330,8 +331,9 @@ def updateDataFault(cls, feature,
     a_fbz_at_arr = [float(x) for x in act_fbz_at_arr[1::3]]
     b_fbz_at_arr = [float(x) for x in act_fbz_at_arr[2::3]]
     
+    a_values = atticivy.activity2aValue(a_fbz_at_arr, b_fbz_at_arr)
     momentrates_fbz_at_arr = numpy.array(momentrate.momentrateFromActivity(
-        a_fbz_at_arr, b_fbz_at_arr, mmax)) / eqcatalog.CATALOG_TIME_SPAN
+        a_values, b_fbz_at_arr, mmax)) / eqcatalog.CATALOG_TIME_SPAN
 
     parameters['mr_activity_fbz_at'] = momentrates_fbz_at_arr.tolist()
     
@@ -364,19 +366,25 @@ def updateTextActivityFault(cls, parameters):
 
     text = ''
     text += "<b>Activity</b><br/>"
-    text += "<b>(RM)</b> a: %.3f b: %.3f (%s km buffer)<br/>" % (
-        parameters['activity_bz_a'], 
+    text += "<b>(RM)</b> a: %.3f b: %.3f A: %.3f (%s km buffer)<br/>" % (
+        atticivy.activity2aValue(parameters['activity_bz_a'], 
+            parameters['activity_bz_b']), 
         parameters['activity_bz_b'], 
+        parameters['activity_bz_a'],
         int(momentrate.BUFFER_AROUND_FAULT_ZONE_KM))
         
-    text += "<b>(RM)</b> a: %.3f b: %.3f (FBZ, ID %s)<br/>" % (
-        parameters['activity_fbz_a'], 
+    text += "<b>(RM)</b> a: %.3f b: %.3f A: %.3f (FBZ, ID %s)<br/>" % (
+        atticivy.activity2aValue(parameters['activity_fbz_a'], 
+            parameters['activity_fbz_b']), 
         parameters['activity_fbz_b'], 
+        parameters['activity_fbz_a'], 
         parameters['fbz_id'])
         
-    text += "<b>(RM)</b> a: %.3f b: %.3f (FBZ, above M%s)<br/>" % (
-        parameters['activity_fbz_at_a'], 
+    text += "<b>(RM)</b> a: %.3f b: %.3f A: %.3f (FBZ, above M%s)<br/>" % (
+        atticivy.activity2aValue(parameters['activity_fbz_at_a'], 
+            parameters['activity_fbz_at_b']), 
         parameters['activity_fbz_at_b'],
+        parameters['activity_fbz_at_a'], 
         parameters['activity_m_threshold'])
         
     text += \
@@ -493,9 +501,10 @@ def updateDataFaultBackgr(cls, feature,
 
     ## moment rate from activity (RM)
     
-    mmin = atticivy.ATTICIVY_MMIN
+    parameters['activity_mmin'] = atticivy.ATTICIVY_MMIN
     activity = atticivy.computeActivityAtticIvy(
-        (poly, ), (mmax, ), (mcdist, ), cls.catalog, mmin=mmin)
+        (poly, ), (mmax, ), (mcdist, ), cls.catalog, 
+        mmin=parameters['activity_mmin'])
     
     # get RM (weight, a, b) values from feature attribute
     activity_str = activity[0][2]
@@ -504,12 +513,13 @@ def updateDataFaultBackgr(cls, feature,
     # ignore weights
     activity_a = [float(x) for x in activity_arr[1::3]]
     activity_b = [float(x) for x in activity_arr[2::3]]
-    
-    momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
-        activity_a, activity_b, mmax)) / eqcatalog.CATALOG_TIME_SPAN
-
     parameters['activity_a'] = activity_a
     parameters['activity_b'] = activity_b 
+    
+    a_values = atticivy.activity2aValue(activity_a, activity_b, 
+        parameters['activity_mmin'])
+    momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
+        a_values, activity_b, mmax)) / eqcatalog.CATALOG_TIME_SPAN
     parameters['mr_activity'] = momentrates_arr.tolist()
     
     # get separate catalogs below and above magnitude threshold
@@ -524,10 +534,12 @@ def updateDataFaultBackgr(cls, feature,
     parameters['eq_count_above'] = cat_above_threshold.size()
 
     activity_below_threshold = atticivy.computeActivityAtticIvy(
-        (poly,), (mmax,), (mcdist,), cat_below_threshold, mmin=mmin)
+        (poly,), (mmax,), (mcdist,), cat_below_threshold, 
+        mmin=parameters['activity_mmin'])
 
     activity_above_threshold = atticivy.computeActivityAtticIvy(
-        (poly,), (mmax,), (mcdist,), cat_above_threshold, mmin=mmin)
+        (poly,), (mmax,), (mcdist,), cat_above_threshold, 
+        mmin=parameters['activity_mmin'])
         
     # get RM (weight, a, b) values from feature attribute
     activity_below_str = activity_below_threshold[0][2]
@@ -543,11 +555,15 @@ def updateDataFaultBackgr(cls, feature,
     activity_above_a = [float(x) for x in activity_above_arr[1::3]]
     activity_above_b = [float(x) for x in activity_above_arr[2::3]]
     
+    a_values_below = atticivy.activity2aValue(activity_below_a, 
+        activity_below_b, parameters['activity_mmin'])
     momentrates_below_arr = numpy.array(momentrate.momentrateFromActivity(
-        activity_below_a, activity_below_b, mmax)) / eqcatalog.CATALOG_TIME_SPAN
+        a_values_below, activity_below_b, mmax)) / eqcatalog.CATALOG_TIME_SPAN
             
+    a_values_above = atticivy.activity2aValue(activity_above_a, 
+        activity_above_b, parameters['activity_mmin'])
     momentrates_above_arr = numpy.array(momentrate.momentrateFromActivity(
-        activity_above_a, activity_above_b, mmax)) / eqcatalog.CATALOG_TIME_SPAN
+        a_values_above, activity_above_b, mmax)) / eqcatalog.CATALOG_TIME_SPAN
             
     parameters['activity_below_a'] = activity_below_a
     parameters['activity_below_b'] = activity_below_b 
@@ -558,7 +574,6 @@ def updateDataFaultBackgr(cls, feature,
     parameters['mr_activity_below'] = momentrates_below_arr.tolist()
     parameters['mr_activity_above'] = momentrates_above_arr.tolist()
     
-    parameters['activity_mmin'] = mmin
     parameters['activity_m_threshold'] = m_threshold
     
     ## moment rate from slip rate
@@ -624,21 +639,37 @@ def updateDisplaysFaultBackgr(cls, parameters):
     updateTextMomentRateFaultBackgr(cls, parameters)
 
 def updateTextActivityFaultBackgr(cls, parameters):
+    
+    central_A = utils.centralValueOfList(parameters['activity_a'])
+    central_b = utils.centralValueOfList(parameters['activity_b'])
+    
+    central_A_below = utils.centralValueOfList(parameters['activity_below_a'])
+    central_b_below = utils.centralValueOfList(parameters['activity_below_b'])
+    
+    central_A_above = utils.centralValueOfList(parameters['activity_above_a'])
+    central_b_above = utils.centralValueOfList(parameters['activity_above_b'])
+
     text = ''
     text += "<b>Activity</b><br/>"
-    text += "<b>(RM)</b> all EQ: a: %s, b: %s (%s EQ)<br/>" % (
-        utils.centralValueOfList(parameters['activity_a']), 
-        utils.centralValueOfList(parameters['activity_b']),
+    text += "<b>(RM)</b> all EQ: a: %.3f, b: %s, A: %s (%s EQ)<br/>" % (
+        atticivy.activity2aValue(central_A, central_b, 
+            parameters['activity_mmin']), 
+        central_b,
+        central_A,
         parameters['eq_count'])
-    text += "<b>(RM)</b> below M%s: a: %s, b: %s (%s EQ)<br/>" % (
+    text += "<b>(RM)</b> below M%s: a: %.3f, b: %s, A: %s (%s EQ)<br/>" % (
         parameters['activity_m_threshold'],
-        utils.centralValueOfList(parameters['activity_below_a']), 
-        utils.centralValueOfList(parameters['activity_below_b']),
+        atticivy.activity2aValue(central_A_below, central_b_below, 
+            parameters['activity_mmin']), 
+        central_b_below,
+        central_A_below,
         parameters['eq_count_below'])
-    text += "<b>(RM)</b> above M%s: a: %s, b: %s (%s EQ)<br/>" % (
+    text += "<b>(RM)</b> above M%s: a: %.3f, b: %s, A: %s (%s EQ)<br/>" % (
         parameters['activity_m_threshold'],
-        utils.centralValueOfList(parameters['activity_above_a']), 
-        utils.centralValueOfList(parameters['activity_above_b']),
+        atticivy.activity2aValue(central_A_above, central_b_above, 
+            parameters['activity_mmin']), 
+        central_b_above,
+        central_A_above,
         parameters['eq_count_above'])
     text += "<b>(ML)</b> all EQ: a: %s, b: %s (%s EQ)<br/>" % (None, None, 
         parameters['eq_count'])
