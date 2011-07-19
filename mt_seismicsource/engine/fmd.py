@@ -70,6 +70,15 @@ def computeZoneFMD(cls, feature, catalog=None):
         catalog = QPCatalog.QPCatalog()
         catalog.merge(cls.catalog)
         catalog.cut(geometry=poly)
+        
+        # cut catalog with min/max depth according to UI spinboxes
+        mindepth = eqcatalog.CUT_DEPTH_MIN
+        maxdepth = eqcatalog.CUT_DEPTH_MAX
+        if cls.checkBoxCatalogDepth.isChecked() is True:
+            mindepth = cls.spinboxCatDepthMin.value()
+            maxdepth = cls.spinboxCatDepthMax.value()
+            
+        catalog.cut(mindepth=mindepth, maxdepth=maxdepth)
 
     # Mc method
     if unicode(cls.comboBoxMcMethod.currentText()) == 'userDefined':

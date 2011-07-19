@@ -92,6 +92,15 @@ def updateDataArea(cls, feature):
     poly_cat = QPCatalog.QPCatalog()
     poly_cat.merge(cls.catalog)
     poly_cat.cut(geometry=poly)
+    
+    # cut catalog with min/max depth according to UI spinboxes
+    mindepth = eqcatalog.CUT_DEPTH_MIN
+    maxdepth = eqcatalog.CUT_DEPTH_MAX
+    if cls.checkBoxCatalogDepth.isChecked() is True:
+        mindepth = cls.spinboxCatDepthMin.value()
+        maxdepth = cls.spinboxCatDepthMax.value()
+        
+    poly_cat.cut(mindepth=mindepth, maxdepth=maxdepth)
 
     parameters['eq_count'] = poly_cat.size()
     
@@ -289,9 +298,19 @@ def updateDataFault(cls, feature,
     fbz_cat.merge(cls.catalog)
     fbz_cat.cut(geometry=fbz_poly)
     
+    # cut catalog with min/max depth according to UI spinboxes
+    mindepth = eqcatalog.CUT_DEPTH_MIN
+    maxdepth = eqcatalog.CUT_DEPTH_MAX
+    if cls.checkBoxCatalogDepth.isChecked() is True:
+        mindepth = cls.spinboxCatDepthMin.value()
+        maxdepth = cls.spinboxCatDepthMax.value()
+        
+    fbz_cat.cut(mindepth=mindepth, maxdepth=maxdepth)
+    
     bz_cat = QPCatalog.QPCatalog()
     bz_cat.merge(cls.catalog)
     bz_cat.cut(geometry=bz_poly)
+    bz_cat.cut(mindepth=mindepth, maxdepth=maxdepth)
     
     parameters['eq_count_fbz'] = fbz_cat.size()
     parameters['eq_count_bz'] = bz_cat.size()
@@ -483,6 +502,15 @@ def updateDataFaultBackgr(cls, feature,
     poly_cat = QPCatalog.QPCatalog()
     poly_cat.merge(cls.catalog)
     poly_cat.cut(geometry=poly)
+    
+    # cut catalog with min/max depth according to UI spinboxes
+    mindepth = eqcatalog.CUT_DEPTH_MIN
+    maxdepth = eqcatalog.CUT_DEPTH_MAX
+    if cls.checkBoxCatalogDepth.isChecked() is True:
+        mindepth = cls.spinboxCatDepthMin.value()
+        maxdepth = cls.spinboxCatDepthMax.value()
+        
+    poly_cat.cut(mindepth=mindepth, maxdepth=maxdepth)
     
     parameters['eq_count'] = poly_cat.size()
 

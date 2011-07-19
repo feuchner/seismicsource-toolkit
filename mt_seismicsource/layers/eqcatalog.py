@@ -47,6 +47,9 @@ CATALOG_FILES = (
 
 CATALOG_TIME_SPAN = 1006.0
 
+CUT_DEPTH_MIN = 0.0
+CUT_DEPTH_MAX = 999.0
+
 def loadEQCatalogLayer(cls):
     """Load EQ catalog layer from ASCII catalog file. 
     Add required feature attributes if they are missing.

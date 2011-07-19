@@ -158,8 +158,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         ## Catalog filtering
         
         # self.checkBoxCatalogDepth
-        self.spinboxCatDepthMin.setValue(0)
-        self.spinboxCatDepthMax.setValue(30)
+        self.spinboxCatDepthMin.setValue(eqcatalog.CUT_DEPTH_MIN)
+        self.spinboxCatDepthMax.setValue(eqcatalog.CUT_DEPTH_MAX)
         
         ## FMD
        
@@ -374,10 +374,17 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             self.fault_source_layer):
             return
 
+        mindepth = eqcatalog.CUT_DEPTH_MIN
+        maxdepth = eqcatalog.CUT_DEPTH_MAX
+        if self.checkBoxCatalogDepth.isChecked() is True:
+            mindepth = self.spinboxCatDepthMin.value()
+            maxdepth = self.spinboxCatDepthMax.value()
+            
         recurrence.assignRecurrence(self.fault_source_layer, 
             self.fault_background_layer, self.background_zone_layer, 
             self.catalog, mmin=atticivy.ATTICIVY_MMIN,
-            m_threshold=self.spinboxFBZMThres.value())
+            m_threshold=self.spinboxFBZMThres.value(), mindepth=mindepth,
+            maxdepth=maxdepth)
 
     def browseAreaZoneFiles(self):
         """Show Open File dialog for Area Source Zone files."""

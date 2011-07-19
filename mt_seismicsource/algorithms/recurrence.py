@@ -67,7 +67,8 @@ RECURRENCE_MODEL_NAMES = ("Anderson-Luco (1983) Model 2",)
 def assignRecurrence(layer_fault, layer_fault_background=None, 
     layer_background=None, catalog=None, b_value=None, 
     mmin=atticivy.ATTICIVY_MMIN,
-    m_threshold=FAULT_BACKGROUND_MAG_THRESHOLD):
+    m_threshold=FAULT_BACKGROUND_MAG_THRESHOLD,
+    mindepth=eqcatalog.CUT_DEPTH_MIN, maxdepth=eqcatalog.CUT_DEPTH_MAX):
     """Compute recurrence parameters according to Bungum paper. Add
     activity rates, a/b values, and min/max seismic moment rate 
     as attributes to fault polygon layer.
@@ -92,7 +93,8 @@ def assignRecurrence(layer_fault, layer_fault_background=None,
     fts = layer_fault.selectedFeatures()
 
     recurrence = computeRecurrence(layer_fault, layer_fault_background, 
-        layer_background, catalog, b_value, mmin, m_threshold)
+        layer_background, catalog, b_value, mmin, m_threshold, mindepth, 
+        maxdepth)
         
     attribute_map_fault = utils.getAttributeIndex(provider_fault, 
         features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE_COMPUTE, create=True)
@@ -131,7 +133,9 @@ def assignRecurrence(layer_fault, layer_fault_background=None,
 def computeRecurrence(layer_fault, layer_fault_background=None, 
     layer_background=None, catalog=None, b_value=None, 
     mmin=atticivy.ATTICIVY_MMIN,
-    m_threshold=FAULT_BACKGROUND_MAG_THRESHOLD):
+    m_threshold=FAULT_BACKGROUND_MAG_THRESHOLD,
+    mindepth=eqcatalog.CUT_DEPTH_MIN,
+    maxdepth=eqcatalog.CUT_DEPTH_MAX):
     """Compute recurrence parameters according to Bungum paper. 
 
     Parameters from Jochen's Matlab implementation:
@@ -185,7 +189,7 @@ def computeRecurrence(layer_fault, layer_fault_background=None,
         # get parameters from background zones
         activity_back = computeActivityFromBackground(feature,
             layer_fault_background, layer_background, catalog, mmin, 
-            m_threshold)
+            m_threshold, mindepth, maxdepth)
             
         # get attribute values of zone:
         # - MAXMAG, SLIPRATEMI, SLIPRATEMA
@@ -338,9 +342,10 @@ def cumulative_occurrence_model_2(mag_arr, maxmag, sliprate, b_value,
 def computeAValueFromOccurrence(lg_occurrence, b_value, mmin=MAGNITUDE_MIN):
     return lg_occurrence + b_value * mmin
     
-def computeActivityFromBackground(feature, layer_fault_background, layer_background,
-    catalog, mmin=atticivy.ATTICIVY_MMIN, 
-    m_threshold=FAULT_BACKGROUND_MAG_THRESHOLD):
+def computeActivityFromBackground(feature, layer_fault_background, 
+    layer_background, catalog, mmin=atticivy.ATTICIVY_MMIN, 
+    m_threshold=FAULT_BACKGROUND_MAG_THRESHOLD, 
+    mindepth=eqcatalog.CUT_DEPTH_MIN, maxdepth=eqcatalog.CUT_DEPTH_MAX):
     """Compute activity parameters a and b for (i) fault background zone, and 
     (ii) from buffer zone around fault zone.
     
@@ -393,19 +398,25 @@ def computeActivityFromBackground(feature, layer_fault_background, layer_backgro
     ## moment rate from activity (RM)
 
     # a and b value from FBZ
+    
+    # TODO(fab): cut catalog with depth constraint
+    cat_cut = QPCatalog.QPCatalog()
+    cat_cut.merge(catalog)
+    cat_cut.cut(mindepth, maxdepth)
+    
     activity_fbz = atticivy.computeActivityAtticIvy((fbz_poly,), (mmax,), 
-        (mcdist,), catalog, mmin=mmin)
+        (mcdist,), cat_cut, mmin=mmin)
     activity['fbz'] = {'ID': fbz_id, 'area': fbz_area, 
         'activity': activity_fbz[0]}
         
     # get separate catalogs below and above magnitude threshold
 
     cat_below_threshold = QPCatalog.QPCatalog()
-    cat_below_threshold.merge(catalog)
+    cat_below_threshold.merge(cat_cut)
     cat_below_threshold.cut(maxmag=m_threshold, maxmag_excl=True)
         
     cat_above_threshold = QPCatalog.QPCatalog()
-    cat_above_threshold.merge(catalog)
+    cat_above_threshold.merge(cat_cut)
     cat_above_threshold.cut(minmag=m_threshold, maxmag_excl=False)
 
     activity_below_threshold = atticivy.computeActivityAtticIvy(
@@ -420,7 +431,7 @@ def computeActivityFromBackground(feature, layer_fault_background, layer_backgro
         
     # a and b value on buffer zone
     activity_bz = atticivy.computeActivityAtticIvy((bz_poly,), (mmax,), 
-        (mcdist,), catalog, mmin)
+        (mcdist,), cat_cut, mmin)
     activity['bz'] = {'area': bz_area, 'activity': activity_bz[0]}
             
     activity['background'] = {'mmax': mmax, 'mcdist': mcdist}
