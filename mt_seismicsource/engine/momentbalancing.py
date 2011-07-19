@@ -146,8 +146,9 @@ def updateDataArea(cls, feature):
     ## Maximum likelihood a/b values
     cls.feature_data_area_source['fmd'] = fmd.computeZoneFMD(cls, feature, 
         poly_cat)
-    (parameters['ml_a'], parameters['ml_b'], parameters['ml_mc']) = \
-        fmd.getFMDValues(cls.feature_data_area_source['fmd'])
+    (parameters['ml_a'], parameters['ml_b'], parameters['ml_mc'], 
+        parameters['ml_magctr']) = fmd.getFMDValues(
+            cls.feature_data_area_source['fmd'])
 
     ## moment rate from activity
     a_values = atticivy.activity2aValue(activity_a, activity_b, 
@@ -191,10 +192,12 @@ def updateTextActivityArea(cls, parameters):
         parameters['ml_a'], 
         parameters['ml_b'],
         parameters['ml_mc'])
-    text += "Mmin: %s, Mmax: %s, %s EQ in %s km<sup>2</sup> (area zone)" % (
+    text += "Mmin: %s, Mmax: %s, %s EQ (%s above Mc) in %s km<sup>2</sup> " \
+            "(area zone)" % (
         parameters['activity_mmin'],
         parameters['mmax'],
         parameters['eq_count'],
+        parameters['ml_magctr'],
         int(parameters['area_sqkm']))
     cls.textActivityArea.setText(text)
 

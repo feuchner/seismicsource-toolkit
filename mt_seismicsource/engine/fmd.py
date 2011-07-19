@@ -46,7 +46,8 @@ FMD_COMPUTE_ANNUAL_RATE = True
 class FMDMulti(qpfmd.FrequencyMagnitudeDistribution):
     """Extended FMD class with multiple G-R fits."""
     
-    def __init__(self, evpar, binsize=0.1, Mc='maxCurvature', Mstart=None, 
+    def __init__(self, evpar, binsize=qpfmd.DEFAULT_BINSIZE, 
+        Mc=qpfmd.DEFAULT_MC_METHOD, Mstart=None, 
         Mend=None, minEventsGR=qpfmd.MIN_EVENTS_GR, time_span=None, **kwargs):
                       
         super(FMDMulti, self).__init__(evpar, binsize, Mc, Mstart, Mend, 
@@ -99,7 +100,7 @@ def plotZoneFMD(cls, feature_data, normalize=FMD_COMPUTE_ANNUAL_RATE,
     fmd = feature_data['fmd']
     parameters = feature_data['parameters']
     
-    if fmd.GR is not None:
+    if fmd.GR['fit'] is not None:
         activity_ml_arr = numpy.vstack((fmd.GR['mag_fit'], fmd.GR['fit']))
         fits.append({'data': activity_ml_arr, 'label': "Activity (ML)"})
         
@@ -131,17 +132,14 @@ def plotZoneFMD(cls, feature_data, normalize=FMD_COMPUTE_ANNUAL_RATE,
     return figure
 
 def getFMDValues(fmd, normalize=FMD_COMPUTE_ANNUAL_RATE):
-    """Updates a, b, and Mc value display."""
+    """Returns a, b, Mc, and N(Mc) values."""
 
-    if fmd.GR is None:
-        return (numpy.nan, numpy.nan, numpy.nan)
+    if normalize is True:
+        aValue = fmd.GR['aValueNormalized']
     else:
-        if normalize is True:
-            aValue = fmd.GR['aValueNormalized']
-        else:
-            aValue = fmd.GR['aValue']
+        aValue = fmd.GR['aValue']
 
-        return (aValue, fmd.GR['bValue'], fmd.GR['Mmin'])
+    return (aValue, fmd.GR['bValue'], fmd.GR['Mmin'], fmd.GR['magCtr'])
 
 def computeFMDArray(a_value, b_value, mag_arr, timespan=None, area=None):
     
