@@ -43,6 +43,10 @@ from mt_seismicsource.layers import eqcatalog
 MIN_EVENTS_FOR_GR = 50
 FMD_COMPUTE_ANNUAL_RATE = True
 
+# change order of list of Mc methods 
+MC_METHODS = (qpfmd.MC_METHODS[1], qpfmd.MC_METHODS[0], qpfmd.MC_METHODS[2])
+MC_DEFAULT = 4.5
+
 class FMDMulti(qpfmd.FrequencyMagnitudeDistribution):
     """Extended FMD class with multiple G-R fits."""
     

@@ -163,8 +163,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         
         ## FMD
        
-        self.comboBoxMcMethod.addItems(qpfmd.MC_METHODS)
-        self.spinboxFMDMcMethod.setValue(3.5)
+        self.comboBoxMcMethod.addItems(fmd.MC_METHODS)
+        self.spinboxFMDMcMethod.setValue(fmd.MC_DEFAULT)
 
         ## Fault Background Zone
         
