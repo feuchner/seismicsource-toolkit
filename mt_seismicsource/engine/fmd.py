@@ -171,7 +171,7 @@ def plotRecurrence(cls, feature, feature_data=None, title=''):
     distrodata = numpy.vstack((distrodata_min, distrodata_max[1, :]))
 
     fits = []
-    if feature_data['fmd'].GR is not None:
+    if feature_data['fmd'].GR['fit'] is not None:
         activity_ml_arr = numpy.vstack((
             feature_data['fmd'].GR['mag_fit'], 
             feature_data['fmd'].GR['fit'] / eqcatalog.CATALOG_TIME_SPAN))

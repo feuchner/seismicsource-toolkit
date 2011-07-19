@@ -364,8 +364,9 @@ def updateDataFault(cls, feature,
     # FMD from quakes in FBZ
     cls.feature_data_fault_source['fmd'] = fmd.computeZoneFMD(cls, feature, 
         fbz_cat)
-    (parameters['ml_a'], parameters['ml_b'], parameters['ml_mc']) = \
-        fmd.getFMDValues(cls.feature_data_fault_source['fmd'])
+    (parameters['ml_a'], parameters['ml_b'], parameters['ml_mc'], 
+        parameters['ml_magctr']) = fmd.getFMDValues(
+            cls.feature_data_fault_source['fmd'])
         
     ## moment rate from slip rate
 
@@ -419,8 +420,10 @@ def updateTextActivityFault(cls, parameters):
         parameters['eq_count_bz'],
         int(parameters['area_bz_sqkm']))
         
-    text += "%s EQ in %s km<sup>2</sup> (FBZ)<br/>" % (
+    text += "%s EQ (%s above Mc %.1f) in %s km<sup>2</sup> (FBZ)<br/>" % (
         parameters['eq_count_fbz'],
+        parameters['ml_magctr'],
+        parameters['ml_mc'],
         int(parameters['area_fbz_sqkm']))
         
     text += "Mmax: %s (background), %s (fault) " % (
@@ -702,6 +705,8 @@ def updateTextActivityFaultBackgr(cls, parameters):
         central_b_above,
         central_A_above,
         parameters['eq_count_above'])
+        
+    # TODO(fab): implement ML a and b value
     text += "<b>(ML)</b> all EQ: a: %s, b: %s (%s EQ)<br/>" % (None, None, 
         parameters['eq_count'])
     text += "Mmin: %s, Mmax: %s, %s faults with area of %s km<sup>2</sup> in background zone of %s km<sup>2</sup>" % (

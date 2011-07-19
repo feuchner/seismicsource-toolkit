@@ -402,7 +402,7 @@ def computeActivityFromBackground(feature, layer_fault_background,
     # TODO(fab): cut catalog with depth constraint
     cat_cut = QPCatalog.QPCatalog()
     cat_cut.merge(catalog)
-    cat_cut.cut(mindepth, maxdepth)
+    cat_cut.cut(mindepth=mindepth, maxdepth=maxdepth)
     
     activity_fbz = atticivy.computeActivityAtticIvy((fbz_poly,), (mmax,), 
         (mcdist,), cat_cut, mmin=mmin)
