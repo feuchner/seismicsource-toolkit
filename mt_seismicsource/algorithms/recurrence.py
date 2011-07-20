@@ -34,14 +34,14 @@ from PyQt4.QtGui import *
 
 from qgis.core import *
 
+import QPCatalog
+
 from mt_seismicsource import features
 from mt_seismicsource import utils
 from mt_seismicsource.algorithms import atticivy
 from mt_seismicsource.algorithms import momentrate
 from mt_seismicsource.layers import areasource
 from mt_seismicsource.layers import eqcatalog
-
-import QPCatalog
 
 # minimum magintude for recurrence computation
 MAGNITUDE_MIN = 5.0
@@ -357,7 +357,7 @@ def computeActivityFromBackground(feature, layer_fault_background,
         mmin
         
     Output:
-        
+        TODO(fab)
     """
     
     activity = {}
@@ -399,7 +399,7 @@ def computeActivityFromBackground(feature, layer_fault_background,
 
     # a and b value from FBZ
     
-    # TODO(fab): cut catalog with depth constraint
+    # cut catalog with depth constraint
     cat_cut = QPCatalog.QPCatalog()
     cat_cut.merge(catalog)
     cat_cut.cut(mindepth=mindepth, maxdepth=maxdepth)

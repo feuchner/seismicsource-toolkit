@@ -94,12 +94,7 @@ def updateDataArea(cls, feature):
     poly_cat.cut(geometry=poly)
     
     # cut catalog with min/max depth according to UI spinboxes
-    mindepth = eqcatalog.CUT_DEPTH_MIN
-    maxdepth = eqcatalog.CUT_DEPTH_MAX
-    if cls.checkBoxCatalogDepth.isChecked() is True:
-        mindepth = cls.spinboxCatDepthMin.value()
-        maxdepth = cls.spinboxCatDepthMax.value()
-        
+    (mindepth, maxdepth) = eqcatalog.getMinMaxDepth(cls)
     poly_cat.cut(mindepth=mindepth, maxdepth=maxdepth)
 
     parameters['eq_count'] = poly_cat.size()
@@ -297,17 +292,12 @@ def updateDataFault(cls, feature,
     ## moment rate from EQs
 
     # get quakes from catalog (cut with fault background polygon)
+    # cut catalog with min/max depth according to UI spinboxes
+    (mindepth, maxdepth) = eqcatalog.getMinMaxDepth(cls)
+    
     fbz_cat = QPCatalog.QPCatalog()
     fbz_cat.merge(cls.catalog)
     fbz_cat.cut(geometry=fbz_poly)
-    
-    # cut catalog with min/max depth according to UI spinboxes
-    mindepth = eqcatalog.CUT_DEPTH_MIN
-    maxdepth = eqcatalog.CUT_DEPTH_MAX
-    if cls.checkBoxCatalogDepth.isChecked() is True:
-        mindepth = cls.spinboxCatDepthMin.value()
-        maxdepth = cls.spinboxCatDepthMax.value()
-        
     fbz_cat.cut(mindepth=mindepth, maxdepth=maxdepth)
     
     bz_cat = QPCatalog.QPCatalog()
@@ -510,12 +500,7 @@ def updateDataFaultBackgr(cls, feature,
     poly_cat.cut(geometry=poly)
     
     # cut catalog with min/max depth according to UI spinboxes
-    mindepth = eqcatalog.CUT_DEPTH_MIN
-    maxdepth = eqcatalog.CUT_DEPTH_MAX
-    if cls.checkBoxCatalogDepth.isChecked() is True:
-        mindepth = cls.spinboxCatDepthMin.value()
-        maxdepth = cls.spinboxCatDepthMax.value()
-        
+    (mindepth, maxdepth) = eqcatalog.getMinMaxDepth(cls)
     poly_cat.cut(mindepth=mindepth, maxdepth=maxdepth)
     
     parameters['eq_count'] = poly_cat.size()

@@ -36,8 +36,11 @@ from PyQt4.QtGui import *
 
 from qgis.core import *
 
+import QPCatalog
+
 from mt_seismicsource import features
 from mt_seismicsource import utils
+from mt_seismicsource.layers import eqcatalog
 
 ATTICIVY_MMIN = 3.5
 
@@ -80,7 +83,8 @@ B prior and weight
 ZONE_ATTRIBUTES = (features.AREA_SOURCE_ATTR_MMAX,
     features.AREA_SOURCE_ATTR_MCDIST)
 
-def assignActivityAtticIvy(layer, catalog, mmin=ATTICIVY_MMIN):
+def assignActivityAtticIvy(layer, catalog, mmin=ATTICIVY_MMIN,
+    mindepth=eqcatalog.CUT_DEPTH_MIN, maxdepth=eqcatalog.CUT_DEPTH_MAX):
     """Compute activity with Roger Musson's AtticIvy code and assign a and
     b values to each area source zone.
 
@@ -112,7 +116,8 @@ def assignActivityAtticIvy(layer, catalog, mmin=ATTICIVY_MMIN):
         mmax.append(float(zone[mmax_idx].toDouble()[0]))
         mcdist.append(str(zone[mcdist_idx].toString()))
 
-    activity = computeActivityAtticIvy(polygons, mmax, mcdist, catalog, mmin)
+    activity = computeActivityAtticIvy(polygons, mmax, mcdist, catalog, mmin, 
+        mindepth, maxdepth)
 
     # assemble value dict
     values = {}
@@ -142,7 +147,8 @@ def assignActivityAtticIvy(layer, catalog, mmin=ATTICIVY_MMIN):
     layer.commitChanges()
 
 def computeActivityAtticIvy(polygons, mmax, mcdist, catalog, 
-    mmin=ATTICIVY_MMIN):
+    mmin=ATTICIVY_MMIN, mindepth=eqcatalog.CUT_DEPTH_MIN,
+    maxdepth=eqcatalog.CUT_DEPTH_MAX):
     """Computes a-and b values using Roger Musson's AtticIvy code for
     a set of source zone polygons.
     
@@ -167,9 +173,14 @@ def computeActivityAtticIvy(polygons, mmax, mcdist, catalog,
     
     writeZones2AtticIvy(zone_file_path, polygons, mmax, mcdist, mmin)
 
+    # do depth filtering on catalog
+    cat_cut = QPCatalog.QPCatalog()
+    cat_cut.merge(catalog)
+    cat_cut.cut(mindepth=mindepth, maxdepth=maxdepth)
+    
     # write catalog to temp file in AtticIvy format
     catalog_file_path = os.path.join(temp_dir, ATTICIVY_CATALOG_FILE)
-    catalog.exportAtticIvy(catalog_file_path)
+    cat_cut.exportAtticIvy(catalog_file_path)
 
     # start AtticIvy computation (subprocess)
     exec_file = os.path.basename(ATTICIVY_EXECUTABLE)

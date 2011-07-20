@@ -38,7 +38,7 @@ from PyQt4.QtGui import *
 
 from qgis.core import *
 
-import features
+from mt_seismicsource import features
 
 SHAPEFILE_ENCODING = "UTF-8"
 
@@ -350,7 +350,7 @@ def centralValueOfList(list_in):
     """Return central value of a list."""
     central_idx = len(list_in) / 2
     return list_in[central_idx]
-    
+            
 def warning_box_missing_layer_file(filename):
     QMessageBox.warning(None, "File not found", 
         "Layer file not found: %s" % os.path.basename(filename))

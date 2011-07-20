@@ -364,8 +364,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             self.area_source_layer):
             return
 
+        (mindepth, maxdepth) = eqcatalog.getMinMaxDepth(self)
+        
         atticivy.assignActivityAtticIvy(self.area_source_layer, self.catalog, 
-            mmin=atticivy.ATTICIVY_MMIN)
+            mmin=atticivy.ATTICIVY_MMIN, mindepth=mindepth, maxdepth=maxdepth)
 
     def computeRecurrence(self):
         """Compute recurrence with Bungum code."""
@@ -374,11 +376,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             self.fault_source_layer):
             return
 
-        mindepth = eqcatalog.CUT_DEPTH_MIN
-        maxdepth = eqcatalog.CUT_DEPTH_MAX
-        if self.checkBoxCatalogDepth.isChecked() is True:
-            mindepth = self.spinboxCatDepthMin.value()
-            maxdepth = self.spinboxCatDepthMax.value()
+        (mindepth, maxdepth) = eqcatalog.getMinMaxDepth(self)
             
         recurrence.assignRecurrence(self.fault_source_layer, 
             self.fault_background_layer, self.background_zone_layer, 

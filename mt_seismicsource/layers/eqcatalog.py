@@ -126,3 +126,14 @@ def loadEQCatalogLayer(cls):
     cls.legend.setLayerVisible(layer, render.EQ_LAYER_STYLE['visible'])
         
     return layer
+
+def getMinMaxDepth(cls):
+    """Get min and max constraint for depth filtering of EQ catalog."""
+    mindepth = CUT_DEPTH_MIN
+    maxdepth = CUT_DEPTH_MAX
+    if cls.checkBoxCatalogDepth.isChecked() is True:
+        mindepth = cls.spinboxCatDepthMin.value()
+        maxdepth = cls.spinboxCatDepthMax.value()
+        
+    return (mindepth, maxdepth)
+
