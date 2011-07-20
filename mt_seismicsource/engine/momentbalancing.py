@@ -108,9 +108,8 @@ def updateDataArea(cls, feature):
     moment = numpy.array(momentrate.magnitude2moment(magnitudes))
 
     # scale moment: per year and area (in km^2)
-    # TODO(fab): compute real catalog time span
     parameters['mr_eq'] = moment.sum() / (
-        parameters['area_sqkm'] * eqcatalog.CATALOG_TIME_SPAN)
+        parameters['area_sqkm'] * cls.catalog_time_span[0])
 
     ## moment rate from activity (RM)
 
@@ -149,7 +148,7 @@ def updateDataArea(cls, feature):
     a_values = atticivy.activity2aValue(activity_a, activity_b, 
         parameters['activity_mmin'])
     momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
-        a_values, activity_b, mmax)) / eqcatalog.CATALOG_TIME_SPAN
+        a_values, activity_b, mmax)) / cls.catalog_time_span[0]
     parameters['mr_activity'] = momentrates_arr.tolist()
 
     ## moment rate from geodesy (strain)
@@ -157,12 +156,12 @@ def updateDataArea(cls, feature):
         poly, cls.data.strain_rate_barba, 
         cls.data.deformation_regimes_bird)
     parameters['mr_strain_barba'] = momentrate_strain_barba / (
-        eqcatalog.CATALOG_TIME_SPAN)
+        cls.catalog_time_span[0])
 
     momentrate_strain_bird = momentrate.momentrateFromStrainRateBird(poly, 
         cls.data.strain_rate_bird, cls.data.deformation_regimes_bird)
     parameters['mr_strain_bird'] = momentrate_strain_bird / (
-        eqcatalog.CATALOG_TIME_SPAN)
+        cls.catalog_time_span[0])
 
     return parameters
 
@@ -318,9 +317,8 @@ def updateDataFault(cls, feature,
     moment = numpy.array(momentrate.magnitude2moment(magnitudes))
 
     # scale moment: per year and area (in km^2)
-    # TODO(fab): compute real catalog time span
     parameters['mr_eq'] = moment.sum() / (
-        parameters['area_bz_sqkm'] * eqcatalog.CATALOG_TIME_SPAN)
+        parameters['area_bz_sqkm'] * cls.catalog_time_span[0])
 
     ## moment rate from activity (RM)
 
@@ -332,7 +330,7 @@ def updateDataFault(cls, feature,
     
     a_values = atticivy.activity2aValue(a_bz_arr, b_bz_arr)
     momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
-        a_values, b_bz_arr, mmax)) / eqcatalog.CATALOG_TIME_SPAN
+        a_values, b_bz_arr, mmax)) / cls.catalog_time_span[0]
 
     parameters['mr_activity'] = momentrates_arr.tolist()
 
@@ -345,7 +343,7 @@ def updateDataFault(cls, feature,
     
     a_values = atticivy.activity2aValue(a_fbz_at_arr, b_fbz_at_arr)
     momentrates_fbz_at_arr = numpy.array(momentrate.momentrateFromActivity(
-        a_values, b_fbz_at_arr, mmax)) / eqcatalog.CATALOG_TIME_SPAN
+        a_values, b_fbz_at_arr, mmax)) / cls.catalog_time_span[0]
 
     parameters['mr_activity_fbz_at'] = momentrates_fbz_at_arr.tolist()
     
@@ -518,9 +516,8 @@ def updateDataFaultBackgr(cls, feature,
     moment = numpy.array(momentrate.magnitude2moment(magnitudes))
 
     # scale moment: per year and area (in km^2)
-    # TODO(fab): compute real catalog time span
     parameters['mr_eq'] = moment.sum() / (
-        parameters['area_background_sqkm'] * eqcatalog.CATALOG_TIME_SPAN)
+        parameters['area_background_sqkm'] * cls.catalog_time_span[0])
 
     ## moment rate from activity (RM)
     
@@ -542,7 +539,7 @@ def updateDataFaultBackgr(cls, feature,
     a_values = atticivy.activity2aValue(activity_a, activity_b, 
         parameters['activity_mmin'])
     momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
-        a_values, activity_b, mmax)) / eqcatalog.CATALOG_TIME_SPAN
+        a_values, activity_b, mmax)) / cls.catalog_time_span[0]
     parameters['mr_activity'] = momentrates_arr.tolist()
     
     # get separate catalogs below and above magnitude threshold
@@ -581,12 +578,12 @@ def updateDataFaultBackgr(cls, feature,
     a_values_below = atticivy.activity2aValue(activity_below_a, 
         activity_below_b, parameters['activity_mmin'])
     momentrates_below_arr = numpy.array(momentrate.momentrateFromActivity(
-        a_values_below, activity_below_b, mmax)) / eqcatalog.CATALOG_TIME_SPAN
+        a_values_below, activity_below_b, mmax)) / cls.catalog_time_span[0]
             
     a_values_above = atticivy.activity2aValue(activity_above_a, 
         activity_above_b, parameters['activity_mmin'])
     momentrates_above_arr = numpy.array(momentrate.momentrateFromActivity(
-        a_values_above, activity_above_b, mmax)) / eqcatalog.CATALOG_TIME_SPAN
+        a_values_above, activity_above_b, mmax)) / cls.catalog_time_span[0]
             
     parameters['activity_below_a'] = activity_below_a
     parameters['activity_below_b'] = activity_below_b 
@@ -600,8 +597,8 @@ def updateDataFaultBackgr(cls, feature,
     parameters['activity_m_threshold'] = m_threshold
     
     # FMD from quakes in FBZ
-    cls.feature_data_fault_background['fmd'] = fmd.computeZoneFMD(cls, feature, 
-        poly_cat)
+    cls.feature_data_fault_background['fmd'] = fmd.computeZoneFMD(cls, 
+        feature, poly_cat)
     (parameters['ml_a'], parameters['ml_b'], parameters['ml_mc'], 
         parameters['ml_magctr']) = fmd.getFMDValues(
             cls.feature_data_fault_background['fmd'])
@@ -642,8 +639,8 @@ def updateDataFaultBackgr(cls, feature,
             moment_rate_max += rate_max
             parameters['area_fault_sqkm'] += area_fault
             
-    moment_rate_min /= eqcatalog.CATALOG_TIME_SPAN
-    moment_rate_max /= eqcatalog.CATALOG_TIME_SPAN
+    moment_rate_min /= cls.catalog_time_span[0]
+    moment_rate_max /= cls.catalog_time_span[0]
     
     parameters['mr_slip'] = [moment_rate_min, moment_rate_max]
     parameters['area_fault_sqkm'] *= 1.0e-6
@@ -654,12 +651,12 @@ def updateDataFaultBackgr(cls, feature,
         poly, cls.data.strain_rate_barba, 
         cls.data.deformation_regimes_bird)
     parameters['mr_strain_barba'] = momentrate_strain_barba / (
-        eqcatalog.CATALOG_TIME_SPAN)
+        cls.catalog_time_span[0])
 
     momentrate_strain_bird = momentrate.momentrateFromStrainRateBird(poly, 
         cls.data.strain_rate_bird, cls.data.deformation_regimes_bird)
     parameters['mr_strain_bird'] = momentrate_strain_bird / (
-        eqcatalog.CATALOG_TIME_SPAN)
+        cls.catalog_time_span[0])
         
     return parameters
 

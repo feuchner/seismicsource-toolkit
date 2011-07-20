@@ -77,12 +77,7 @@ def computeZoneFMD(cls, feature, catalog=None):
         catalog.cut(geometry=poly)
         
         # cut catalog with min/max depth according to UI spinboxes
-        mindepth = eqcatalog.CUT_DEPTH_MIN
-        maxdepth = eqcatalog.CUT_DEPTH_MAX
-        if cls.checkBoxCatalogDepth.isChecked() is True:
-            mindepth = cls.spinboxCatDepthMin.value()
-            maxdepth = cls.spinboxCatDepthMax.value()
-            
+        (mindepth, maxdepth) = eqcatalog.getMinMaxDepth(cls)
         catalog.cut(mindepth=mindepth, maxdepth=maxdepth)
 
     # Mc method
@@ -92,7 +87,7 @@ def computeZoneFMD(cls, feature, catalog=None):
         mc = unicode(cls.comboBoxMcMethod.currentText())
         
     return FMDMulti(catalog.eventParameters, Mc=mc, 
-        minEventsGR=MIN_EVENTS_FOR_GR, time_span=eqcatalog.CATALOG_TIME_SPAN)
+        minEventsGR=MIN_EVENTS_FOR_GR, time_span=cls.catalog_time_span[0])
 
 def plotZoneFMD(cls, feature_data, normalize=FMD_COMPUTE_ANNUAL_RATE, 
     title=''):
@@ -114,7 +109,7 @@ def plotZoneFMD(cls, feature_data, normalize=FMD_COMPUTE_ANNUAL_RATE,
     a_value = atticivy.activity2aValue(central_A, central_b, 
         parameters['activity_mmin'])
     activity_rm_arr = computeFMDArray(a_value, central_b, fmd.fmd[0, :], 
-        timespan=eqcatalog.CATALOG_TIME_SPAN)
+        timespan=cls.catalog_time_span[0])
     
     fits.append({'data': activity_rm_arr, 'label': "Activity (RM)"})
     
@@ -174,14 +169,14 @@ def plotRecurrence(cls, feature, feature_data=None, title=''):
     if feature_data['fmd'].GR['fit'] is not None:
         activity_ml_arr = numpy.vstack((
             feature_data['fmd'].GR['mag_fit'], 
-            feature_data['fmd'].GR['fit'] / eqcatalog.CATALOG_TIME_SPAN))
+            feature_data['fmd'].GR['fit'] / cls.catalog_time_span[0]))
         fits.append({'data': activity_ml_arr, 'label': "FBZ (ML)"})
         
     # scale EQ rates per year
     fmd = numpy.vstack((
             feature_data['fmd'].fmd[0, :], 
-            feature_data['fmd'].fmd[1, :] / eqcatalog.CATALOG_TIME_SPAN,
-            feature_data['fmd'].fmd[2, :] / eqcatalog.CATALOG_TIME_SPAN))
+            feature_data['fmd'].fmd[1, :] / cls.catalog_time_span[0],
+            feature_data['fmd'].fmd[2, :] / cls.catalog_time_span[0]))
     
     # new recurrence FMD plot (returns figure)
     plot = qpplot.FMDPlotRecurrence()

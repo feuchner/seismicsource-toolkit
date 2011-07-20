@@ -45,8 +45,6 @@ CATALOG_FILES = (
     'SHEEC-declustered-2011-05-03.zmap.dat.gz', 
     'cenec-zmap.dat')
 
-CATALOG_TIME_SPAN = 1006.0
-
 CUT_DEPTH_MIN = 0.0
 CUT_DEPTH_MAX = 999.0
 
@@ -77,6 +75,9 @@ def loadEQCatalogLayer(cls):
     
     # cut catalog below M=2.0 and remove potential NaN magnitudes
     cls.catalog.cut(minmag=2.0, minmag_exclude=False, removeNaN=True)
+    
+    # get time span of catalog
+    cls.catalog_time_span = cls.catalog.timeSpan()
 
     # PostGIS SRID 4326 is allocated for WGS84
     crs = QgsCoordinateReferenceSystem(4326, 

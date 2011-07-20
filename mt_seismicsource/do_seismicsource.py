@@ -137,6 +137,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         # Non-layer datasets
         self.catalog = None
+        self.catalog_time_span = None
         self.data = None
         
         # layers
@@ -199,6 +200,12 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         
         self.loadDefaultLayers()
 
+        # display catalog properties
+        cat_prop_txt = "Time Span: %s yr (%s-%s)" % (
+            int(self.catalog_time_span[0]), self.catalog_time_span[1].year,
+            self.catalog_time_span[2].year)
+        self.labelCatTimeSpan.setText(cat_prop_txt)
+        
         self.renderers = render.setRenderers(
             self.area_source_layer,
             self.fault_source_layer,
@@ -380,7 +387,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             
         recurrence.assignRecurrence(self.fault_source_layer, 
             self.fault_background_layer, self.background_zone_layer, 
-            self.catalog, mmin=atticivy.ATTICIVY_MMIN,
+            self.catalog, self.catalog_time_span[0], mmin=atticivy.ATTICIVY_MMIN,
             m_threshold=self.spinboxFBZMThres.value(), mindepth=mindepth,
             maxdepth=maxdepth)
 

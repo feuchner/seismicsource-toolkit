@@ -65,7 +65,7 @@ FAULT_BACKGROUND_MAG_THRESHOLD = 5.5
 RECURRENCE_MODEL_NAMES = ("Anderson-Luco (1983) Model 2",)
 
 def assignRecurrence(layer_fault, layer_fault_background=None, 
-    layer_background=None, catalog=None, b_value=None, 
+    layer_background=None, catalog=None, catalog_time_span=None, b_value=None, 
     mmin=atticivy.ATTICIVY_MMIN,
     m_threshold=FAULT_BACKGROUND_MAG_THRESHOLD,
     mindepth=eqcatalog.CUT_DEPTH_MIN, maxdepth=eqcatalog.CUT_DEPTH_MAX):
@@ -93,8 +93,8 @@ def assignRecurrence(layer_fault, layer_fault_background=None,
     fts = layer_fault.selectedFeatures()
 
     recurrence = computeRecurrence(layer_fault, layer_fault_background, 
-        layer_background, catalog, b_value, mmin, m_threshold, mindepth, 
-        maxdepth)
+        layer_background, catalog, catalog_time_span, b_value, mmin, 
+        m_threshold, mindepth, maxdepth)
         
     attribute_map_fault = utils.getAttributeIndex(provider_fault, 
         features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE_COMPUTE, create=True)
@@ -131,7 +131,7 @@ def assignRecurrence(layer_fault, layer_fault_background=None,
     layer_fault.commitChanges()
 
 def computeRecurrence(layer_fault, layer_fault_background=None, 
-    layer_background=None, catalog=None, b_value=None, 
+    layer_background=None, catalog=None, catalog_time_span=None, b_value=None, 
     mmin=atticivy.ATTICIVY_MMIN,
     m_threshold=FAULT_BACKGROUND_MAG_THRESHOLD,
     mindepth=eqcatalog.CUT_DEPTH_MIN,
@@ -225,10 +225,10 @@ def computeRecurrence(layer_fault, layer_fault_background=None,
         mag_arr = numpy.arange(MAGNITUDE_MIN, maxmag, MAGNITUDE_BINNING)
 
         cumulative_number_min = cumulative_occurrence_model_2(mag_arr, maxmag, 
-            slipratemi, b_value, fault_area) / eqcatalog.CATALOG_TIME_SPAN
+            slipratemi, b_value, fault_area) / catalog_time_span
 
         cumulative_number_max = cumulative_occurrence_model_2(mag_arr, maxmag, 
-            slipratema, b_value, fault_area) / eqcatalog.CATALOG_TIME_SPAN
+            slipratema, b_value, fault_area) / catalog_time_span
 
         # use a value computed with max of slip rate
         a_value_min = computeAValueFromOccurrence(
