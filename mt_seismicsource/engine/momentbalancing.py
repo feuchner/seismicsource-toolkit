@@ -406,15 +406,19 @@ def updateTextActivityFault(cls, parameters):
         parameters['activity_rec_a_max'],
         parameters['activity_fbz_b'])
         
+    text += \
+        "<b>(ML)</b> a: %.3f, b: %.3f (%s EQ, %s above Mc %.1f, in "\
+        "%s km<sup>2</sup> FBZ)<br/>" % (
+            parameters['ml_a'], 
+            parameters['ml_b'], 
+            parameters['eq_count_fbz'],
+            parameters['ml_magctr'],
+            parameters['ml_mc'],
+            int(parameters['area_fbz_sqkm']))
+            
     text += "%s EQ in %s km<sup>2</sup> (buffer zone)<br/>" % (
         parameters['eq_count_bz'],
         int(parameters['area_bz_sqkm']))
-        
-    text += "%s EQ (%s above Mc %.1f) in %s km<sup>2</sup> (FBZ)<br/>" % (
-        parameters['eq_count_fbz'],
-        parameters['ml_magctr'],
-        parameters['ml_mc'],
-        int(parameters['area_fbz_sqkm']))
         
     text += "Mmax: %s (background), %s (fault) " % (
         parameters['mmax'],
@@ -595,6 +599,13 @@ def updateDataFaultBackgr(cls, feature,
     
     parameters['activity_m_threshold'] = m_threshold
     
+    # FMD from quakes in FBZ
+    cls.feature_data_fault_background['fmd'] = fmd.computeZoneFMD(cls, feature, 
+        poly_cat)
+    (parameters['ml_a'], parameters['ml_b'], parameters['ml_mc'], 
+        parameters['ml_magctr']) = fmd.getFMDValues(
+            cls.feature_data_fault_background['fmd'])
+            
     ## moment rate from slip rate
 
     sliprate_min_name = features.FAULT_SOURCE_ATTR_SLIPRATE_MIN['name']
@@ -691,10 +702,16 @@ def updateTextActivityFaultBackgr(cls, parameters):
         central_A_above,
         parameters['eq_count_above'])
         
-    # TODO(fab): implement ML a and b value
-    text += "<b>(ML)</b> all EQ: a: %s, b: %s (%s EQ)<br/>" % (None, None, 
-        parameters['eq_count'])
-    text += "Mmin: %s, Mmax: %s, %s faults with area of %s km<sup>2</sup> in background zone of %s km<sup>2</sup>" % (
+    text += \
+        "<b>(ML)</b> all EQ: a: %.3f, b: %.3f (%s EQ, %s above "\
+        "Mc %.1f)<br/>" % (
+            parameters['ml_a'], 
+            parameters['ml_b'], 
+            parameters['eq_count'],
+            parameters['ml_magctr'],
+            parameters['ml_mc'])
+    text += "Mmin: %s, Mmax: %s, %s faults with area of %s km<sup>2</sup> in "\
+    "background zone of %s km<sup>2</sup>" % (
         parameters['activity_mmin'],
         parameters['mmax'], 
         parameters['fault_count'], 
