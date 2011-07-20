@@ -650,7 +650,7 @@
      <x>320</x>
      <y>10</y>
      <width>551</width>
-     <height>221</height>
+     <height>171</height>
     </rect>
    </property>
    <widget class="QGroupBox" name="groupBoxMomentRateArea">
@@ -659,7 +659,7 @@
       <x>0</x>
       <y>0</y>
       <width>551</width>
-      <height>211</height>
+      <height>171</height>
      </rect>
     </property>
     <property name="font">
@@ -709,7 +709,7 @@
        <x>10</x>
        <y>60</y>
        <width>321</width>
-       <height>151</height>
+       <height>111</height>
       </rect>
      </property>
      <property name="font">
@@ -737,7 +737,7 @@
        <x>330</x>
        <y>60</y>
        <width>211</width>
-       <height>151</height>
+       <height>111</height>
       </rect>
      </property>
      <property name="font">
@@ -784,9 +784,9 @@
    <property name="geometry">
     <rect>
      <x>320</x>
-     <y>480</y>
+     <y>450</y>
      <width>551</width>
-     <height>231</height>
+     <height>261</height>
     </rect>
    </property>
    <widget class="QGroupBox" name="groupBoxMomentRateFault">
@@ -795,7 +795,7 @@
       <x>0</x>
       <y>0</y>
       <width>551</width>
-      <height>231</height>
+      <height>261</height>
      </rect>
     </property>
     <property name="font">
@@ -826,7 +826,7 @@
        <x>10</x>
        <y>60</y>
        <width>321</width>
-       <height>161</height>
+       <height>201</height>
       </rect>
      </property>
      <property name="font">
@@ -854,7 +854,7 @@
        <x>330</x>
        <y>60</y>
        <width>211</width>
-       <height>161</height>
+       <height>201</height>
       </rect>
      </property>
      <property name="font">
@@ -920,7 +920,7 @@
    <property name="geometry">
     <rect>
      <x>320</x>
-     <y>230</y>
+     <y>190</y>
      <width>551</width>
      <height>251</height>
     </rect>
@@ -931,7 +931,7 @@
       <x>0</x>
       <y>0</y>
       <width>551</width>
-      <height>241</height>
+      <height>251</height>
      </rect>
     </property>
     <property name="font">
@@ -962,7 +962,7 @@
        <x>10</x>
        <y>60</y>
        <width>321</width>
-       <height>181</height>
+       <height>191</height>
       </rect>
      </property>
      <property name="font">
@@ -977,7 +977,7 @@
        <x>330</x>
        <y>60</y>
        <width>211</width>
-       <height>181</height>
+       <height>191</height>
       </rect>
      </property>
      <property name="font">
@@ -1060,8 +1060,8 @@
   </widget>
   <zorder>widgetMomentRateArea</zorder>
   <zorder>widgetMomentRateFault</zorder>
-  <zorder>widgetMomentRateFaultBackgr</zorder>
   <zorder>widgetControl</zorder>
+  <zorder>widgetMomentRateFaultBackgr</zorder>
  </widget>
  <resources/>
  <connections/>
