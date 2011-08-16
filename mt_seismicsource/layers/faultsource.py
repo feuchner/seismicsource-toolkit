@@ -65,7 +65,7 @@ def loadFaultSourceLayer(cls):
         
     return layer
 
-def loadFaultSourceFromSHP(filename_in, filename_out=None, layer2file=True):
+def loadFaultSourceFromSHP(filename_in, filename_out=None, layer2file=False):
     """Load fault source layer from Shapefile, independent of QGis UI."""
     
     temp_fault_source_layer = QgsVectorLayer(filename_in, "Fault Sources", 

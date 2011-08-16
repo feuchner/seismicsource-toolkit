@@ -75,7 +75,7 @@ def loadAreaSourceLayer(cls):
     return layer
 
 def loadAreaSourceFromSHP(filename_in, mmax_data, background_layer, 
-    filename_out=None, layer2file=True):
+    filename_out=None, layer2file=False):
     """Load area source layer from Shapefile, independent of QGis UI."""
     
     temp_area_source_layer = QgsVectorLayer(filename_in, "Area Sources", "ogr")

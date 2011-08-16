@@ -63,6 +63,31 @@ def loadBackgroundZoneLayer(cls):
         utils.warning_box_missing_layer_file(background_completeness_path)
         return None
 
+    save_path = os.path.join(layers.DATA_DIR, BACKGROUND_DIR, TEMP_FILENAME)
+    layer = loadBackgroundZoneFromFile(background_mmax_path, 
+        background_completeness_path, save_path, layer2file=True)
+
+    # update layer's extent when new features have been added
+    # because change of extent in provider is not 
+    # propagated to the layer
+    layer.updateExtents()
+    QgsMapLayerRegistry.instance().addMapLayer(layer)
+    
+    # set layer as not visible
+    cls.legend.setLayerVisible(layer, False)
+    
+    # set layer visibility
+    cls.legend.setLayerVisible(layer, 
+        render.BACKGROUND_ZONE_LAYER_STYLE['visible'])
+    
+    return layer
+
+def loadBackgroundZoneFromFile(background_mmax_path, 
+    background_completeness_path, filename_out=None, layer2file=False):
+    """Load layer of background zones with completeness history and
+    Mmax from ASCII files, independent of QGis UI. 
+    """
+    
     # read data dicts from files (coordinates from mmax file)
     background_mmax = readBackgroundMmax(background_mmax_path)
     #QMessageBox.information(None, "Mmax", "%s" % background_mmax)
@@ -100,22 +125,10 @@ def loadBackgroundZoneLayer(cls):
 
         pr.addFeatures([f])
 
-    # update layer's extent when new features have been added
-    # because change of extent in provider is not 
-    # propagated to the layer
-    layer.updateExtents()
-    QgsMapLayerRegistry.instance().addMapLayer(layer)
-    
-    # set layer as not visible
-    cls.legend.setLayerVisible(layer, False)
+    # write memory layer to disk (as a Shapefile)
+    if layer2file is True:
+        utils.writeLayerToShapefile(layer, filename_out, crs)
 
-    utils.writeLayerToShapefile(layer, os.path.join(layers.DATA_DIR, 
-        BACKGROUND_DIR, TEMP_FILENAME), crs)
-
-    # set layer visibility
-    cls.legend.setLayerVisible(layer, 
-        render.BACKGROUND_ZONE_LAYER_STYLE['visible'])
-    
     return layer
 
 def readBackgroundMmax(path):

@@ -32,7 +32,15 @@ import os
 import shutil
 import sys
 
-# import mt_seismicsource
+from PyQt4.QtCore import *
+from qgis.core import *
+
+import mt_seismicsource.data
+#import mt_seismicsource.features
+import mt_seismicsource.layers
+
+from mt_seismicsource.layers import background
+from mt_seismicsource.layers import eqcatalog
 
 ## set a few paths
 
@@ -52,13 +60,30 @@ metadata = {}
 
 MODE_IDENTIFIERS = ('ASZ', 'FSZ', 'FBZ')
 
+CATALOG_PATH = os.path.join(mt_seismicsource.layers.DATA_DIR, 
+    eqcatalog.CATALOG_DIR, eqcatalog.CATALOG_FILES[0])
+
+BACKGROUND_MMAX_PATH = os.path.join(mt_seismicsource.layers.DATA_DIR, 
+    background.BACKGROUND_DIR, background.BACKGROUND_ZONES_MMAX_FILE)
+BACKGROUND_COMPLETENESS_PATH = os.path.join(mt_seismicsource.layers.DATA_DIR, 
+    background.BACKGROUND_DIR, background.BACKGROUND_ZONES_COMPLETENESS_FILE)
+
 def main():
     """Main program."""
     global scriptname
     global metadata
 
+    # supply path to where is your qgis installed
+    QgsApplication.setPrefixPath("/usr", True)
+
+    # load providers
+    QgsApplication.initQgis()
+    QgsApplication.registerOgrDrivers()
+    
     setUp()
     runParts()
+    
+    QgsApplication.exitQgis()
     
 def runParts():
     """Sequentially run parts of program."""
@@ -135,10 +160,14 @@ def setUp():
         metadata['outfile_name'] = metadata['infile_name']
 
     ## set auxiliary data files
+    metadata['data'] = mt_seismicsource.data.Datasets()
     
     # EQ catalog
+    (foo, metadata['catalog']) = eqcatalog.loadEQCatalogFromFile(CATALOG_PATH)
     
     # background zones
+    metadata['background_layer'] = background.loadBackgroundZoneFromFile(
+        BACKGROUND_MMAX_PATH, BACKGROUND_COMPLETENESS_PATH)
     
 
 def runPart1():

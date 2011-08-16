@@ -70,3 +70,4 @@ def loadTectonicRegimeLayer(cls):
     cls.legend.setLayerVisible(layer, render.TECTONIC_LAYER_STYLE['visible'])
 
     return layer
+

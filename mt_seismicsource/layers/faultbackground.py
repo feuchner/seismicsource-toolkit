@@ -68,7 +68,7 @@ def loadFaultBackgroundLayer(cls):
     return layer
 
 def loadFaultBackgroundFromSHP(filename_in, filename_out=None, 
-    layer2file=True):
+    layer2file=False):
     """Load fault source background layer from Shapefile, independent of 
     QGis UI."""
     

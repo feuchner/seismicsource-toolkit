@@ -61,23 +61,41 @@ def loadEQCatalogLayer(cls):
         utils.warning_box_missing_layer_file(catalog_path)
         return
 
-    cls.catalog = QPCatalog.QPCatalog()
+    (layer, cls.catalog) = loadEQCatalogFromFile(catalog_path)
+
+    # set time span of catalog
+    cls.catalog_time_span = cls.catalog.timeSpan()
+    
+    # update layer's extent when new features have been added
+    # because change of extent in provider is not 
+    # propagated to the layer
+    layer.updateExtents()
+    QgsMapLayerRegistry.instance().addMapLayer(layer)
+    
+    # set layer visibility
+    cls.legend.setLayerVisible(layer, render.EQ_LAYER_STYLE['visible'])
+        
+    return layer
+
+def loadEQCatalogFromFile(catalog_path):
+    """Load EQ catalog layer from ASCII catalog file, independent of 
+    QGis UI.
+    """
+    
+    catalog = QPCatalog.QPCatalog()
 
     if catalog_path.endswith('.gz'):
-        cls.catalog.importZMAP(catalog_path, minimumDataset=True,
+        catalog.importZMAP(catalog_path, minimumDataset=True,
             compression='gz')
     else:
-        cls.catalog.importZMAP(catalog_path, minimumDataset=True)
+        catalog.importZMAP(catalog_path, minimumDataset=True)
 
     # cut catalog to years > 1900 (because of datetime)
     # TODO(fab): change the datetime lib to mx.DateTime
-    # cls.catalog.cut(mintime='1900-01-01', mintime_exclude=True)
+    # catalog.cut(mintime='1900-01-01', mintime_exclude=True)
     
     # cut catalog below M=2.0 and remove potential NaN magnitudes
-    cls.catalog.cut(minmag=2.0, minmag_exclude=False, removeNaN=True)
-    
-    # get time span of catalog
-    cls.catalog_time_span = cls.catalog.timeSpan()
+    catalog.cut(minmag=2.0, minmag_exclude=False, removeNaN=True)
 
     # PostGIS SRID 4326 is allocated for WGS84
     crs = QgsCoordinateReferenceSystem(4326, 
@@ -93,7 +111,7 @@ def loadEQCatalogLayer(cls):
                       QgsField("depth",  QVariant.Double)])
 
     # add EQs as features
-    for curr_event in cls.catalog.eventParameters.event:
+    for curr_event in catalog.eventParameters.event:
         curr_ori = curr_event.getPreferredOrigin()
 
         # skip events without magnitude
@@ -116,17 +134,8 @@ def loadEQCatalogLayer(cls):
         f[0] = QVariant(magnitude)
         f[1] = QVariant(depth)
         pr.addFeatures([f])
-
-    # update layer's extent when new features have been added
-    # because change of extent in provider is not 
-    # propagated to the layer
-    layer.updateExtents()
-    QgsMapLayerRegistry.instance().addMapLayer(layer)
-    
-    # set layer visibility
-    cls.legend.setLayerVisible(layer, render.EQ_LAYER_STYLE['visible'])
         
-    return layer
+    return (layer, catalog)
 
 def getMinMaxDepth(cls):
     """Get min and max constraint for depth filtering of EQ catalog."""
