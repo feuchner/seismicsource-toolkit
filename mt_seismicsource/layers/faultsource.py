@@ -53,8 +53,23 @@ def loadFaultSourceLayer(cls):
         utils.warning_box_missing_layer_file(fault_source_path)
         return
 
-    temp_fault_source_layer = QgsVectorLayer(fault_source_path, 
-        "Fault Sources", "ogr")
+    save_path = os.path.join(layers.DATA_DIR, FAULT_FILE_DIR, TEMP_FILENAME)
+    layer = loadFaultSourceFromSHP(fault_source_path, save_path, 
+        layer2file=True)
+    
+    # register layer in QGis
+    QgsMapLayerRegistry.instance().addMapLayer(layer)
+    
+    # set layer visibility
+    cls.legend.setLayerVisible(layer, render.FAULT_LAYER_STYLE['visible'])
+        
+    return layer
+
+def loadFaultSourceFromSHP(filename_in, filename_out=None, layer2file=True):
+    """Load fault source layer from Shapefile, independent of QGis UI."""
+    
+    temp_fault_source_layer = QgsVectorLayer(filename_in, "Fault Sources", 
+        "ogr")
 
     # PostGIS SRID 4326 is allocated for WGS84
     crs = QgsCoordinateReferenceSystem(4326, 
@@ -62,12 +77,9 @@ def loadFaultSourceLayer(cls):
 
     layer = utils.shp2memory(temp_fault_source_layer, "Fault Sources")
     layer.setCrs(crs) 
-
-    QgsMapLayerRegistry.instance().addMapLayer(layer)
-    utils.writeLayerToShapefile(layer, os.path.join(layers.DATA_DIR, 
-        FAULT_FILE_DIR, TEMP_FILENAME), crs)
-
-    # set layer visibility
-    cls.legend.setLayerVisible(layer, render.FAULT_LAYER_STYLE['visible'])
-        
+    
+    # write memory layer to disk (as a Shapefile)
+    if layer2file is True:
+        utils.writeLayerToShapefile(layer, filename_out, crs)
+    
     return layer

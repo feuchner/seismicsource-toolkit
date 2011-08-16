@@ -53,7 +53,26 @@ def loadFaultBackgroundLayer(cls):
         utils.warning_box_missing_layer_file(fault_background_path)
         return
 
-    temp_fault_background_layer = QgsVectorLayer(fault_background_path, 
+    save_path = os.path.join(layers.DATA_DIR, FAULT_BACKGROUND_FILE_DIR, 
+        TEMP_FILENAME)
+    layer = loadFaultBackgroundFromSHP(fault_background_path, save_path,
+        layer2file=True)
+
+    # register layer in QGis
+    QgsMapLayerRegistry.instance().addMapLayer(layer)
+    
+    # set layer visibility
+    cls.legend.setLayerVisible(layer, 
+        render.FAULT_BACKGROUND_LAYER_STYLE['visible'])
+    
+    return layer
+
+def loadFaultBackgroundFromSHP(filename_in, filename_out=None, 
+    layer2file=True):
+    """Load fault source background layer from Shapefile, independent of 
+    QGis UI."""
+    
+    temp_fault_background_layer = QgsVectorLayer(filename_in, 
         "Fault Background", "ogr")
 
     # PostGIS SRID 4326 is allocated for WGS84
@@ -63,12 +82,8 @@ def loadFaultBackgroundLayer(cls):
     layer = utils.shp2memory(temp_fault_background_layer, "Fault Background")
     layer.setCrs(crs) 
 
-    QgsMapLayerRegistry.instance().addMapLayer(layer)
-    utils.writeLayerToShapefile(layer, os.path.join(layers.DATA_DIR, 
-        FAULT_BACKGROUND_FILE_DIR, TEMP_FILENAME), crs)
-
-    # set layer visibility
-    cls.legend.setLayerVisible(layer, 
-        render.FAULT_BACKGROUND_LAYER_STYLE['visible'])
-    
+    # write memory layer to disk (as a Shapefile)
+    if layer2file is True:
+        utils.writeLayerToShapefile(layer, filename_out, crs)
+        
     return layer

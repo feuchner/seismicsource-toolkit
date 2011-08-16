@@ -62,8 +62,23 @@ def loadAreaSourceLayer(cls):
         utils.warning_box_missing_layer_file(area_source_path)
         return
 
-    temp_area_source_layer = QgsVectorLayer(area_source_path, 
-        "Area Sources", "ogr")
+    save_path = os.path.join(layers.DATA_DIR, ZONE_FILE_DIR, TEMP_FILENAME)
+    layer = loadAreaSourceFromSHP(area_source_path, cls.data.mmax, 
+        cls.background_zone_layer, save_path, layer2file=True)
+    
+    # register layer in QGis
+    QgsMapLayerRegistry.instance().addMapLayer(layer)
+    
+    # set layer visibility
+    cls.legend.setLayerVisible(layer, render.AREA_LAYER_STYLE['visible'])
+    
+    return layer
+
+def loadAreaSourceFromSHP(filename_in, mmax_data, background_layer, 
+    filename_out=None, layer2file=True):
+    """Load area source layer from Shapefile, independent of QGis UI."""
+    
+    temp_area_source_layer = QgsVectorLayer(filename_in, "Area Sources", "ogr")
 
     # PostGIS SRID 4326 is allocated for WGS84
     crs = QgsCoordinateReferenceSystem(4326, 
@@ -76,21 +91,18 @@ def loadAreaSourceLayer(cls):
     _checkAreaSourceLayer(layer)
 
     # assign Mmax from Meletti data set
-    assignMmaxfromMelettiDataset(layer, cls.data.mmax)
+    assignMmaxfromMelettiDataset(layer, mmax_data)
     
     # assign attributes from background zones
-    assignAttributesFromBackgroundZones(layer, cls.background_zone_layer,
+    assignAttributesFromBackgroundZones(layer, background_layer, 
         MCDIST_ATTRIBUTES)
 
-    QgsMapLayerRegistry.instance().addMapLayer(layer)
-    utils.writeLayerToShapefile(layer, os.path.join(layers.DATA_DIR, 
-        ZONE_FILE_DIR, TEMP_FILENAME), crs)
-
-    # set layer visibility
-    cls.legend.setLayerVisible(layer, render.AREA_LAYER_STYLE['visible'])
-    
+    # write memory layer to disk (as a Shapefile)
+    if layer2file is True:
+        utils.writeLayerToShapefile(layer, filename_out, crs)
+        
     return layer
-
+        
 def assignMmaxfromMelettiDataset(layer, mmax_data):
     """Assign Mmax from Meletti data set to area source zone layer."""
     
