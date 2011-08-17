@@ -36,9 +36,13 @@ from PyQt4.QtCore import *
 from qgis.core import *
 
 import mt_seismicsource.data
-#import mt_seismicsource.features
 import mt_seismicsource.layers
+import mt_seismicsource.utils
 
+from mt_seismicsource.algorithms import atticivy
+from mt_seismicsource.algorithms import recurrence
+
+from mt_seismicsource.layers import areasource
 from mt_seismicsource.layers import background
 from mt_seismicsource.layers import eqcatalog
 
@@ -68,6 +72,8 @@ BACKGROUND_MMAX_PATH = os.path.join(mt_seismicsource.layers.DATA_DIR,
 BACKGROUND_COMPLETENESS_PATH = os.path.join(mt_seismicsource.layers.DATA_DIR, 
     background.BACKGROUND_DIR, background.BACKGROUND_ZONES_COMPLETENESS_FILE)
 
+SHP_EXTENSION_CHAR_CNT = 3
+
 def main():
     """Main program."""
     global scriptname
@@ -81,13 +87,9 @@ def main():
     QgsApplication.registerOgrDrivers()
     
     setUp()
-    runParts()
+    run()
     
     QgsApplication.exitQgis()
-    
-def runParts():
-    """Sequentially run parts of program."""
-    runPart1()
 
 def setUp():
     """Set up computation, evaluate commandline options."""
@@ -129,6 +131,8 @@ def setUp():
     if in_mode not in MODE_IDENTIFIERS:
         error_str = "%s - no valid mode identifier has been specified" % scriptname
         raise ValueError, error_str
+    else:
+        metadata['mode'] = in_mode
 
     # check if input file exists
     if os.path.isfile(in_infile_name):
@@ -145,7 +149,8 @@ def setUp():
         shp_components = getShpComponents(metadata['infile_name'])
         for shp_component in shp_components:
             shutil.copy(shp_component, "%s.%s" % (
-                in_outfile_name[:-4], shp_component[-3:]))
+                in_outfile_name[:-(SHP_EXTENSION_CHAR_CNT+1)], 
+                shp_component[-SHP_EXTENSION_CHAR_CNT:]))
         
         metadata['outfile_name'] = in_outfile_name
         
@@ -159,6 +164,8 @@ def setUp():
         
         metadata['outfile_name'] = metadata['infile_name']
 
+    print "loading auxiliary data"
+    
     ## set auxiliary data files
     metadata['data'] = mt_seismicsource.data.Datasets()
     
@@ -170,47 +177,66 @@ def setUp():
         BACKGROUND_MMAX_PATH, BACKGROUND_COMPLETENESS_PATH)
     
 
-def runPart1():
-    """Run part 1 of computation."""
+def run():
+    """Run batch computation."""
 
     global metadata
-    
-    # open shapefile for writing
-    ds = ogr.Open(metadata['outfile_name'], True)
-    
-    # use first layer
-    lyr = ds.GetLayer(0)
-    lyr.ResetReading()
 
-    # add attribute
-    field_new = ogr.FieldDefn("NEW", ogr.OFTString)
-    field_new.SetWidth(32)
-    lyr.CreateField(field_new)
-        
-    feat_defn = lyr.GetLayerDefn()
-    feat_cnt = feat_defn.GetFieldCount()
-        
-    for feat in lyr:
-        for idx in xrange(feat_cnt-1):
-            
-            field_defn = feat_defn.GetFieldDefn(idx)
-            print "%s %s" % (idx, feat.GetField(idx))
+    # choose mode
+    if metadata['mode'] == 'ASZ':
+        layer = processASZ()
+    elif metadata['mode'] == 'FSZ':
+        layer = processFSZ()
+    elif metadata['mode'] == 'FBZ':
+        layer = processBGZ()
+    else:
+        error_str = "invalid mode"
+        raise RuntimeError, error_str
 
-        feat.SetField(feat_cnt-1, 'foo') 
-        lyr.SetFeature(feat)
-        
-        geom = feat.GetGeometryRef()
-        
-        if geom is not None and geom.GetGeometryType() == ogr.wkbPolygon:
-            #print "%.3f, %.3f" % ( geom.GetX(), geom.GetY() )
-            print "polygon"
-        else:
-            print "no polygon geometry\n"
-            
-    ds = None
+    # write layer to shapefile
+    print "writing to shapefile"
+    
+    pr = layer.dataProvider()
+    pr.select()
+    
+    mt_seismicsource.utils.writeFeaturesToShapefile(layer, 
+        metadata['outfile_name'])
 
 def processASZ():
-    pass
+    """Compute attributes for Area Source Zones:
+        - activity parameters using Roger Musson's code
+    """
+    
+    global metadata
+    
+    print "loading ASZ layer"
+    metadata['asz_layer'] = areasource.loadAreaSourceFromSHP(
+        metadata['infile_name'], metadata['data'].mmax, 
+        metadata['background_layer'])
+
+    pr = metadata['asz_layer'].dataProvider()
+    pr.select()
+    print "features:", pr.featureCount()
+    print "fields:", pr.fieldCount()
+    
+    attribute_map = mt_seismicsource.utils.getAttributeIndex(pr, ({'name': 'FOO', 'type': QVariant.String},), create=True)
+
+    all_features = [feat.id() for feat in pr]
+    metadata['asz_layer'].setSelectedFeatures(all_features)
+    
+    print "running AtticIvy on ASZ layer"
+    # atticivy.assignActivityAtticIvy(metadata['asz_layer'], metadata['catalog'])
+
+    values = {}
+    fts = metadata['asz_layer'].selectedFeatures()
+    for zone_idx, zone in enumerate(fts):
+        zone_str = "bar%s" % zone_idx
+        values[zone.id()] = {11: QVariant(zone_str)}
+        
+    pr.changeAttributeValues(values)
+    metadata['asz_layer'].commitChanges()
+    
+    return metadata['asz_layer']
 
 def processFSZ():
     pass
@@ -220,7 +246,9 @@ def processBGZ():
 
 def getShpComponents(shapefile_name):
     """Find components of shapefile."""
-    return glob.glob("%s.???" % shapefile_name[:-4])
+    extension_str = SHP_EXTENSION_CHAR_CNT * '?'
+    return glob.glob("%s.%s" % (shapefile_name[:-(SHP_EXTENSION_CHAR_CNT+1)], 
+        extension_str))
     
 def PrintHelp():
     """Print help info."""

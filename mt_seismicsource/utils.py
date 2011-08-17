@@ -41,6 +41,7 @@ from qgis.core import *
 from mt_seismicsource import features
 
 SHAPEFILE_ENCODING = "UTF-8"
+SHAPEFILE_DEFAULT_CRS = 4326
 
 EARTH_CIRCUMFERENCE_EQUATORIAL_KM = 40075.017
 
@@ -298,12 +299,39 @@ def polygonAreaFromWGS84(polygon):
 
     return area
 
-def writeLayerToShapefile(layer, path, crs, encoding=SHAPEFILE_ENCODING):
+def writeLayerToShapefile(layer, path, crs=None, encoding=SHAPEFILE_ENCODING):
+    """Write memory vector layer to shapefile."""
+    
+    # if CRS is unspecified, use WGS84
+    if crs is None:
+        crs = QgsCoordinateReferenceSystem(SHAPEFILE_DEFAULT_CRS, 
+            QgsCoordinateReferenceSystem.PostgisCrsId)
     error = QgsVectorFileWriter.writeAsShapefile(layer, path, encoding, crs)
     if error != QgsVectorFileWriter.NoError:
         QMessageBox.warning(None, "Error writing shapefile", 
             "Error %s: Cannot write layer to shapefile: %s" % (error, path))
 
+def writeFeaturesToShapefile(layer, path, crs=None, 
+    encoding=SHAPEFILE_ENCODING):
+    """Write features of vector layer to shapefile. Currently only polygons"""
+    
+    # if CRS is unspecified, use WGS84
+    if crs is None:
+        crs = QgsCoordinateReferenceSystem(SHAPEFILE_DEFAULT_CRS, 
+            QgsCoordinateReferenceSystem.PostgisCrsId)
+    
+    pr = layer.dataProvider()
+    fields = pr.fields()
+    
+    print fields
+    writer = QgsVectorFileWriter(path, encoding, fields, QGis.WKBPolygon, crs)
+    
+    # over features
+    for feat in pr:
+        writer.addFeature(feat)
+    
+    del writer
+            
 def check_only_one_feature_selected(layer):
     """Display a warning box if no feature or more than one feature
     is selected."""
