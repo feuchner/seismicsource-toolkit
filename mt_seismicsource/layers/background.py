@@ -53,14 +53,14 @@ def loadBackgroundZoneLayer(cls):
         BACKGROUND_ZONES_MMAX_FILE)
 
     if not os.path.isfile(background_mmax_path):
-        utils.warning_box_missing_layer_file(background_mmax_path)
+        utils.warning_missing_layer_file(background_mmax_path)
         return None
 
     background_completeness_path = os.path.join(layers.DATA_DIR, 
         BACKGROUND_DIR, BACKGROUND_ZONES_COMPLETENESS_FILE)
 
     if not os.path.isfile(background_completeness_path):
-        utils.warning_box_missing_layer_file(background_completeness_path)
+        utils.warning_missing_layer_file(background_completeness_path)
         return None
 
     save_path = os.path.join(layers.DATA_DIR, BACKGROUND_DIR, TEMP_FILENAME)
@@ -83,17 +83,18 @@ def loadBackgroundZoneLayer(cls):
     return layer
 
 def loadBackgroundZoneFromFile(background_mmax_path, 
-    background_completeness_path, filename_out=None, layer2file=False):
+    background_completeness_path, filename_out=None, layer2file=False,
+    ui_mode=True):
     """Load layer of background zones with completeness history and
     Mmax from ASCII files, independent of QGis UI. 
     """
     
     # read data dicts from files (coordinates from mmax file)
-    background_mmax = readBackgroundMmax(background_mmax_path)
+    background_mmax = readBackgroundMmax(background_mmax_path, ui_mode=ui_mode)
     #QMessageBox.information(None, "Mmax", "%s" % background_mmax)
 
     background_completeness = readBackgroundCompleteness(
-        background_completeness_path)
+        background_completeness_path, ui_mode=ui_mode)
     #QMessageBox.information(None, "Mc", "%s" % background_completeness)
    
     # PostGIS SRID 4326 is allocated for WGS84
@@ -127,11 +128,11 @@ def loadBackgroundZoneFromFile(background_mmax_path,
 
     # write memory layer to disk (as a Shapefile)
     if layer2file is True:
-        utils.writeLayerToShapefile(layer, filename_out, crs)
+        utils.writeLayerToShapefile(layer, filename_out, crs, ui_mode=ui_mode)
 
     return layer
 
-def readBackgroundMmax(path):
+def readBackgroundMmax(path, ui_mode=True):
     """Load geometry and Mmax of background zones from ASCII file.
 
     Output:
@@ -211,13 +212,17 @@ def readBackgroundMmax(path):
                 zoneStartMode = True
 
     if zone_idx != zone_count:
-        QMessageBox.warning(None, "Zone count", 
+        error_msg = \
             "Zone count mismatch in zone file %s: found %s, expected %s" % (
-                path, zone_idx, zone_count))
-
+                path, zone_idx, zone_count)
+        if ui_mode is True:
+            QMessageBox.warning(None, "Zone count", error_msg)
+        else:
+            print error_msg
+            
     return zones
 
-def readBackgroundCompleteness(path):
+def readBackgroundCompleteness(path, ui_mode=True):
     """Load completeness history for background zones from CSV file.
 
     Output:
@@ -289,8 +294,12 @@ def readBackgroundCompleteness(path):
                     zoneStartMode = True
 
     if mc_idx != mc_count:
-        QMessageBox.warning(None, "Zone count", 
+        error_msg = \
             "Zone count mismatch in zone file %s: found %s, expected %s" % (
-                path, mc_idx, mc_count))
-
+                path, mc_idx, mc_count)
+        if ui_mode is True:
+            QMessageBox.warning(None, "Zone count", error_msg)
+        else:
+            print error_msg
+        
     return completeness

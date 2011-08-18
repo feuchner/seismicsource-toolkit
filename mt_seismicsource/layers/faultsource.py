@@ -50,7 +50,7 @@ def loadFaultSourceLayer(cls):
         FAULT_FILE_DIR, unicode(cls.comboBoxFaultZoneInput.currentText()))
 
     if not os.path.isfile(fault_source_path):
-        utils.warning_box_missing_layer_file(fault_source_path)
+        utils.warning_missing_layer_file(fault_source_path)
         return
 
     save_path = os.path.join(layers.DATA_DIR, FAULT_FILE_DIR, TEMP_FILENAME)

@@ -59,7 +59,7 @@ def loadAreaSourceLayer(cls):
         ZONE_FILE_DIR, unicode(cls.comboBoxAreaZoneInput.currentText()))
         
     if not os.path.isfile(area_source_path):
-        utils.warning_box_missing_layer_file(area_source_path)
+        utils.warning_missing_layer_file(area_source_path)
         return
 
     save_path = os.path.join(layers.DATA_DIR, ZONE_FILE_DIR, TEMP_FILENAME)
@@ -75,7 +75,7 @@ def loadAreaSourceLayer(cls):
     return layer
 
 def loadAreaSourceFromSHP(filename_in, mmax_data, background_layer, 
-    filename_out=None, layer2file=False):
+    filename_out=None, layer2file=False, ui_mode=True):
     """Load area source layer from Shapefile, independent of QGis UI."""
     
     temp_area_source_layer = QgsVectorLayer(filename_in, "Area Sources", "ogr")
@@ -88,7 +88,7 @@ def loadAreaSourceFromSHP(filename_in, mmax_data, background_layer,
     layer.setCrs(crs) 
 
     # check if all features are okay
-    _checkAreaSourceLayer(layer)
+    _checkAreaSourceLayer(layer, ui_mode=ui_mode)
 
     # assign Mmax from Meletti data set
     assignMmaxfromMelettiDataset(layer, mmax_data)
@@ -99,7 +99,7 @@ def loadAreaSourceFromSHP(filename_in, mmax_data, background_layer,
 
     # write memory layer to disk (as a Shapefile)
     if layer2file is True:
-        utils.writeLayerToShapefile(layer, filename_out, crs)
+        utils.writeLayerToShapefile(layer, filename_out, crs, ui_mode=ui_mode)
         
     return layer
         
@@ -221,7 +221,7 @@ def getAttributesFromBackgroundZones(point, provider_back, attributes):
 
     return background_attrs
 
-def _checkAreaSourceLayer(layer):
+def _checkAreaSourceLayer(layer, ui_mode=True):
     """Check if features in area source layer are without errors.
 
     Input:
@@ -258,4 +258,4 @@ def _checkAreaSourceLayer(layer):
             continue
 
     if len(broken_features) > 0:
-        utils.warning_box_broken_area_features(broken_features)
+        utils.warning_broken_area_features(broken_features, ui_mode=True)

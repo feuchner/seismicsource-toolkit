@@ -138,7 +138,7 @@ def polygonsQGS2Shapely(polygons, getVertices=False):
 
     return (polygons_shapely, vertices_shapely)
 
-def findBackgroundZone(point, provider_back):
+def findBackgroundZone(point, provider_back, ui_mode=True):
     """Find background zone in which a given Shapely point lies.
     Returns (i) zone as QGis feature, (ii) zone as Shapely polygon,
     (iii) zone area in square kilometres
@@ -159,8 +159,12 @@ def findBackgroundZone(point, provider_back):
         bg_polylist, vertices = polygonsQGS2Shapely((bgz,))
         
         if len(bg_polylist) == 0:
-            QMessageBox.warning(None, "Broken zone", 
-                "Cannot convert zone %s to Shapely" % bgz.id())
+            error_msg = "Cannot convert background zone (ID %s) to Shapely" % (
+                bgz.id())
+            if ui_mode is True:
+                QMessageBox.warning(None, "Broken zone", error_msg)
+            else:
+                print error_msg
             continue
         else:
             bg_poly = bg_polylist[0]
@@ -197,7 +201,9 @@ def getAttributeIndex(provider, attributes, create=True):
         provider    layer provider
         attributes  iterable of dicts with attributes 'name', 'type', e.g.
                     (('name': 'a_rm', 'type': QVariant.Double), 
-                     ('name': 'b_rm', 'type': QVariant.Double)).
+                     ('name': 'b_rm', 'type': QVariant.Double),
+                     ('name': 'act_rm', 'type': QVariant.String, 'length': 256)).
+                     default length for strings in 80 chars
         create      if True, missing attributes will be added to the layer.
 
     Output:
@@ -213,8 +219,12 @@ def getAttributeIndex(provider, attributes, create=True):
         # if attribute not existing (return value -1), create it,
         # if create is True
         if attr_index == -1 and create is True:
-            provider.addAttributes([QgsField(attr_dict['name'], 
-                attr_dict['type'])])
+            
+            field = QgsField(attr_dict['name'], attr_dict['type'])
+            if 'length' in attr_dict:
+                field.setLength(attr_dict['length'])
+                
+            provider.addAttributes([field])
             attr_index = provider.fieldNameIndex(attr_dict['name'])
 
         attribute_map[attr_dict['name']] = (attr_index, attr_dict['type'])
@@ -299,7 +309,8 @@ def polygonAreaFromWGS84(polygon):
 
     return area
 
-def writeLayerToShapefile(layer, path, crs=None, encoding=SHAPEFILE_ENCODING):
+def writeLayerToShapefile(layer, path, crs=None, encoding=SHAPEFILE_ENCODING, 
+    ui_mode=True):
     """Write memory vector layer to shapefile."""
     
     # if CRS is unspecified, use WGS84
@@ -308,8 +319,12 @@ def writeLayerToShapefile(layer, path, crs=None, encoding=SHAPEFILE_ENCODING):
             QgsCoordinateReferenceSystem.PostgisCrsId)
     error = QgsVectorFileWriter.writeAsShapefile(layer, path, encoding, crs)
     if error != QgsVectorFileWriter.NoError:
-        QMessageBox.warning(None, "Error writing shapefile", 
-            "Error %s: Cannot write layer to shapefile: %s" % (error, path))
+        error_msg = "Error %s: Cannot write layer to shapefile: %s" % (
+            error, path)
+        if ui_mode is True:
+            QMessageBox.warning(None, "Error writing shapefile", error_msg)
+        else:
+            print error_msg
 
 def writeFeaturesToShapefile(layer, path, crs=None, 
     encoding=SHAPEFILE_ENCODING):
@@ -332,24 +347,24 @@ def writeFeaturesToShapefile(layer, path, crs=None,
     
     del writer
             
-def check_only_one_feature_selected(layer):
+def check_only_one_feature_selected(layer, ui_mode=True):
     """Display a warning box if no feature or more than one feature
     is selected."""
     feature_count = featureCount(layer.selectedFeatures())
     if feature_count == 0:
-        warning_box_no_feature_selected()
+        warning_no_feature_selected(ui_mode=True)
         return False
     elif feature_count > 1:
-        warning_box_more_than_one_feature_selected()
+        warning_more_than_one_feature_selected(ui_mode=True)
         return False
     else:
         return True
 
-def check_at_least_one_feature_selected(layer):
+def check_at_least_one_feature_selected(layer, ui_mode=True):
     """Display a warning box if no feature is selected."""
     feature_count = featureCount(layer.selectedFeatures())
     if feature_count == 0:
-        warning_box_no_feature_selected()
+        warning_no_feature_selected(ui_mode=True)
         return False
     else:
         return True
@@ -379,21 +394,33 @@ def centralValueOfList(list_in):
     central_idx = len(list_in) / 2
     return list_in[central_idx]
             
-def warning_box_missing_layer_file(filename):
-    QMessageBox.warning(None, "File not found", 
-        "Layer file not found: %s" % os.path.basename(filename))
+def warning_missing_layer_file(filename, ui_mode=True):
+    error_str = "Layer file not found: %s" % os.path.basename(filename)
+    if ui_mode is True:
+        QMessageBox.warning(None, "File not found", error_str)
+    else:
+        print error_str
 
-def warning_box_broken_area_features(broken_features):
-     QMessageBox.warning(None, "Broken features", 
-        "IDs of broken features:\n %s" % " ".join(
-        [str(x) for x in broken_features]))
-
-def warning_box_no_feature_selected():
-    QMessageBox.warning(None, "No feature selected", 
-        "Please select a feature")
-
-def warning_box_more_than_one_feature_selected():
-    QMessageBox.warning(None, "Too many features selected", 
-        "Please select one and only one feature")
-
+def warning_broken_area_features(broken_features, ui_mode=True):
+    error_str = "Broken features with IDs:\n %s" % " ".join(
+        [str(x) for x in broken_features])
+    if ui_mode is True:
+        QMessageBox.warning(None, "Broken features", error_str)
+    else:
+        print error_str
+        
+def warning_no_feature_selected(ui_mode=True):
+    error_str = "No feature selected. Please select a feature."
+    if ui_mode is True:
+        QMessageBox.warning(None, "No feature selected", error_str)
+    else:
+        print error_str
+        
+def warning_more_than_one_feature_selected(ui_mode=True):
+    error_str = "Too many features selected. Please select one and only "\
+        "one feature."
+    if ui_mode is True:
+        QMessageBox.warning(None, "Too many features selected", error_str)
+    else:
+        print error_str
 

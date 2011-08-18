@@ -58,7 +58,7 @@ def loadEQCatalogLayer(cls):
         unicode(cls.comboBoxEQCatalogInput.currentText()))
 
     if not os.path.isfile(catalog_path):
-        utils.warning_box_missing_layer_file(catalog_path)
+        utils.warning_missing_layer_file(catalog_path)
         return
 
     (layer, cls.catalog) = loadEQCatalogFromFile(catalog_path)

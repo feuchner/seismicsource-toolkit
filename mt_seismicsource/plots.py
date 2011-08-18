@@ -53,8 +53,8 @@ try:
     from matplotlib.figure import Figure
     import matplotlib.font_manager as FontManager
 except ImportError:
-    error_msg = "Couldn't import matplotlib"
-    QMessageBox.warning(None, "Error", error_msg)
+    error_msg = "Import Error: couldn't import matplotlib"
+    print error_msg
 
 class MCanvas(FigureCanvas):
     """Base class for matplotlib canvases."""

@@ -50,7 +50,7 @@ def loadFaultBackgroundLayer(cls):
             cls.comboBoxFaultBackgrZoneInput.currentText()))
 
     if not os.path.isfile(fault_background_path):
-        utils.warning_box_missing_layer_file(fault_background_path)
+        utils.warning_missing_layer_file(fault_background_path)
         return
 
     save_path = os.path.join(layers.DATA_DIR, FAULT_BACKGROUND_FILE_DIR, 

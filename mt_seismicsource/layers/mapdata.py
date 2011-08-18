@@ -45,7 +45,7 @@ def loadBackgroundLayer(cls):
             MAP_OVERLAY_POLITICAL_FILE)
 
         if not os.path.isfile(background_path):
-            utils.warning_box_missing_layer_file(background_path)
+            utils.warning_missing_layer_file(background_path)
             return
 
         cls.background_layer = QgsVectorLayer(background_path, 

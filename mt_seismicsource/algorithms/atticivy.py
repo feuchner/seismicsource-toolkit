@@ -84,7 +84,8 @@ ZONE_ATTRIBUTES = (features.AREA_SOURCE_ATTR_MMAX,
     features.AREA_SOURCE_ATTR_MCDIST)
 
 def assignActivityAtticIvy(layer, catalog, mmin=ATTICIVY_MMIN,
-    mindepth=eqcatalog.CUT_DEPTH_MIN, maxdepth=eqcatalog.CUT_DEPTH_MAX):
+    mindepth=eqcatalog.CUT_DEPTH_MIN, maxdepth=eqcatalog.CUT_DEPTH_MAX,
+    ui_mode=True):
     """Compute activity with Roger Musson's AtticIvy code and assign a and
     b values to each area source zone.
 
@@ -117,7 +118,7 @@ def assignActivityAtticIvy(layer, catalog, mmin=ATTICIVY_MMIN,
         mcdist.append(str(zone[mcdist_idx].toString()))
 
     activity = computeActivityAtticIvy(polygons, mmax, mcdist, catalog, mmin, 
-        mindepth, maxdepth)
+        mindepth, maxdepth, ui_mode=ui_mode)
 
     # assemble value dict
     values = {}
@@ -148,7 +149,7 @@ def assignActivityAtticIvy(layer, catalog, mmin=ATTICIVY_MMIN,
 
 def computeActivityAtticIvy(polygons, mmax, mcdist, catalog, 
     mmin=ATTICIVY_MMIN, mindepth=eqcatalog.CUT_DEPTH_MIN,
-    maxdepth=eqcatalog.CUT_DEPTH_MAX):
+    maxdepth=eqcatalog.CUT_DEPTH_MAX, ui_mode=True):
     """Computes a-and b values using Roger Musson's AtticIvy code for
     a set of source zone polygons.
     
@@ -171,7 +172,8 @@ def computeActivityAtticIvy(polygons, mmax, mcdist, catalog,
     # write zone data to temp file in AtticIvy format
     zone_file_path = os.path.join(temp_dir, ATTICIVY_ZONE_FILE)
     
-    writeZones2AtticIvy(zone_file_path, polygons, mmax, mcdist, mmin)
+    writeZones2AtticIvy(zone_file_path, polygons, mmax, mcdist, mmin, 
+        ui_mode=ui_mode)
 
     # do depth filtering on catalog
     cat_cut = QPCatalog.QPCatalog()
@@ -193,9 +195,12 @@ def computeActivityAtticIvy(polygons, mmax, mcdist, catalog,
         cwd=temp_dir)
     
     if retcode != 0:
-        QMessageBox.warning(None, "AtticIvy Error", 
-            "AtticIvy return value: %s" % retcode)
-
+        error_msg = "AtticIvy Error. Return value: %s" % retcode
+        if ui_mode is True:
+            QMessageBox.warning(None, "AtticIvy Error", error_msg)
+        else:
+            print error_msg
+            
     # read results from AtticIvy output file
     result_file_path = os.path.join(temp_dir, ATTICIVY_RESULT_FILE)
     activity_list = activityFromAtticIvy(result_file_path)
@@ -205,7 +210,8 @@ def computeActivityAtticIvy(polygons, mmax, mcdist, catalog,
 
     return activity_list
 
-def writeZones2AtticIvy(path, polygons, mmax, mcdist, mmin=ATTICIVY_MMIN):
+def writeZones2AtticIvy(path, polygons, mmax, mcdist, mmin=ATTICIVY_MMIN,
+    ui_mode=True):
     """Write AtticIvy zone file.
 
     Input:
@@ -264,6 +270,14 @@ def writeZones2AtticIvy(path, polygons, mmax, mcdist, mmin=ATTICIVY_MMIN):
                 # if mmax is not set properly, write special lines for zone
                 # and proceed to next zone
                 fh.write(ATTICIVY_EMPTY_ZONE_MMAX)
+                
+                error_msg = "Error writing Mmax/Mc data in zone %s" % (
+                    curr_zone_idx)
+                if ui_mode is True:
+                    QMessageBox.error(None, "AtticIvy Error", error_msg)
+                else:
+                    print error_msg
+                    
                 continue
 
 def activityFromAtticIvy(path):

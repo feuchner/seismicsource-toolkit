@@ -26,7 +26,11 @@ Author: Fabian Euchner, fabian@sed.ethz.ch
 
 from PyQt4.QtCore import *
 
-## NOTE: attribute names can have max 10 chars
+# NOTE: Limitations of shapefile when serialized to disk:
+# - attribute names can have max 10 chars (also for memory provider)
+# - string attributes can have max 254 chars
+# - a feature can have max 255 attributes (fields)
+# - default length of string attributes in QGis is 80 chars
 
 ## area source attributes
 
@@ -41,7 +45,7 @@ AREA_SOURCE_ATTRIBUTES_ID = (AREA_SOURCE_ATTR_ID, AREA_SOURCE_ATTR_TITLE,
 # max/min magnitudes
 AREA_SOURCE_ATTR_MMIN = {'name': 'mmin', 'type': QVariant.Double}
 AREA_SOURCE_ATTR_MMAX = {'name': 'mmax', 'type': QVariant.Double}
-AREA_SOURCE_ATTR_MMAXDIST = {'name': 'mmaxdist', 'type': QVariant.String}
+AREA_SOURCE_ATTR_MMAXDIST = {'name': 'mmaxdist', 'type': QVariant.String, 'length': 254}
 
 # skip: AREA_SOURCE_ATTR_MMAXDIST
 AREA_SOURCE_ATTRIBUTES_MINMAXMAG = (AREA_SOURCE_ATTR_MMIN, 
@@ -50,7 +54,7 @@ AREA_SOURCE_ATTRIBUTES_MINMAXMAG = (AREA_SOURCE_ATTR_MMIN,
 # magnitude of completeness
 # skip: mc
 AREA_SOURCE_ATTR_MC = {'name': 'mc', 'type': QVariant.Double}
-AREA_SOURCE_ATTR_MCDIST = {'name': 'mcdist', 'type': QVariant.String}
+AREA_SOURCE_ATTR_MCDIST = {'name': 'mcdist', 'type': QVariant.String, 'length': 254}
 
 AREA_SOURCE_ATTRIBUTES_MC = (AREA_SOURCE_ATTR_MCDIST, )
 
@@ -70,7 +74,7 @@ AREA_SOURCE_ATTRIBUTES_AB_ML = (AREA_SOURCE_ATTR_A_ML, AREA_SOURCE_ATTR_B_ML)
 # a/b according to Roger Musson's AtticIvy
 AREA_SOURCE_ATTR_A_RM = {'name': 'a_rm', 'type': QVariant.Double}
 AREA_SOURCE_ATTR_B_RM = {'name': 'b_rm', 'type': QVariant.Double}
-AREA_SOURCE_ATTR_ACTIVITY_RM = {'name': 'activit_rm', 'type': QVariant.String}
+AREA_SOURCE_ATTR_ACTIVITY_RM = {'name': 'activit_rm', 'type': QVariant.String, 'length': 254}
 
 AREA_SOURCE_ATTRIBUTES_AB_RM = (AREA_SOURCE_ATTR_A_RM, AREA_SOURCE_ATTR_B_RM, 
     AREA_SOURCE_ATTR_ACTIVITY_RM)
@@ -127,22 +131,22 @@ FAULT_SOURCE_ATTR_ID_FBZ = {'name': 'id_fbz', 'type': QVariant.String}
 
 FAULT_SOURCE_ATTR_A_FBZ = {'name': 'a_fbz', 'type': QVariant.Double}
 FAULT_SOURCE_ATTR_B_FBZ = {'name': 'b_fbz', 'type': QVariant.Double}
-FAULT_SOURCE_ATTR_ACT_FBZ = {'name': 'act_fbz', 'type': QVariant.String}
+FAULT_SOURCE_ATTR_ACT_FBZ = {'name': 'act_fbz', 'type': QVariant.String, 'length': 254}
 
 FAULT_SOURCE_ATTR_A_BUF = {'name': 'a_buf', 'type': QVariant.Double}
 FAULT_SOURCE_ATTR_B_BUF = {'name': 'b_buf', 'type': QVariant.Double}
-FAULT_SOURCE_ATTR_ACT_BUF = {'name': 'act_buf', 'type': QVariant.String}
+FAULT_SOURCE_ATTR_ACT_BUF = {'name': 'act_buf', 'type': QVariant.String, 'length': 254}
 
 FAULT_SOURCE_ATTR_A_REC_MIN = {'name': 'a_rec_min', 'type': QVariant.Double}
 FAULT_SOURCE_ATTR_A_REC_MAX = {'name': 'a_rec_max', 'type': QVariant.Double}
 
 FAULT_SOURCE_ATTR_A_FBZ_BT = {'name': 'a_fbz_bt', 'type': QVariant.Double}
 FAULT_SOURCE_ATTR_B_FBZ_BT = {'name': 'b_fbz_bt', 'type': QVariant.Double}
-FAULT_SOURCE_ATTR_ACT_FBZ_BT = {'name': 'act_fbz_bt', 'type': QVariant.String}
+FAULT_SOURCE_ATTR_ACT_FBZ_BT = {'name': 'act_fbz_bt', 'type': QVariant.String, 'length': 254}
 
 FAULT_SOURCE_ATTR_A_FBZ_AT = {'name': 'a_fbz_at', 'type': QVariant.Double}
 FAULT_SOURCE_ATTR_B_FBZ_AT = {'name': 'b_fbz_at', 'type': QVariant.Double}
-FAULT_SOURCE_ATTR_ACT_FBZ_AT = {'name': 'act_fbz_at', 'type': QVariant.String}
+FAULT_SOURCE_ATTR_ACT_FBZ_AT = {'name': 'act_fbz_at', 'type': QVariant.String, 'length': 254}
 
 FAULT_SOURCE_ATTR_ACTIVITYRATE_MIN = {'name': 'actrate_mi', 
     'type': QVariant.String}
