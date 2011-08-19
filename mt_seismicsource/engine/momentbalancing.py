@@ -124,8 +124,14 @@ def updateDataArea(cls, feature):
     attribute_mmax_idx = attribute_map[attribute_mmax_name][0]
 
     # get RM (weight, a, b) values from feature attribute
-    activity_str = str(feature[attribute_act_idx].toString())
-    activity_arr = activity_str.strip().split()
+    try:
+        activity_str = str(feature[attribute_act_idx].toString())
+        activity_arr = activity_str.strip().split()
+    except KeyError:
+        activity_arr = 3 * [numpy.nan]
+        error_msg = "Moment balancing: no valid activity parameters in %s" % (
+            parameters['plot_title_fmd'])
+        QMessageBox.warning(None, "Moment balancing warning", error_msg)
 
     # ignore weights
     parameters['activity_mmin'] = atticivy.ATTICIVY_MMIN
@@ -138,11 +144,19 @@ def updateDataArea(cls, feature):
     parameters['mmax'] = mmax 
 
     ## Maximum likelihood a/b values
-    cls.feature_data_area_source['fmd'] = fmd.computeZoneFMD(cls, feature, 
-        poly_cat)
-    (parameters['ml_a'], parameters['ml_b'], parameters['ml_mc'], 
-        parameters['ml_magctr']) = fmd.getFMDValues(
-            cls.feature_data_area_source['fmd'])
+    if poly_cat.size() == 0:
+        cls.feature_data_area_source['fmd'] = None
+        (parameters['ml_a'], parameters['ml_b'], parameters['ml_mc'], 
+            parameters['ml_magctr']) = 4 * [numpy.nan]
+        error_msg = "Moment balancing: no EQs in %s" % (
+            parameters['plot_title_fmd'])
+        QMessageBox.warning(None, "Moment balancing warning", error_msg)
+    else:
+        cls.feature_data_area_source['fmd'] = fmd.computeZoneFMD(cls, feature, 
+            poly_cat)
+        (parameters['ml_a'], parameters['ml_b'], parameters['ml_mc'], 
+            parameters['ml_magctr']) = fmd.getFMDValues(
+                cls.feature_data_area_source['fmd'])
 
     ## moment rate from activity
     a_values = atticivy.activity2aValue(activity_a, activity_b, 

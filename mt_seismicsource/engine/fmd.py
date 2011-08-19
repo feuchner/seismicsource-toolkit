@@ -99,6 +99,9 @@ def plotZoneFMD(cls, feature_data, normalize=FMD_COMPUTE_ANNUAL_RATE,
     fmd = feature_data['fmd']
     parameters = feature_data['parameters']
     
+    if fmd is None:
+        return None
+        
     if fmd.GR['fit'] is not None:
         activity_ml_arr = numpy.vstack((fmd.GR['mag_fit'], fmd.GR['fit']))
         fits.append({'data': activity_ml_arr, 'label': "Activity (ML)"})

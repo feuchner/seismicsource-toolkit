@@ -221,10 +221,10 @@ def processASZ():
     
     #attribute_map = mt_seismicsource.utils.getAttributeIndex(pr, ({'name': 'FOO', 'type': QVariant.String},), create=True)
     
-    #all_features = [feat.id() for feat in pr]
+    all_features = [feat.id() for feat in pr]
     #all_features = [292, 295, 297, 304]
     #all_features = []
-    all_features = [279]
+    #all_features = [279]
     #all_features = [292, 304]
     metadata['asz_layer'].setSelectedFeatures(all_features)
     
