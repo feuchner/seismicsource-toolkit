@@ -52,27 +52,13 @@ ATTICIVY_CATALOG_FILE = 'AtticIvy-Catalog.dat'
 
 # AtticIvy output file name convention:
 # remove '.inp' extension of zone file name and add '_out.txt'
-ATTICIVY_RESULT_FILE = '%s_out.txt' % ATTICIVY_ZONE_FILE[0:-4]
+ATTICIVY_ZONE_FILE_EXTENSION = 'inp'
+ATTICIVY_RESULT_FILE = '%s_out.txt' % (
+    ATTICIVY_ZONE_FILE[0:-(len(ATTICIVY_ZONE_FILE_EXTENSION)+1)])
 
 # third commandline parameter: number of bootstrap iterations
 # 0: use default (1000 iterations)
 ATTICIVY_BOOTSTRAP_ITERATIONS = 0
-
-ATTICIVY_EMPTY_ZONE_MMAX = """# Mmax.....: 0
-# Mmax.....: 0
-"""
-
-ATTICIVY_MISSING_ZONE_PARAMETERS_MMAX = """# Mmax.....:  2
- 5.5   0.5
- 6.5   0.5
-"""
-
-ATTICIVY_MISSING_ZONE_PARAMETERS_MCDIST = """# Periods..:  4
- 3.5 1970
- 4.0 1750
- 4.5 1700
- 6.5 1300
-"""
 
 ATTICIVY_MISSING_ZONE_PARAMETERS_PRIORS = """A prior and weight
  0.0   0.0
@@ -111,7 +97,6 @@ def assignActivityAtticIvy(layer, catalog, mmin=ATTICIVY_MMIN,
     polygons, vertices = utils.polygonsQGS2Shapely(fts)
 
     # get mmax and mcdist from layer zone attributes
-    # TODO(fab): for broken zones, mmax and mcdist can be missing
     mmax = []
     mcdist = []
     for zone_idx, zone in enumerate(fts):
@@ -232,15 +217,15 @@ def computeActivityAtticIvy(polygons, mmax, mcdist, catalog,
 
     return activity_list
 
-def writeZones2AtticIvy(path, polygons, mmax, mcdist, mmin=ATTICIVY_MMIN,
-    ui_mode=True):
+def writeZones2AtticIvy(path, polygons, mmax_in, mcdist_in, 
+    mmin=ATTICIVY_MMIN, ui_mode=True):
     """Write AtticIvy zone file.
 
     Input:
         path            filename to write AtticIvy zone file to
         polygons        list of Shapely polygons for input zones
-        mmax            list of mmax values
-        mcdist          list of mcdist strings
+        mmax_in         list of mmax values
+        mcdist_in       list of mcdist strings
         mmin            minimum magnitude used for AtticIvy computation
 
     """
@@ -250,7 +235,17 @@ def writeZones2AtticIvy(path, polygons, mmax, mcdist, mmin=ATTICIVY_MMIN,
 
         counted_zones = len(polygons)
         body_str = ''
+
+        if len(mmax_in) != counted_zones:
+            error_str = "AtticIvy zones: only %s mmax values for "\
+                "%s zones" % (len(mmax_in), counted_zones)
+            raise RuntimeError, error_str
         
+        if len(mcdist_in) != counted_zones:
+            error_str = "AtticIvy zones: only %s mcdist values for "\
+                "%s zones" % (len(mcdist_in), counted_zones)
+            raise RuntimeError, error_str
+
         # loop over zones
         for curr_zone_idx, curr_zone in enumerate(polygons):
 
@@ -258,7 +253,7 @@ def writeZones2AtticIvy(path, polygons, mmax, mcdist, mmin=ATTICIVY_MMIN,
             vertices = list(curr_zone.exterior.coords)
             if len(vertices) < 4:
                 
-                if ui_mode is false:
+                if ui_mode is False:
                     error_str = "AtticIvy zones: number of vertices "\
                         "below 4, skipping zone %s" % curr_zone_idx
                     print error_str
@@ -272,23 +267,27 @@ def writeZones2AtticIvy(path, polygons, mmax, mcdist, mmin=ATTICIVY_MMIN,
 
             skipZone = False
             
+            if mmax_in[curr_zone_idx] is None or mcdist_in[curr_zone_idx] is None:
+                counted_zones -= 1
+                continue
+                
             try:
                 # add mmax from area source zone
                 mmax_str = "# Mmax.....:  1\n %.1f   1.0\n" % (
-                    mmax[curr_zone_idx])
+                    mmax_in[curr_zone_idx])
                 zone_str += mmax_str
                 
-            except Exception:
+            except Exception, e:
                 skipZone = True
-                error_msg = "Error writing Mmax data in zone %s" % (
-                    curr_zone_idx)
+                error_msg = "Error writing Mmax data in zone %s\n%s" % (
+                    curr_zone_idx, e)
                 if ui_mode is True:
                     QMessageBox.warning(None, "AtticIvy Error", error_msg)
                 else:
                     print error_msg
 
             try:
-                mcdist = mcdist[curr_zone_idx]
+                mcdist = mcdist_in[curr_zone_idx]
                 mcdist_arr = mcdist.strip().split()
                 mcdist_mag = mcdist_arr[::2]
                 mcdist_year = mcdist_arr[1::2]
@@ -301,10 +300,10 @@ def writeZones2AtticIvy(path, polygons, mmax, mcdist, mmin=ATTICIVY_MMIN,
                         mcdist_year[idx].strip())
                 zone_str += mcdist_str
 
-            except Exception:
+            except Exception, e:
                 skipZone = True
-                error_msg = "Error writing Mc data in zone %s" % (
-                    curr_zone_idx)
+                error_msg = "Error writing Mc data in zone %s\n%s" % (
+                    curr_zone_idx, e)
                 if ui_mode is True:
                     QMessageBox.warning(None, "AtticIvy Error", error_msg)
                 else:
