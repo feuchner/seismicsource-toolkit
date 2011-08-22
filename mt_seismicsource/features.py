@@ -74,10 +74,13 @@ AREA_SOURCE_ATTRIBUTES_AB_ML = (AREA_SOURCE_ATTR_A_ML, AREA_SOURCE_ATTR_B_ML)
 # a/b according to Roger Musson's AtticIvy
 AREA_SOURCE_ATTR_A_RM = {'name': 'a_rm', 'type': QVariant.Double}
 AREA_SOURCE_ATTR_B_RM = {'name': 'b_rm', 'type': QVariant.Double}
-AREA_SOURCE_ATTR_ACTIVITY_RM = {'name': 'activit_rm', 'type': QVariant.String, 'length': 254}
+AREA_SOURCE_ATTR_ACT_RM_W = {'name': 'act_rm_w', 'type': QVariant.String, 'length': 254}
+AREA_SOURCE_ATTR_ACT_RM_A = {'name': 'act_rm_a', 'type': QVariant.String, 'length': 254}
+AREA_SOURCE_ATTR_ACT_RM_B = {'name': 'act_rm_b', 'type': QVariant.String, 'length': 254}
 
-AREA_SOURCE_ATTRIBUTES_AB_RM = (AREA_SOURCE_ATTR_A_RM, AREA_SOURCE_ATTR_B_RM, 
-    AREA_SOURCE_ATTR_ACTIVITY_RM)
+AREA_SOURCE_ATTRIBUTES_AB_RM = (AREA_SOURCE_ATTR_A_RM, AREA_SOURCE_ATTR_B_RM,
+    AREA_SOURCE_ATTR_ACT_RM_W, AREA_SOURCE_ATTR_ACT_RM_A, 
+    AREA_SOURCE_ATTR_ACT_RM_B)
 
 # combination of all attribute groups
 # skip: AREA_SOURCE_ATTRIBUTES_AB_PRIOR, AREA_SOURCE_ATTRIBUTES_AB_ML
@@ -131,22 +134,30 @@ FAULT_SOURCE_ATTR_ID_FBZ = {'name': 'id_fbz', 'type': QVariant.String}
 
 FAULT_SOURCE_ATTR_A_FBZ = {'name': 'a_fbz', 'type': QVariant.Double}
 FAULT_SOURCE_ATTR_B_FBZ = {'name': 'b_fbz', 'type': QVariant.Double}
-FAULT_SOURCE_ATTR_ACT_FBZ = {'name': 'act_fbz', 'type': QVariant.String, 'length': 254}
+FAULT_SOURCE_ATTR_ACT_FBZ_W = {'name': 'act_fbz_w', 'type': QVariant.String, 'length': 254}
+FAULT_SOURCE_ATTR_ACT_FBZ_A = {'name': 'act_fbz_a', 'type': QVariant.String, 'length': 254}
+FAULT_SOURCE_ATTR_ACT_FBZ_B = {'name': 'act_fbz_b', 'type': QVariant.String, 'length': 254}
 
 FAULT_SOURCE_ATTR_A_BUF = {'name': 'a_buf', 'type': QVariant.Double}
 FAULT_SOURCE_ATTR_B_BUF = {'name': 'b_buf', 'type': QVariant.Double}
-FAULT_SOURCE_ATTR_ACT_BUF = {'name': 'act_buf', 'type': QVariant.String, 'length': 254}
+FAULT_SOURCE_ATTR_ACT_BUF_W = {'name': 'act_buf_w', 'type': QVariant.String, 'length': 254}
+FAULT_SOURCE_ATTR_ACT_BUF_A = {'name': 'act_buf_a', 'type': QVariant.String, 'length': 254}
+FAULT_SOURCE_ATTR_ACT_BUF_B = {'name': 'act_buf_b', 'type': QVariant.String, 'length': 254}
 
 FAULT_SOURCE_ATTR_A_REC_MIN = {'name': 'a_rec_min', 'type': QVariant.Double}
 FAULT_SOURCE_ATTR_A_REC_MAX = {'name': 'a_rec_max', 'type': QVariant.Double}
 
 FAULT_SOURCE_ATTR_A_FBZ_BT = {'name': 'a_fbz_bt', 'type': QVariant.Double}
 FAULT_SOURCE_ATTR_B_FBZ_BT = {'name': 'b_fbz_bt', 'type': QVariant.Double}
-FAULT_SOURCE_ATTR_ACT_FBZ_BT = {'name': 'act_fbz_bt', 'type': QVariant.String, 'length': 254}
+FAULT_SOURCE_ATTR_ACT_FBZ_BT_W = {'name': 'afbz_bt_w', 'type': QVariant.String, 'length': 254}
+FAULT_SOURCE_ATTR_ACT_FBZ_BT_A = {'name': 'afbz_bt_a', 'type': QVariant.String, 'length': 254}
+FAULT_SOURCE_ATTR_ACT_FBZ_BT_B = {'name': 'afbz_bt_b', 'type': QVariant.String, 'length': 254}
 
 FAULT_SOURCE_ATTR_A_FBZ_AT = {'name': 'a_fbz_at', 'type': QVariant.Double}
 FAULT_SOURCE_ATTR_B_FBZ_AT = {'name': 'b_fbz_at', 'type': QVariant.Double}
-FAULT_SOURCE_ATTR_ACT_FBZ_AT = {'name': 'act_fbz_at', 'type': QVariant.String, 'length': 254}
+FAULT_SOURCE_ATTR_ACT_FBZ_AT_W = {'name': 'afbz_at_w', 'type': QVariant.String, 'length': 254}
+FAULT_SOURCE_ATTR_ACT_FBZ_AT_A = {'name': 'afbz_at_a', 'type': QVariant.String, 'length': 254}
+FAULT_SOURCE_ATTR_ACT_FBZ_AT_B = {'name': 'afbz_at_b', 'type': QVariant.String, 'length': 254}
 
 FAULT_SOURCE_ATTR_ACTIVITYRATE_MIN = {'name': 'actrate_mi', 
     'type': QVariant.String}
@@ -169,18 +180,22 @@ FAULT_SOURCE_ATTRIBUTES_RECURRENCE = (
     FAULT_SOURCE_ATTR_ID_FBZ,
     FAULT_SOURCE_ATTR_A_FBZ,
     FAULT_SOURCE_ATTR_B_FBZ,
-    FAULT_SOURCE_ATTR_ACT_FBZ,
+    FAULT_SOURCE_ATTR_ACT_FBZ_A,
+    FAULT_SOURCE_ATTR_ACT_FBZ_B,
     FAULT_SOURCE_ATTR_A_BUF,
     FAULT_SOURCE_ATTR_B_BUF,
-    FAULT_SOURCE_ATTR_ACT_BUF,
+    FAULT_SOURCE_ATTR_ACT_BUF_A,
+    FAULT_SOURCE_ATTR_ACT_BUF_B,
     FAULT_SOURCE_ATTR_A_REC_MIN,
     FAULT_SOURCE_ATTR_A_REC_MAX,
     FAULT_SOURCE_ATTR_A_FBZ_BT,
     FAULT_SOURCE_ATTR_B_FBZ_BT,
-    FAULT_SOURCE_ATTR_ACT_FBZ_BT,
+    FAULT_SOURCE_ATTR_ACT_FBZ_BT_A,
+    FAULT_SOURCE_ATTR_ACT_FBZ_BT_B,
     FAULT_SOURCE_ATTR_A_FBZ_AT,
     FAULT_SOURCE_ATTR_B_FBZ_AT,
-    FAULT_SOURCE_ATTR_ACT_FBZ_AT,
+    FAULT_SOURCE_ATTR_ACT_FBZ_AT_A,
+    FAULT_SOURCE_ATTR_ACT_FBZ_AT_B,
     FAULT_SOURCE_ATTR_ACTIVITYRATE_MIN, 
     FAULT_SOURCE_ATTR_ACTIVITYRATE_MAX,
     FAULT_SOURCE_ATTR_MOMENTRATE_MIN,
@@ -193,18 +208,22 @@ FAULT_SOURCE_ATTRIBUTES_RECURRENCE_COMPUTE = (
     FAULT_SOURCE_ATTR_ID_FBZ,
     FAULT_SOURCE_ATTR_A_FBZ,
     FAULT_SOURCE_ATTR_B_FBZ,
-    FAULT_SOURCE_ATTR_ACT_FBZ,
+    FAULT_SOURCE_ATTR_ACT_FBZ_A,
+    FAULT_SOURCE_ATTR_ACT_FBZ_B,
     FAULT_SOURCE_ATTR_A_BUF,
     FAULT_SOURCE_ATTR_B_BUF,
-    FAULT_SOURCE_ATTR_ACT_BUF,
+    FAULT_SOURCE_ATTR_ACT_BUF_A,
+    FAULT_SOURCE_ATTR_ACT_BUF_B,
     FAULT_SOURCE_ATTR_A_REC_MIN,
     FAULT_SOURCE_ATTR_A_REC_MAX,
     FAULT_SOURCE_ATTR_A_FBZ_BT,
     FAULT_SOURCE_ATTR_B_FBZ_BT,
-    FAULT_SOURCE_ATTR_ACT_FBZ_BT,
+    FAULT_SOURCE_ATTR_ACT_FBZ_BT_A,
+    FAULT_SOURCE_ATTR_ACT_FBZ_BT_B,
     FAULT_SOURCE_ATTR_A_FBZ_AT,
     FAULT_SOURCE_ATTR_B_FBZ_AT,
-    FAULT_SOURCE_ATTR_ACT_FBZ_AT,
+    FAULT_SOURCE_ATTR_ACT_FBZ_AT_A,
+    FAULT_SOURCE_ATTR_ACT_FBZ_AT_B,
     FAULT_SOURCE_ATTR_ACTIVITYRATE_MIN,
     FAULT_SOURCE_ATTR_ACTIVITYRATE_MAX,
     FAULT_SOURCE_ATTR_MOMENTRATE_MIN,

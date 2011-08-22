@@ -66,6 +66,12 @@ B prior and weight
  1.0  50.0
 """
 
+ATTICIVY_A_IDX = 0
+ATTICIVY_B_IDX = 1
+ATTICIVY_WEIGHT_IDX = 2
+ATTICIVY_ACT_A_IDX = 3
+ATTICIVY_ACT_B_IDX = 4
+
 ZONE_ATTRIBUTES = (features.AREA_SOURCE_ATTR_MMAX,
     features.AREA_SOURCE_ATTR_MCDIST)
 
@@ -169,7 +175,7 @@ def computeActivityAtticIvy(polygons, mmax, mcdist, catalog,
         mmin            minimum magnitude used for AtticIvy computation
 
     Output: 
-        list of (a, b, ab-matrix-string) triples
+        list of (a, b, act_w, act_a, act_b) triples
     """
     
     # create temp dir for computation
@@ -359,11 +365,16 @@ def writeZones2AtticIvy(path, polygons, mmax_in, mcdist_in,
     
 def activityFromAtticIvy(path):
     """Read output from AtticIvy program. Returns dict of 
-    [a, b, 'activity_string'] value triples with 'internal_id' as key.
-    a: a value
-    b: b value
-    activity_string: string of all [weight, a, b] triples per zone, in a row,
-                     separated by white space
+    [a, b, 'act_string_w', 'act_string_a', 'act_string_b'] value 5-tuples 
+    with 'internal_id' as key.
+    a: best a value
+    b: best b value
+    act_string_w: string of all weights from result matrix in a row,
+                  separated by white space
+    act_string_a: string of all a values from result matrix in a row,
+                  separated by white space
+    act_string_b: string of all b values from result matrix in a row,
+                  separated by white space
     internal_id      zone identifier from AtticIvy zone file (note: this is
                      not the zone ID from the original shapefile)
     """
@@ -385,7 +396,9 @@ def activityFromAtticIvy(path):
                 # read zone ID
                 zone_data = []
                 zone_id = line.strip()
-                zone_data_string = ""
+                weight_data_string = ""
+                a_value_data_string = ""
+                b_value_data_string = ""
                 dataLengthMode = True
                 zoneStartMode = False
 
@@ -402,8 +415,9 @@ def activityFromAtticIvy(path):
                 zone_data.append([float(a_value), float(b_value)])
 
                 # append new line to zone data string
-                zone_data_string = "%s %s %s %s" % (
-                    zone_data_string, weight, a_value, b_value)
+                weight_data_string = "%s %s" % (weight_data_string, weight)
+                a_value_data_string = "%s %s" % (a_value_data_string, a_value)
+                b_value_data_string = "%s %s" % (b_value_data_string, b_value)
                 data_line_idx += 1
 
                 # all lines read
@@ -411,7 +425,9 @@ def activityFromAtticIvy(path):
 
                     # get proper (middle) line and append zone data string
                     zone_values = zone_data[data_line_count / 2]
-                    zone_values.append(zone_data_string.lstrip())
+                    zone_values.extend([weight_data_string.lstrip(), 
+                        a_value_data_string.lstrip(), 
+                        b_value_data_string.lstrip()])
                     result_values[zone_id] = zone_values
                     
                     zoneStartMode = True

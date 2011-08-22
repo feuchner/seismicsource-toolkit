@@ -115,28 +115,42 @@ def updateDataArea(cls, feature):
 
     # get attribute index of AtticIvy result
     attribute_map = utils.getAttributeIndex(provider, 
-        (features.AREA_SOURCE_ATTR_ACTIVITY_RM, 
+        (features.AREA_SOURCE_ATTR_ACT_RM_A, 
+         features.AREA_SOURCE_ATTR_ACT_RM_B, 
          features.AREA_SOURCE_ATTR_MMAX))
 
-    attribute_act_name = features.AREA_SOURCE_ATTR_ACTIVITY_RM['name']
-    attribute_act_idx = attribute_map[attribute_act_name][0]
+    attribute_act_a_name = features.AREA_SOURCE_ATTR_ACT_RM_A['name']
+    attribute_act_a_idx = attribute_map[attribute_act_a_name][0]
+    
+    attribute_act_b_name = features.AREA_SOURCE_ATTR_ACT_RM_B['name']
+    attribute_act_b_idx = attribute_map[attribute_act_b_name][0]
+    
     attribute_mmax_name = features.AREA_SOURCE_ATTR_MMAX['name']
     attribute_mmax_idx = attribute_map[attribute_mmax_name][0]
 
-    # get RM (weight, a, b) values from feature attribute
+    # get RM (a, b) values from feature attributes
     try:
-        activity_str = str(feature[attribute_act_idx].toString())
-        activity_arr = activity_str.strip().split()
+        activity_a_str = str(feature[attribute_act_a_idx].toString())
+        activity_a_arr = activity_a_str.strip().split()
     except KeyError:
-        activity_arr = 3 * [numpy.nan]
-        error_msg = "Moment balancing: no valid activity parameters in %s" % (
+        activity_a_arr = 3 * [numpy.nan]
+        error_msg = "Moment balancing: no valid activity a parameter in %s" % (
             parameters['plot_title_fmd'])
         QMessageBox.warning(None, "Moment balancing warning", error_msg)
 
+    try:
+        activity_b_str = str(feature[attribute_act_b_idx].toString())
+        activity_b_arr = activity_b_str.strip().split()
+    except KeyError:
+        activity_b_arr = 3 * [numpy.nan]
+        error_msg = "Moment balancing: no valid activity b parameter in %s" % (
+            parameters['plot_title_fmd'])
+        QMessageBox.warning(None, "Moment balancing warning", error_msg)
+        
     # ignore weights
     parameters['activity_mmin'] = atticivy.ATTICIVY_MMIN
-    activity_a = [float(x) for x in activity_arr[1::3]]
-    activity_b = [float(x) for x in activity_arr[2::3]]
+    activity_a = [float(x) for x in activity_a_arr]
+    activity_b = [float(x) for x in activity_b_arr]
     mmax = float(feature[attribute_mmax_idx].toDouble()[0])
     
     parameters['activity_a'] = activity_a
@@ -338,9 +352,11 @@ def updateDataFault(cls, feature,
 
     # moment rates from activity: use a and b values from buffer zone
 
-    act_bz_arr = parameters['activity_bz'].strip().split()
-    a_bz_arr = [float(x) for x in act_bz_arr[1::3]]
-    b_bz_arr = [float(x) for x in act_bz_arr[2::3]]
+    act_bz_arr_a = parameters['activity_bz_act_a'].strip().split()
+    act_bz_arr_b = parameters['activity_bz_act_b'].strip().split()
+    
+    a_bz_arr = [float(x) for x in act_bz_arr_a]
+    b_bz_arr = [float(x) for x in act_bz_arr_b]
     
     a_values = atticivy.activity2aValue(a_bz_arr, b_bz_arr)
     momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
@@ -351,9 +367,11 @@ def updateDataFault(cls, feature,
     # moment rates from activity: use a and b values from FBZ 
     # (above threshold)
 
-    act_fbz_at_arr = parameters['activity_fbz_at'].strip().split()
-    a_fbz_at_arr = [float(x) for x in act_fbz_at_arr[1::3]]
-    b_fbz_at_arr = [float(x) for x in act_fbz_at_arr[2::3]]
+    act_fbz_at_arr_a = parameters['activity_fbz_at_act_a'].strip().split()
+    act_fbz_at_arr_b = parameters['activity_fbz_at_act_b'].strip().split()
+    
+    a_fbz_at_arr = [float(x) for x in act_fbz_at_arr_a]
+    b_fbz_at_arr = [float(x) for x in act_fbz_at_arr_b]
     
     a_values = atticivy.activity2aValue(a_fbz_at_arr, b_fbz_at_arr)
     momentrates_fbz_at_arr = numpy.array(momentrate.momentrateFromActivity(
@@ -540,13 +558,15 @@ def updateDataFaultBackgr(cls, feature,
         (poly, ), (mmax, ), (mcdist, ), cls.catalog, 
         mmin=parameters['activity_mmin'])
     
-    # get RM (weight, a, b) values from feature attribute
-    activity_str = activity[0][2]
-    activity_arr = activity_str.strip().split()
+    # get RM (a, b) values from feature attribute
+    activity_str_a = activity[0][3]
+    activity_arr_a = activity_str_a.strip().split()
+    activity_str_b = activity[0][4]
+    activity_arr_b = activity_str_b.strip().split()
     
     # ignore weights
-    activity_a = [float(x) for x in activity_arr[1::3]]
-    activity_b = [float(x) for x in activity_arr[2::3]]
+    activity_a = [float(x) for x in activity_arr_a]
+    activity_b = [float(x) for x in activity_arr_b]
     parameters['activity_a'] = activity_a
     parameters['activity_b'] = activity_b 
     
@@ -576,18 +596,22 @@ def updateDataFaultBackgr(cls, feature,
         mmin=parameters['activity_mmin'])
         
     # get RM (weight, a, b) values from feature attribute
-    activity_below_str = activity_below_threshold[0][2]
-    activity_below_arr = activity_below_str.strip().split()
-
-    activity_above_str = activity_above_threshold[0][2]
-    activity_above_arr = activity_above_str.strip().split()
+    activity_below_str_a = activity_below_threshold[0][3]
+    activity_below_arr_a = activity_below_str_a.strip().split()
+    activity_below_str_b = activity_below_threshold[0][4]
+    activity_below_arr_b = activity_below_str_b.strip().split()
+    
+    activity_above_str_a = activity_above_threshold[0][3]
+    activity_above_arr_a = activity_above_str_a.strip().split()
+    activity_above_str_b = activity_above_threshold[0][4]
+    activity_above_arr_b = activity_above_str_b.strip().split()
     
     # ignore weights
-    activity_below_a = [float(x) for x in activity_below_arr[1::3]]
-    activity_below_b = [float(x) for x in activity_below_arr[2::3]]
+    activity_below_a = [float(x) for x in activity_below_arr_a]
+    activity_below_b = [float(x) for x in activity_below_arr_b]
 
-    activity_above_a = [float(x) for x in activity_above_arr[1::3]]
-    activity_above_b = [float(x) for x in activity_above_arr[2::3]]
+    activity_above_a = [float(x) for x in activity_above_arr_a]
+    activity_above_b = [float(x) for x in activity_above_arr_b]
     
     a_values_below = atticivy.activity2aValue(activity_below_a, 
         activity_below_b, parameters['activity_mmin'])
@@ -768,41 +792,56 @@ def getAttributesFromRecurrence(provider, feature):
 
     a_fbz_name = features.FAULT_SOURCE_ATTR_A_FBZ['name']
     b_fbz_name = features.FAULT_SOURCE_ATTR_B_FBZ['name']
-    act_fbz_name = features.FAULT_SOURCE_ATTR_ACT_FBZ['name']
-
+    
     parameters['activity_fbz_a'] = \
         feature[attribute_map_fault[a_fbz_name][0]].toDouble()[0]
     parameters['activity_fbz_b'] = \
         feature[attribute_map_fault[b_fbz_name][0]].toDouble()[0]
-    parameters['activity_fbz'] = str(
-        feature[attribute_map_fault[act_fbz_name][0]].toString())
-    
+        
+    act_fbz_a_name = features.FAULT_SOURCE_ATTR_ACT_FBZ_A['name']
+    act_fbz_b_name = features.FAULT_SOURCE_ATTR_ACT_FBZ_B['name']
+
+    parameters['activity_fbz_act_a'] = str(
+        feature[attribute_map_fault[act_fbz_a_name][0]].toString())
+    parameters['activity_fbz_act_b'] = str(
+        feature[attribute_map_fault[act_fbz_b_name][0]].toString())
+        
     # a and b value from buffer zone (fault layer attributes)
 
     a_bz_name = features.FAULT_SOURCE_ATTR_A_BUF['name']
     b_bz_name = features.FAULT_SOURCE_ATTR_B_BUF['name']
-    act_bz_name = features.FAULT_SOURCE_ATTR_ACT_BUF['name']
-
+    
     parameters['activity_bz_a'] = \
         feature[attribute_map_fault[a_bz_name][0]].toDouble()[0]
     parameters['activity_bz_b'] = \
         feature[attribute_map_fault[b_bz_name][0]].toDouble()[0]
-    parameters['activity_bz'] = str(
-        feature[attribute_map_fault[act_bz_name][0]].toString())
-    
+        
+    act_bz_a_name = features.FAULT_SOURCE_ATTR_ACT_BUF_A['name']
+    act_bz_b_name = features.FAULT_SOURCE_ATTR_ACT_BUF_B['name']
+
+    parameters['activity_bz_act_a'] = str(
+        feature[attribute_map_fault[act_bz_a_name][0]].toString())
+    parameters['activity_bz_act_b'] = str(
+        feature[attribute_map_fault[act_bz_b_name][0]].toString())
+        
     # a and b value from FBZ, above magnitude threshold
 
     a_fbz_at_name = features.FAULT_SOURCE_ATTR_A_FBZ_AT['name']
     b_fbz_at_name = features.FAULT_SOURCE_ATTR_B_FBZ_AT['name']
-    act_fbz_at_name = features.FAULT_SOURCE_ATTR_ACT_FBZ_AT['name']
-
+    
     parameters['activity_fbz_at_a'] = \
         feature[attribute_map_fault[a_fbz_at_name][0]].toDouble()[0]
     parameters['activity_fbz_at_b'] = \
         feature[attribute_map_fault[b_fbz_at_name][0]].toDouble()[0]
-    parameters['activity_fbz_at'] = str(
-        feature[attribute_map_fault[act_fbz_at_name][0]].toString())
-    
+        
+    act_fbz_at_a_name = features.FAULT_SOURCE_ATTR_ACT_FBZ_AT_A['name']
+    act_fbz_at_b_name = features.FAULT_SOURCE_ATTR_ACT_FBZ_AT_B['name']
+
+    parameters['activity_fbz_at_act_a'] = str(
+        feature[attribute_map_fault[act_fbz_at_a_name][0]].toString())
+    parameters['activity_fbz_at_act_b'] = str(
+        feature[attribute_map_fault[act_fbz_at_b_name][0]].toString())
+        
     # a values from recurrence (fault layer attributes)
     
     a_rec_min_name = features.FAULT_SOURCE_ATTR_A_REC_MIN['name']

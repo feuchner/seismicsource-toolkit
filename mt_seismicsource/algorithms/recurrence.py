@@ -175,10 +175,10 @@ def computeRecurrence(layer_fault, layer_fault_background=None,
 
         # collect the following attribute data:
         # - FBZ zone ID
-        # - (a, b, act) for FBZ
-        # - (a, b, act) for buffer zone
-        # - (a, b, act) for FBZ, below magnitude threshold
-        # - (a, b, act) for FBZ, above magnitude threshold
+        # - (a, b, act_a, act_b) for FBZ
+        # - (a, b, act_a, act_b) for buffer zone
+        # - (a, b, act_a, act_b) for FBZ, below magnitude threshold
+        # - (a, b, act_a, act_b) for FBZ, above magnitude threshold
         # - a from slip rate (min/max)
         # - activity rate (min/max)
         # - moment rate (min/max)
@@ -263,20 +263,24 @@ def computeRecurrence(layer_fault, layer_fault_background=None,
 
         attribute_list = [
             str(activity_back['fbz']['ID']),
-            float(activity_back['fbz']['activity'][0]), 
-            float(activity_back['fbz']['activity'][1]),
-            str(activity_back['fbz']['activity'][2]), 
-            float(activity_back['bz']['activity'][0]), 
-            float(activity_back['bz']['activity'][1]),
-            str(activity_back['bz']['activity'][2]), 
+            float(activity_back['fbz']['activity'][atticivy.ATTICIVY_A_IDX]), 
+            float(activity_back['fbz']['activity'][atticivy.ATTICIVY_B_IDX]),
+            str(activity_back['fbz']['activity'][atticivy.ATTICIVY_ACT_A_IDX]),
+            str(activity_back['fbz']['activity'][atticivy.ATTICIVY_ACT_B_IDX]),
+            float(activity_back['bz']['activity'][atticivy.ATTICIVY_A_IDX]), 
+            float(activity_back['bz']['activity'][atticivy.ATTICIVY_B_IDX]),
+            str(activity_back['bz']['activity'][atticivy.ATTICIVY_ACT_A_IDX]), 
+            str(activity_back['bz']['activity'][atticivy.ATTICIVY_ACT_B_IDX]), 
             float(a_value_min),
             float(a_value_max),
-            float(activity_back['fbz_below']['activity'][0]), 
-            float(activity_back['fbz_below']['activity'][1]),
-            str(activity_back['fbz_below']['activity'][2]),
-            float(activity_back['fbz_above']['activity'][0]), 
-            float(activity_back['fbz_above']['activity'][1]),
-            str(activity_back['fbz_above']['activity'][2]),
+            float(activity_back['fbz_below']['activity'][atticivy.ATTICIVY_A_IDX]), 
+            float(activity_back['fbz_below']['activity'][atticivy.ATTICIVY_B_IDX]),
+            str(activity_back['fbz_below']['activity'][atticivy.ATTICIVY_ACT_A_IDX]),
+            str(activity_back['fbz_below']['activity'][atticivy.ATTICIVY_ACT_B_IDX]),
+            float(activity_back['fbz_above']['activity'][atticivy.ATTICIVY_A_IDX]), 
+            float(activity_back['fbz_above']['activity'][atticivy.ATTICIVY_B_IDX]),
+            str(activity_back['fbz_above']['activity'][atticivy.ATTICIVY_ACT_A_IDX]),
+            str(activity_back['fbz_above']['activity'][atticivy.ATTICIVY_ACT_B_IDX]),
             zone_data_string_min.lstrip(), 
             zone_data_string_max.lstrip(), 
             float(seismic_moment_rate_min),
