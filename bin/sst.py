@@ -219,28 +219,13 @@ def processASZ():
     print "features:", pr.featureCount()
     print "fields:", pr.fieldCount()
     
-    #attribute_map = mt_seismicsource.utils.getAttributeIndex(pr, ({'name': 'FOO', 'type': QVariant.String},), create=True)
-    
-    #all_features = [feat.id() for feat in pr]
-    #all_features = [292, 295, 297, 304]
-    all_features = [108]
-    #all_features = [279]
-    #all_features = [292, 304]
+    all_features = [feat.id() for feat in pr]
     metadata['asz_layer'].setSelectedFeatures(all_features)
     
     print "running AtticIvy on ASZ layer"
     atticivy.assignActivityAtticIvy(metadata['asz_layer'], 
         metadata['catalog'], ui_mode=False)
 
-    #values = {}
-    #fts = metadata['asz_layer'].selectedFeatures()
-    #for zone_idx, zone in enumerate(fts):
-        #zone_str = "bar%s" % zone_idx
-        #values[zone.id()] = {11: QVariant(zone_str)}
-        
-    #pr.changeAttributeValues(values)
-    #metadata['asz_layer'].commitChanges()
-    
     return metadata['asz_layer']
 
 def processFSZ():

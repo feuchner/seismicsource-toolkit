@@ -134,6 +134,7 @@ def assignActivityAtticIvy(layer, catalog, mmin=ATTICIVY_MMIN,
     for zone_idx, zone in enumerate(fts):
         attributes = {}
         skipZone = False
+        
         for attr_idx, attr_dict in enumerate(
             features.AREA_SOURCE_ATTRIBUTES_AB_RM):
             (curr_idx, curr_type) = attribute_map[attr_dict['name']]
@@ -179,8 +180,9 @@ def computeActivityAtticIvy(polygons, mmax, mcdist, catalog,
     # write zone data to temp file in AtticIvy format
     zone_file_path = os.path.join(temp_dir, ATTICIVY_ZONE_FILE)
     
-    writeZones2AtticIvy(zone_file_path, polygons, mmax, mcdist, mmin, 
-        ui_mode=ui_mode)
+    # return value is list of all internal zone IDs 
+    zone_ids = writeZones2AtticIvy(zone_file_path, polygons, mmax, mcdist, 
+        mmin, ui_mode=ui_mode)
 
     # do depth filtering on catalog
     cat_cut = QPCatalog.QPCatalog()
@@ -210,10 +212,21 @@ def computeActivityAtticIvy(polygons, mmax, mcdist, catalog,
             
     # read results from AtticIvy output file
     result_file_path = os.path.join(temp_dir, ATTICIVY_RESULT_FILE)
-    activity_list = activityFromAtticIvy(result_file_path)
+    activity_result = activityFromAtticIvy(result_file_path)
+    
+    # expand activity_result to original length with inserted None values
+    # for zones that do not have valid data
+    activity_list = []
+    for curr_zone_id in zone_ids:
+        if curr_zone_id in activity_result:
+            zone_result = activity_result[curr_zone_id]
+        else:
+            zone_result = None
+        
+        activity_list.append(zone_result)
 
     # remove temp file directory
-    #shutil.rmtree(temp_dir)
+    shutil.rmtree(temp_dir)
 
     return activity_list
 
@@ -228,8 +241,12 @@ def writeZones2AtticIvy(path, polygons, mmax_in, mcdist_in,
         mcdist_in       list of mcdist strings
         mmin            minimum magnitude used for AtticIvy computation
 
+    Output:
+        list of internal zone IDs
     """
 
+    zone_ids = []
+    
     # open file for writing
     with open(path, 'w') as fh:
 
@@ -261,7 +278,10 @@ def writeZones2AtticIvy(path, polygons, mmax_in, mcdist_in,
                 counted_zones -= 1
                 continue
             
-            zone_str = '%04i , %s\n' % (curr_zone_idx, len(vertices)-1)
+            zone_id = "%04i" % curr_zone_idx
+            zone_ids.append(zone_id)
+            
+            zone_str = "%s , %s\n" % (zone_id, len(vertices)-1)
             for vertex in vertices[0:-1]:
                 zone_str += '%s , %s\n' % (vertex[1], vertex[0])
 
@@ -309,6 +329,19 @@ def writeZones2AtticIvy(path, polygons, mmax_in, mcdist_in,
                 else:
                     print error_msg
 
+            # largest Mmax must be lower or equal than largest Mc value, 
+            # otherwise # skip zone (if this case is not caught here, AtticIvy 
+            # will stop at the zone with 'largest mmax not covered' error
+            largest_mc = float(mcdist_mag[-1].strip())
+            if skipZone is False and largest_mc < mmax_in[curr_zone_idx]:
+                skipZone = True
+                error_msg = "largest mmax not covered by mcdist, zone %s" % (
+                    curr_zone_idx)
+                if ui_mode is True:
+                    QMessageBox.warning(None, "AtticIvy Error", error_msg)
+                else:
+                    print error_msg
+            
             if skipZone is False:
                 # a/b priors: default setting
                 zone_str += ATTICIVY_MISSING_ZONE_PARAMETERS_PRIORS
@@ -321,16 +354,20 @@ def writeZones2AtticIvy(path, polygons, mmax_in, mcdist_in,
         header_str += '# zones....:%3i\n' % counted_zones
         fh.write(header_str)
         fh.write(body_str)
-
+        
+    return zone_ids
+    
 def activityFromAtticIvy(path):
-    """Read output from AtticIvy program. Returns list of 
-    [a, b, activity_string] value triples.
+    """Read output from AtticIvy program. Returns dict of 
+    [a, b, 'activity_string'] value triples with 'internal_id' as key.
     a: a value
     b: b value
     activity_string: string of all [weight, a, b] triples per zone, in a row,
                      separated by white space
+    internal_id      zone identifier from AtticIvy zone file (note: this is
+                     not the zone ID from the original shapefile)
     """
-    result_values = []
+    result_values = {}
     with open(path, 'r') as fh:
 
         zoneStartMode = True
@@ -345,9 +382,9 @@ def activityFromAtticIvy(path):
                 continue
 
             elif zoneStartMode is True:
-                # reading zone ID from file not required, we rely on 
-                # order of zones in file
+                # read zone ID
                 zone_data = []
+                zone_id = line.strip()
                 zone_data_string = ""
                 dataLengthMode = True
                 zoneStartMode = False
@@ -375,7 +412,7 @@ def activityFromAtticIvy(path):
                     # get proper (middle) line and append zone data string
                     zone_values = zone_data[data_line_count / 2]
                     zone_values.append(zone_data_string.lstrip())
-                    result_values.append(zone_values)
+                    result_values[zone_id] = zone_values
                     
                     zoneStartMode = True
                     dataLineMode = False
