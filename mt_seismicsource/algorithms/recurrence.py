@@ -417,6 +417,12 @@ def computeActivityFromBackground(feature, layer_fault_background,
         ui_mode=ui_mode)
     
     if mcdist_qv is None or mmax_qv is None:
+        error_msg = "Recurrence: could not determine mcdist or mmax for "\
+            "zone %s" % (feature.id())
+        if ui_mode is True:
+            QMessageBox.warning(None, "Recurrence Warning", error_msg)
+        else:
+            print error_msg
         return None
     else:
         mmax = float(mmax_qv.toDouble()[0])

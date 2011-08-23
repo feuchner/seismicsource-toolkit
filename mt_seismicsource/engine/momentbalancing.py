@@ -305,7 +305,11 @@ def updateDataFault(cls, feature,
         fault_poly.centroid, provider_fault_back)
 
     recurrence_attributes = getAttributesFromRecurrence(provider, feature)
-    parameters.update(recurrence_attributes)
+    
+    if recurrence_attributes is not None:
+        parameters.update(recurrence_attributes)
+    else:
+        return None
     
     # get mmax and mcdist for FBZ from background zone
     (mcdist_qv, mmax_qv) = areasource.getAttributesFromBackgroundZones(
@@ -402,8 +406,12 @@ def updateDataFault(cls, feature,
 
 def updateDisplaysFault(cls, parameters):
     """Update UI with computed values for selected fault zone."""
-    updateTextActivityFault(cls, parameters)
-    updateTextMomentRateFault(cls, parameters)
+    
+    if parameters is None:
+        return
+    else:
+        updateTextActivityFault(cls, parameters)
+        updateTextMomentRateFault(cls, parameters)
 
 def updateTextActivityFault(cls, parameters):
 
@@ -785,8 +793,13 @@ def getAttributesFromRecurrence(provider, feature):
         
     # get fault background zone ID
     id_name = features.FAULT_SOURCE_ATTR_ID_FBZ['name']
-    parameters['fbz_id'] = str(
-        feature[attribute_map_fault[id_name][0]].toString())
+    try:
+        parameters['fbz_id'] = str(
+            feature[attribute_map_fault[id_name][0]].toString())
+    except KeyError:
+        error_msg = "No recurrence data for zone %s" % (feature.id())
+        QMessageBox.warning(None, "Missing Data", error_msg)
+        return None
         
     # a and b value from FBZ (fault layer attributes)
 
