@@ -42,28 +42,34 @@ AREA_SOURCE_ATTR_NAME = {'name': 'Name', 'type': QVariant.Int}
 AREA_SOURCE_ATTRIBUTES_ID = (AREA_SOURCE_ATTR_ID, AREA_SOURCE_ATTR_TITLE,
     AREA_SOURCE_ATTR_NAME)
 
+# max/min depth
+AREA_SOURCE_ATTR_DEPTHMIN = {'name': 'mindepth', 'type': QVariant.Int}
+AREA_SOURCE_ATTR_DEPTHMAX = {'name': 'maxdepth', 'type': QVariant.Int}
+
+AREA_SOURCE_ATTRIBUTES_MINMAXDEPTH = (AREA_SOURCE_ATTR_DEPTHMIN, 
+    AREA_SOURCE_ATTR_DEPTHMAX)
+    
 # max/min magnitudes
 AREA_SOURCE_ATTR_MMIN = {'name': 'mmin', 'type': QVariant.Double}
 AREA_SOURCE_ATTR_MMAX = {'name': 'mmax', 'type': QVariant.Double}
-AREA_SOURCE_ATTR_MMAXDIST = {'name': 'mmaxdist', 'type': QVariant.String, 'length': 254}
 
-# skip: AREA_SOURCE_ATTR_MMAXDIST
 AREA_SOURCE_ATTRIBUTES_MINMAXMAG = (AREA_SOURCE_ATTR_MMIN, 
     AREA_SOURCE_ATTR_MMAX)
 
 # magnitude of completeness
-# skip: mc
 AREA_SOURCE_ATTR_MC = {'name': 'mc', 'type': QVariant.Double}
+AREA_SOURCE_ATTR_MC_METHOD = {'name': 'mcmethod', 'type': QVariant.String}
 AREA_SOURCE_ATTR_MCDIST = {'name': 'mcdist', 'type': QVariant.String, 'length': 254}
 
-AREA_SOURCE_ATTRIBUTES_MC = (AREA_SOURCE_ATTR_MCDIST, )
+AREA_SOURCE_ATTRIBUTES_MC = (AREA_SOURCE_ATTR_MC, AREA_SOURCE_ATTR_MC_METHOD, 
+    AREA_SOURCE_ATTR_MCDIST)
 
 # a/b prior
-AREA_SOURCE_ATTR_A_PRIOR = {'name': 'a_prior', 'type': QVariant.Double}
-AREA_SOURCE_ATTR_B_PRIOR = {'name': 'b_prior', 'type': QVariant.Double}
+#AREA_SOURCE_ATTR_A_PRIOR = {'name': 'a_prior', 'type': QVariant.Double}
+#AREA_SOURCE_ATTR_B_PRIOR = {'name': 'b_prior', 'type': QVariant.Double}
 
-AREA_SOURCE_ATTRIBUTES_AB_PRIOR = (AREA_SOURCE_ATTR_A_PRIOR, 
-    AREA_SOURCE_ATTR_B_PRIOR)
+#AREA_SOURCE_ATTRIBUTES_AB_PRIOR = (AREA_SOURCE_ATTR_A_PRIOR, 
+    #AREA_SOURCE_ATTR_B_PRIOR)
 
 # a/b maximum likelihood
 AREA_SOURCE_ATTR_A_ML = {'name': 'a_ml', 'type': QVariant.Double}
@@ -82,13 +88,26 @@ AREA_SOURCE_ATTRIBUTES_AB_RM = (AREA_SOURCE_ATTR_A_RM, AREA_SOURCE_ATTR_B_RM,
     AREA_SOURCE_ATTR_ACT_RM_W, AREA_SOURCE_ATTR_ACT_RM_A, 
     AREA_SOURCE_ATTR_ACT_RM_B)
 
+# moment rate components
+AREA_SOURCE_ATTR_MR_EQ = {'name': 'mr_eq', 'type': QVariant.Double}
+AREA_SOURCE_ATTR_MR_ACTIVITY = {'name': 'mr_act', 'type': QVariant.Double}
+AREA_SOURCE_ATTR_MR_STRAIN_BIRD = {'name': 'mr_bird', 'type': QVariant.Double}
+AREA_SOURCE_ATTR_MR_STRAIN_BARBA = {'name': 'mr_barba', 'type': QVariant.Double}
+
+AREA_SOURCE_ATTRIBUTES_MOMENTRATE = (AREA_SOURCE_ATTR_MR_EQ,
+    AREA_SOURCE_ATTR_MR_ACTIVITY, AREA_SOURCE_ATTR_MR_STRAIN_BIRD,
+    AREA_SOURCE_ATTR_MR_STRAIN_BARBA)
+
 # combination of all attribute groups
-# skip: AREA_SOURCE_ATTRIBUTES_AB_PRIOR, AREA_SOURCE_ATTRIBUTES_AB_ML
+# skip: AREA_SOURCE_ATTRIBUTES_AB_PRIOR
 AREA_SOURCE_ATTRIBUTES_ALL = (
     AREA_SOURCE_ATTRIBUTES_ID, 
+    AREA_SOURCE_ATTRIBUTES_MINMAXDEPTH,
     AREA_SOURCE_ATTRIBUTES_MINMAXMAG, 
     AREA_SOURCE_ATTRIBUTES_MC, 
-    AREA_SOURCE_ATTRIBUTES_AB_RM)
+    AREA_SOURCE_ATTRIBUTES_AB_ML,
+    AREA_SOURCE_ATTRIBUTES_AB_RM,
+    AREA_SOURCE_ATTRIBUTES_MOMENTRATE)
 
 ## fault source attributes 
 
@@ -129,6 +148,13 @@ FAULT_SOURCE_ATTR_NAME = {'name': 'SOURCENAME', 'type': QVariant.String}
 
 FAULT_SOURCE_ATTRIBUTES_ID = (FAULT_SOURCE_ATTR_ID, FAULT_SOURCE_ATTR_NAME)
 
+FAULT_SOURCE_ATTR_SLIPRATE_MIN = {'name': 'SLIPRATEMI', 
+    'type': QVariant.Double}
+FAULT_SOURCE_ATTR_SLIPRATE_MAX = {'name': 'SLIPRATEMA', 
+    'type': QVariant.Double}
+
+FAULT_SOURCE_ATTR_MAGNITUDE_MAX = {'name': 'MAXMAG', 'type': QVariant.Double}
+
 # Fault data
 FAULT_SOURCE_ATTR_ID_FBZ = {'name': 'id_fbz', 'type': QVariant.String}
 
@@ -144,8 +170,7 @@ FAULT_SOURCE_ATTR_ACT_BUF_W = {'name': 'act_buf_w', 'type': QVariant.String, 'le
 FAULT_SOURCE_ATTR_ACT_BUF_A = {'name': 'act_buf_a', 'type': QVariant.String, 'length': 254}
 FAULT_SOURCE_ATTR_ACT_BUF_B = {'name': 'act_buf_b', 'type': QVariant.String, 'length': 254}
 
-FAULT_SOURCE_ATTR_A_REC_MIN = {'name': 'a_rec_min', 'type': QVariant.Double}
-FAULT_SOURCE_ATTR_A_REC_MAX = {'name': 'a_rec_max', 'type': QVariant.Double}
+FAULT_SOURCE_ATTR_M_THRES = {'name': 'm_thres', 'type': QVariant.Double}
 
 FAULT_SOURCE_ATTR_A_FBZ_BT = {'name': 'a_fbz_bt', 'type': QVariant.Double}
 FAULT_SOURCE_ATTR_B_FBZ_BT = {'name': 'b_fbz_bt', 'type': QVariant.Double}
@@ -159,24 +184,36 @@ FAULT_SOURCE_ATTR_ACT_FBZ_AT_W = {'name': 'afbz_at_w', 'type': QVariant.String, 
 FAULT_SOURCE_ATTR_ACT_FBZ_AT_A = {'name': 'afbz_at_a', 'type': QVariant.String, 'length': 254}
 FAULT_SOURCE_ATTR_ACT_FBZ_AT_B = {'name': 'afbz_at_b', 'type': QVariant.String, 'length': 254}
 
+FAULT_SOURCE_ATTR_A_ML = {'name': 'a_ml', 'type': QVariant.Double}
+FAULT_SOURCE_ATTR_B_ML = {'name': 'b_ml', 'type': QVariant.Double}
+FAULT_SOURCE_ATTR_MC_ML = {'name': 'mc_ml', 'type': QVariant.Double}
+
+FAULT_SOURCE_ATTR_MMAX_BG = {'name': 'mmax_bg', 'type': QVariant.Double}
+
+FAULT_SOURCE_ATTR_A_REC_MIN = {'name': 'a_rec_min', 'type': QVariant.Double}
+FAULT_SOURCE_ATTR_A_REC_MAX = {'name': 'a_rec_max', 'type': QVariant.Double}
+
+# moment rate components
+FAULT_SOURCE_ATTR_MR_EQ = {'name': 'mr_eq', 'type': QVariant.Double}
+FAULT_SOURCE_ATTR_MR_ACTIVITY_BUF = {'name': 'mr_act_buf', 
+    'type': QVariant.Double}
+FAULT_SOURCE_ATTR_MR_ACTIVITY_FBZ = {'name': 'mr_act_fbz', 
+    'type': QVariant.Double}
+FAULT_SOURCE_ATTR_MOMENTRATE_MIN = {'name': 'mr_slip_mi', 
+    'type': QVariant.Double}
+FAULT_SOURCE_ATTR_MOMENTRATE_MAX = {'name': 'mr_slip_ma', 
+    'type': QVariant.Double}
+
+# activity rate from recurrence
 FAULT_SOURCE_ATTR_ACTIVITYRATE_MIN = {'name': 'actrate_mi', 
     'type': QVariant.String}
 FAULT_SOURCE_ATTR_ACTIVITYRATE_MAX = {'name': 'actrate_ma', 
     'type': QVariant.String}
-    
-FAULT_SOURCE_ATTR_MOMENTRATE_MIN = {'name': 'momrate_mi', 
-    'type': QVariant.Double}
-FAULT_SOURCE_ATTR_MOMENTRATE_MAX = {'name': 'momrate_ma', 
-    'type': QVariant.Double}
-    
-FAULT_SOURCE_ATTR_SLIPRATE_MIN = {'name': 'SLIPRATEMI', 
-    'type': QVariant.Double}
-FAULT_SOURCE_ATTR_SLIPRATE_MAX = {'name': 'SLIPRATEMA', 
-    'type': QVariant.Double}
-
-FAULT_SOURCE_ATTR_MAGNITUDE_MAX = {'name': 'MAXMAG', 'type': QVariant.Double}
 
 FAULT_SOURCE_ATTRIBUTES_RECURRENCE = (
+    FAULT_SOURCE_ATTR_SLIPRATE_MIN,
+    FAULT_SOURCE_ATTR_SLIPRATE_MAX, 
+    FAULT_SOURCE_ATTR_MAGNITUDE_MAX,
     FAULT_SOURCE_ATTR_ID_FBZ,
     FAULT_SOURCE_ATTR_A_FBZ,
     FAULT_SOURCE_ATTR_B_FBZ,
@@ -186,8 +223,7 @@ FAULT_SOURCE_ATTRIBUTES_RECURRENCE = (
     FAULT_SOURCE_ATTR_B_BUF,
     FAULT_SOURCE_ATTR_ACT_BUF_A,
     FAULT_SOURCE_ATTR_ACT_BUF_B,
-    FAULT_SOURCE_ATTR_A_REC_MIN,
-    FAULT_SOURCE_ATTR_A_REC_MAX,
+    FAULT_SOURCE_ATTR_M_THRES,
     FAULT_SOURCE_ATTR_A_FBZ_BT,
     FAULT_SOURCE_ATTR_B_FBZ_BT,
     FAULT_SOURCE_ATTR_ACT_FBZ_BT_A,
@@ -196,13 +232,19 @@ FAULT_SOURCE_ATTRIBUTES_RECURRENCE = (
     FAULT_SOURCE_ATTR_B_FBZ_AT,
     FAULT_SOURCE_ATTR_ACT_FBZ_AT_A,
     FAULT_SOURCE_ATTR_ACT_FBZ_AT_B,
-    FAULT_SOURCE_ATTR_ACTIVITYRATE_MIN, 
-    FAULT_SOURCE_ATTR_ACTIVITYRATE_MAX,
+    FAULT_SOURCE_ATTR_A_ML,
+    FAULT_SOURCE_ATTR_B_ML,
+    FAULT_SOURCE_ATTR_MC_ML,
+    FAULT_SOURCE_ATTR_MMAX_BG,
+    FAULT_SOURCE_ATTR_A_REC_MIN,
+    FAULT_SOURCE_ATTR_A_REC_MAX,
+    FAULT_SOURCE_ATTR_MR_EQ,
+    FAULT_SOURCE_ATTR_MR_ACTIVITY_BUF,
+    FAULT_SOURCE_ATTR_MR_ACTIVITY_FBZ,
     FAULT_SOURCE_ATTR_MOMENTRATE_MIN,
     FAULT_SOURCE_ATTR_MOMENTRATE_MAX,
-    FAULT_SOURCE_ATTR_SLIPRATE_MIN,
-    FAULT_SOURCE_ATTR_SLIPRATE_MAX, 
-    FAULT_SOURCE_ATTR_MAGNITUDE_MAX)
+    FAULT_SOURCE_ATTR_ACTIVITYRATE_MIN, 
+    FAULT_SOURCE_ATTR_ACTIVITYRATE_MAX)
 
 FAULT_SOURCE_ATTRIBUTES_RECURRENCE_COMPUTE = (
     FAULT_SOURCE_ATTR_ID_FBZ,
@@ -214,8 +256,7 @@ FAULT_SOURCE_ATTRIBUTES_RECURRENCE_COMPUTE = (
     FAULT_SOURCE_ATTR_B_BUF,
     FAULT_SOURCE_ATTR_ACT_BUF_A,
     FAULT_SOURCE_ATTR_ACT_BUF_B,
-    FAULT_SOURCE_ATTR_A_REC_MIN,
-    FAULT_SOURCE_ATTR_A_REC_MAX,
+    FAULT_SOURCE_ATTR_M_THRES,
     FAULT_SOURCE_ATTR_A_FBZ_BT,
     FAULT_SOURCE_ATTR_B_FBZ_BT,
     FAULT_SOURCE_ATTR_ACT_FBZ_BT_A,
@@ -224,10 +265,19 @@ FAULT_SOURCE_ATTRIBUTES_RECURRENCE_COMPUTE = (
     FAULT_SOURCE_ATTR_B_FBZ_AT,
     FAULT_SOURCE_ATTR_ACT_FBZ_AT_A,
     FAULT_SOURCE_ATTR_ACT_FBZ_AT_B,
-    FAULT_SOURCE_ATTR_ACTIVITYRATE_MIN,
-    FAULT_SOURCE_ATTR_ACTIVITYRATE_MAX,
+    FAULT_SOURCE_ATTR_A_ML,
+    FAULT_SOURCE_ATTR_B_ML,
+    FAULT_SOURCE_ATTR_MC_ML,
+    FAULT_SOURCE_ATTR_MMAX_BG,
+    FAULT_SOURCE_ATTR_A_REC_MIN,
+    FAULT_SOURCE_ATTR_A_REC_MAX,
+    FAULT_SOURCE_ATTR_MR_EQ,
+    FAULT_SOURCE_ATTR_MR_ACTIVITY_BUF,
+    FAULT_SOURCE_ATTR_MR_ACTIVITY_FBZ,
     FAULT_SOURCE_ATTR_MOMENTRATE_MIN,
-    FAULT_SOURCE_ATTR_MOMENTRATE_MAX)
+    FAULT_SOURCE_ATTR_MOMENTRATE_MAX,
+    FAULT_SOURCE_ATTR_ACTIVITYRATE_MIN, 
+    FAULT_SOURCE_ATTR_ACTIVITYRATE_MAX)
 
 ## fault background zone attributes
 

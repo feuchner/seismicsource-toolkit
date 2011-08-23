@@ -35,6 +35,7 @@ import qpfmd
 import QPCatalog
 import qpplot
 
+from mt_seismicsource import features
 from mt_seismicsource import plots
 from mt_seismicsource import utils
 from mt_seismicsource.algorithms import atticivy
@@ -158,8 +159,12 @@ def plotRecurrence(cls, feature, feature_data=None, title=''):
     window = plots.createPlotWindow(cls)
 
     pr = cls.fault_source_layer.dataProvider()
-    activity_min_idx = pr.fieldNameIndex('actrate_mi')
-    activity_max_idx = pr.fieldNameIndex('actrate_ma')
+    
+    activity_min_name = features.FAULT_SOURCE_ATTR_ACTIVITYRATE_MIN ['name']
+    activity_max_name = features.FAULT_SOURCE_ATTR_ACTIVITYRATE_MAX ['name']
+    
+    activity_min_idx = pr.fieldNameIndex(activity_min_name)
+    activity_max_idx = pr.fieldNameIndex(activity_max_name)
 
     distrostring_min = str(feature[activity_min_idx].toString())
     distrostring_max = str(feature[activity_max_idx].toString())

@@ -337,11 +337,8 @@ def writeFeaturesToShapefile(layer, path, crs=None,
     
     pr = layer.dataProvider()
     fields = pr.fields()
-    
-    print fields
     writer = QgsVectorFileWriter(path, encoding, fields, QGis.WKBPolygon, crs)
     
-    # over features
     for feat in pr:
         writer.addFeature(feat)
     

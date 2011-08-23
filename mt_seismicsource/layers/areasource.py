@@ -95,7 +95,7 @@ def loadAreaSourceFromSHP(filename_in, mmax_data, background_layer,
     
     # assign attributes from background zones
     assignAttributesFromBackgroundZones(layer, background_layer, 
-        MCDIST_ATTRIBUTES)
+        MCDIST_ATTRIBUTES, ui_mode=ui_mode)
 
     # write memory layer to disk (as a Shapefile)
     if layer2file is True:
@@ -148,7 +148,7 @@ def assignMmaxfromMelettiDataset(layer, mmax_data):
     layer.commitChanges()
 
 def assignAttributesFromBackgroundZones(layer, background_layer, 
-    attributes_in):
+    attributes_in, ui_mode=True):
     """Copy attributes from background zone layer."""
     
     provider = layer.dataProvider()
@@ -172,7 +172,7 @@ def assignAttributesFromBackgroundZones(layer, background_layer,
         polygon, vertices = utils.polygonsQGS2Shapely((zone,))
         centroid = polygon[0].centroid
         copy_attr = getAttributesFromBackgroundZones(centroid,
-            provider_back, attributes_in)
+            provider_back, attributes_in, ui_mode=ui_mode)
 
         for attr_idx, attr_dict in enumerate(attributes_in):
             (curr_idx, curr_type) = attribute_map[attr_dict['name']]
@@ -202,7 +202,8 @@ def assignAttributesFromBackgroundZones(layer, background_layer,
     
     layer.commitChanges()
 
-def getAttributesFromBackgroundZones(point, provider_back, attributes):
+def getAttributesFromBackgroundZones(point, provider_back, attributes, 
+    ui_mode=True):
     """Get attribute list (from mmax and mcdist) from background zone 
     at a given Shapely point."""
 
@@ -210,7 +211,7 @@ def getAttributesFromBackgroundZones(point, provider_back, attributes):
 
     # identify matching background zone
     (background_zone, bgz_poly, bgz_area) = utils.findBackgroundZone(
-        point, provider_back)
+        point, provider_back, ui_mode=ui_mode)
     
     if background_zone is not None:
         # leave values as QVariant

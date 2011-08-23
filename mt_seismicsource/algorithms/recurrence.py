@@ -68,7 +68,8 @@ def assignRecurrence(layer_fault, layer_fault_background=None,
     layer_background=None, catalog=None, catalog_time_span=None, b_value=None, 
     mmin=atticivy.ATTICIVY_MMIN,
     m_threshold=FAULT_BACKGROUND_MAG_THRESHOLD,
-    mindepth=eqcatalog.CUT_DEPTH_MIN, maxdepth=eqcatalog.CUT_DEPTH_MAX):
+    mindepth=eqcatalog.CUT_DEPTH_MIN, maxdepth=eqcatalog.CUT_DEPTH_MAX,
+    ui_mode=True):
     """Compute recurrence parameters according to Bungum paper. Add
     activity rates, a/b values, and min/max seismic moment rate 
     as attributes to fault polygon layer.
@@ -94,7 +95,7 @@ def assignRecurrence(layer_fault, layer_fault_background=None,
 
     recurrence = computeRecurrence(layer_fault, layer_fault_background, 
         layer_background, catalog, catalog_time_span, b_value, mmin, 
-        m_threshold, mindepth, maxdepth)
+        m_threshold, mindepth, maxdepth, ui_mode=ui_mode)
         
     attribute_map_fault = utils.getAttributeIndex(provider_fault, 
         features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE_COMPUTE, create=True)
@@ -115,10 +116,7 @@ def assignRecurrence(layer_fault, layer_fault_background=None,
             except Exception, e:
                 skipZone = True
                 break
-                #error_str = \
-        #"error in attribute: curr_idx: %s, zone_idx: %s, attr_idx: %s, %s" % (
-                    #curr_idx, zone_idx, attr_idx, e)
-                #raise RuntimeError, error_str
+                
         if skipZone is False:
             values[zone.id()] = attributes
 
@@ -134,8 +132,8 @@ def computeRecurrence(layer_fault, layer_fault_background=None,
     layer_background=None, catalog=None, catalog_time_span=None, b_value=None, 
     mmin=atticivy.ATTICIVY_MMIN,
     m_threshold=FAULT_BACKGROUND_MAG_THRESHOLD,
-    mindepth=eqcatalog.CUT_DEPTH_MIN,
-    maxdepth=eqcatalog.CUT_DEPTH_MAX):
+    mindepth=eqcatalog.CUT_DEPTH_MIN, maxdepth=eqcatalog.CUT_DEPTH_MAX,
+    ui_mode=True):
     """Compute recurrence parameters according to Bungum paper. 
 
     Parameters from Jochen's Matlab implementation:
@@ -187,9 +185,14 @@ def computeRecurrence(layer_fault, layer_fault_background=None,
         zone_data_string_max = ""
 
         # get parameters from background zones
+        # TODO: can return None
         activity_back = computeActivityFromBackground(feature,
             layer_fault_background, layer_background, catalog, mmin, 
-            m_threshold, mindepth, maxdepth)
+            m_threshold, mindepth, maxdepth, ui_mode=ui_mode)
+            
+        if activity_back is None:
+            result_values.append(None)
+            continue
             
         # get attribute values of zone:
         # - MAXMAG, SLIPRATEMI, SLIPRATEMA
@@ -218,11 +221,15 @@ def computeRecurrence(layer_fault, layer_fault_background=None,
         # determine b value that is used in further computations
         # - use b value computed on fault background zone
         if b_value is None:
-            b_value = activity_back['fbz']['activity'][1]
+            b_value = activity_back['fbz']['activity'][atticivy.ATTICIVY_B_IDX]
 
         # equidistant magnitude array on which activity rates are computed
         # from global Mmin to zone-dependent Mmax
         mag_arr = numpy.arange(MAGNITUDE_MIN, maxmag, MAGNITUDE_BINNING)
+        
+        if len(mag_arr) == 0:
+            result_values.append(None)
+            continue
 
         cumulative_number_min = cumulative_occurrence_model_2(mag_arr, maxmag, 
             slipratemi, b_value, fault_area) / catalog_time_span
@@ -261,30 +268,32 @@ def computeRecurrence(layer_fault, layer_fault_background=None,
                 mag_arr[value_pair_idx], 
                 cumulative_number_max[value_pair_idx])
 
-        attribute_list = [
-            str(activity_back['fbz']['ID']),
-            float(activity_back['fbz']['activity'][atticivy.ATTICIVY_A_IDX]), 
-            float(activity_back['fbz']['activity'][atticivy.ATTICIVY_B_IDX]),
-            str(activity_back['fbz']['activity'][atticivy.ATTICIVY_ACT_A_IDX]),
-            str(activity_back['fbz']['activity'][atticivy.ATTICIVY_ACT_B_IDX]),
-            float(activity_back['bz']['activity'][atticivy.ATTICIVY_A_IDX]), 
-            float(activity_back['bz']['activity'][atticivy.ATTICIVY_B_IDX]),
-            str(activity_back['bz']['activity'][atticivy.ATTICIVY_ACT_A_IDX]), 
-            str(activity_back['bz']['activity'][atticivy.ATTICIVY_ACT_B_IDX]), 
-            float(a_value_min),
-            float(a_value_max),
-            float(activity_back['fbz_below']['activity'][atticivy.ATTICIVY_A_IDX]), 
-            float(activity_back['fbz_below']['activity'][atticivy.ATTICIVY_B_IDX]),
-            str(activity_back['fbz_below']['activity'][atticivy.ATTICIVY_ACT_A_IDX]),
-            str(activity_back['fbz_below']['activity'][atticivy.ATTICIVY_ACT_B_IDX]),
-            float(activity_back['fbz_above']['activity'][atticivy.ATTICIVY_A_IDX]), 
-            float(activity_back['fbz_above']['activity'][atticivy.ATTICIVY_B_IDX]),
-            str(activity_back['fbz_above']['activity'][atticivy.ATTICIVY_ACT_A_IDX]),
-            str(activity_back['fbz_above']['activity'][atticivy.ATTICIVY_ACT_B_IDX]),
-            zone_data_string_min.lstrip(), 
-            zone_data_string_max.lstrip(), 
+        attribute_list = []
+        
+        if activity_back['fbz']['ID'] is None:
+            fbz_id = activity_back['fbz']['ID']
+        else:
+            fbz_id = str(activity_back['fbz']['ID'])
+            
+        attribute_list.append(fbz_id)
+        attribute_list.extend(checkAndCastActivityResult(
+            activity_back['fbz']['activity']))
+        attribute_list.extend(checkAndCastActivityResult(
+            activity_back['bz']['activity']))
+        attribute_list.append(None) # M_thres
+        
+        attribute_list.extend(checkAndCastActivityResult(
+            activity_back['fbz_below']['activity']))
+        attribute_list.extend(checkAndCastActivityResult(
+            activity_back['fbz_above']['activity']))
+        attribute_list.extend([None, None, None, None]) # ML, Mmax
+        attribute_list.extend([float(a_value_min), float(a_value_max)])
+        attribute_list.extend([None, None, None]) # three momentrate components
+        attribute_list.extend([
             float(seismic_moment_rate_min),
-            float(seismic_moment_rate_max)]
+            float(seismic_moment_rate_max),
+            zone_data_string_min.lstrip(), 
+            zone_data_string_max.lstrip()])
             
         result_values.append(attribute_list)
 
@@ -349,7 +358,8 @@ def computeAValueFromOccurrence(lg_occurrence, b_value, mmin=MAGNITUDE_MIN):
 def computeActivityFromBackground(feature, layer_fault_background, 
     layer_background, catalog, mmin=atticivy.ATTICIVY_MMIN, 
     m_threshold=FAULT_BACKGROUND_MAG_THRESHOLD, 
-    mindepth=eqcatalog.CUT_DEPTH_MIN, maxdepth=eqcatalog.CUT_DEPTH_MAX):
+    mindepth=eqcatalog.CUT_DEPTH_MIN, maxdepth=eqcatalog.CUT_DEPTH_MAX,
+    ui_mode=True):
     """Compute activity parameters a and b for (i) fault background zone, and 
     (ii) from buffer zone around fault zone.
     
@@ -383,21 +393,34 @@ def computeActivityFromBackground(feature, layer_fault_background,
     # TODO(fab): use GIS "within" function instead, but note that fault
     # zone can overlap several BG zones
     (fbz, fbz_poly, fbz_area) = utils.findBackgroundZone(fault_poly.centroid, 
-        provider_fault_back)
+        provider_fault_back, ui_mode=ui_mode)
         
-    attribute_map_fbz = utils.getAttributeIndex(provider_fault_back, 
-        (features.FAULT_BACKGROUND_ATTR_ID,), create=False)
+    if fbz is None:
+        error_msg = "Recurrence: could not determine FBZ for zone %s" % (
+            feature.id())
+        if ui_mode is True:
+            QMessageBox.warning(None, "Recurrence Warning", error_msg)
+        else:
+            print error_msg
+        fbz_id = None
+    else:
+        attribute_map_fbz = utils.getAttributeIndex(provider_fault_back, 
+            (features.FAULT_BACKGROUND_ATTR_ID,), create=False)
 
-    # get fault background zone ID
-    id_name = features.FAULT_BACKGROUND_ATTR_ID['name']
-    fbz_id = int(fbz[attribute_map_fbz[id_name][0]].toDouble()[0])
+        # get fault background zone ID
+        id_name = features.FAULT_BACKGROUND_ATTR_ID['name']
+        fbz_id = int(fbz[attribute_map_fbz[id_name][0]].toDouble()[0])
 
     # get mmax and mcdist for FBZ from background zone
     (mcdist_qv, mmax_qv) = areasource.getAttributesFromBackgroundZones(
-        fbz_poly.centroid, provider_back, areasource.MCDIST_MMAX_ATTRIBUTES)
-        
-    mmax = float(mmax_qv.toDouble()[0])
-    mcdist = str(mcdist_qv.toString())
+        fbz_poly.centroid, provider_back, areasource.MCDIST_MMAX_ATTRIBUTES, 
+        ui_mode=ui_mode)
+    
+    if mcdist_qv is None or mmax_qv is None:
+        return None
+    else:
+        mmax = float(mmax_qv.toDouble()[0])
+        mcdist = str(mcdist_qv.toString())
 
     ## moment rate from activity (RM)
 
@@ -409,7 +432,7 @@ def computeActivityFromBackground(feature, layer_fault_background,
     cat_cut.cut(mindepth=mindepth, maxdepth=maxdepth)
     
     activity_fbz = atticivy.computeActivityAtticIvy((fbz_poly,), (mmax,), 
-        (mcdist,), cat_cut, mmin=mmin)
+        (mcdist,), cat_cut, mmin=mmin, ui_mode=ui_mode)
     activity['fbz'] = {'ID': fbz_id, 'area': fbz_area, 
         'activity': activity_fbz[0]}
         
@@ -424,20 +447,34 @@ def computeActivityFromBackground(feature, layer_fault_background,
     cat_above_threshold.cut(minmag=m_threshold, maxmag_excl=False)
 
     activity_below_threshold = atticivy.computeActivityAtticIvy(
-        (fbz_poly,), (mmax,), (mcdist,), cat_below_threshold, mmin=mmin)
+        (fbz_poly,), (mmax,), (mcdist,), cat_below_threshold, mmin=mmin,
+        ui_mode=ui_mode)
     activity['fbz_below'] = {'ID': fbz_id, 'area': fbz_area, 
         'activity': activity_below_threshold[0]}
         
     activity_above_threshold = atticivy.computeActivityAtticIvy(
-        (fbz_poly,), (mmax,), (mcdist,), cat_above_threshold, mmin=mmin)
+        (fbz_poly,), (mmax,), (mcdist,), cat_above_threshold, mmin=mmin, 
+        ui_mode=ui_mode)
     activity['fbz_above'] = {'ID': fbz_id, 'area': fbz_area, 
         'activity': activity_above_threshold[0]}
         
     # a and b value on buffer zone
     activity_bz = atticivy.computeActivityAtticIvy((bz_poly,), (mmax,), 
-        (mcdist,), cat_cut, mmin)
+        (mcdist,), cat_cut, mmin, ui_mode=ui_mode)
     activity['bz'] = {'area': bz_area, 'activity': activity_bz[0]}
             
     activity['background'] = {'mmax': mmax, 'mcdist': mcdist}
 
     return activity
+
+def checkAndCastActivityResult(activity):
+    """Check if an activity result is not None, and convert components."""
+    if activity is not None:
+        activity_arr = [float(activity[atticivy.ATTICIVY_A_IDX]), 
+        float(activity[atticivy.ATTICIVY_B_IDX]), 
+        str(activity[atticivy.ATTICIVY_ACT_A_IDX]), 
+        str(activity[atticivy.ATTICIVY_ACT_B_IDX])]
+    else:
+        activity_arr = [None, None, None, None]
+            
+    return activity_arr

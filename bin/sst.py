@@ -45,6 +45,8 @@ from mt_seismicsource.algorithms import recurrence
 from mt_seismicsource.layers import areasource
 from mt_seismicsource.layers import background
 from mt_seismicsource.layers import eqcatalog
+from mt_seismicsource.layers import faultbackground
+from mt_seismicsource.layers import faultsource
 
 ## set a few paths
 
@@ -62,10 +64,14 @@ toolkitdir = os.path.join(scriptdir, 'mt_seismicsource')
 
 metadata = {}
 
-MODE_IDENTIFIERS = ('ASZ', 'FSZ', 'FBZ')
+MODE_IDENTIFIERS = ('ASZ', 'FSZ')
 
 CATALOG_PATH = os.path.join(mt_seismicsource.layers.DATA_DIR, 
     eqcatalog.CATALOG_DIR, eqcatalog.CATALOG_FILES[0])
+
+FAULTBACKGROUND_DEFAULT_PATH = os.path.join(mt_seismicsource.layers.DATA_DIR, 
+    faultbackground.FAULT_BACKGROUND_FILE_DIR, 
+    faultbackground.FAULT_BACKGROUND_FILES[0])
 
 BACKGROUND_MMAX_PATH = os.path.join(mt_seismicsource.layers.DATA_DIR, 
     background.BACKGROUND_DIR, background.BACKGROUND_ZONES_MMAX_FILE)
@@ -187,8 +193,6 @@ def run():
         layer = processASZ()
     elif metadata['mode'] == 'FSZ':
         layer = processFSZ()
-    elif metadata['mode'] == 'FBZ':
-        layer = processBGZ()
     else:
         error_str = "invalid mode"
         raise RuntimeError, error_str
@@ -229,10 +233,42 @@ def processASZ():
     return metadata['asz_layer']
 
 def processFSZ():
-    pass
+    """Compute attributes for Fault Source Zones:
+        - activity parameters for background and buffer zone
+        -
+    """
+    
+    global metadata
+    
+    print "loading FSZ layer"
+    
+    metadata['fsz_layer'] = faultsource.loadFaultSourceFromSHP(
+        metadata['infile_name'])
 
-def processBGZ():
-    pass
+    pr = metadata['fsz_layer'].dataProvider()
+    pr.select()
+    print "features:", pr.featureCount()
+    print "fields:", pr.fieldCount()
+    
+    all_features = [feat.id() for feat in pr]
+    metadata['fsz_layer'].setSelectedFeatures(all_features)
+    
+    print "loading FBZ layer"
+    
+    # load fault background layer from default file
+    metadata['fbz_layer'] = faultbackground.loadFaultBackgroundFromSHP(
+        FAULTBACKGROUND_DEFAULT_PATH)
+        
+    print "computing attributes for FSZ layer"
+
+    recurrence.assignRecurrence(metadata['fsz_layer'], 
+        layer_fault_background=metadata['fbz_layer'], 
+        layer_background=metadata['background_layer'], 
+        catalog=metadata['catalog'], 
+        catalog_time_span=metadata['catalog'].timeSpan()[0],
+        ui_mode=False)
+        
+    return metadata['fsz_layer']
 
 def getShpComponents(shapefile_name):
     """Find components of shapefile."""
@@ -248,7 +284,7 @@ def PrintHelp():
     print 'Usage: %s [OPTION]' % scriptname
     print '  Options'
     print '   -i FILE      Input file'
-    print '   -m VALUE     Mode (ASZ/FSZ/FBZ)'
+    print '   -m VALUE     Mode (ASZ/FSZ)'
     print '   -o FILE      Output file'
     print '   -w           Overwrite existing attributes'
     print '   -h, --help   Print this information'
