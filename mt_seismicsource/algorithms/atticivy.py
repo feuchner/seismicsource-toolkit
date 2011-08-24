@@ -433,8 +433,8 @@ def activityFromAtticIvy(path):
                     b_value_str_arr = ["%.3f" % (x) for x in b_values]
                     
                     # get best a and b value from central line of result matrix
-                    zone_values = [a_values[data_line_count / 2],
-                        b_values[data_line_count / 2],
+                    zone_values = [float(a_values[data_line_count / 2]),
+                        float(b_values[data_line_count / 2]),
                         ' '.join(weight_str_arr), 
                         ' '.join(a_value_str_arr), 
                         ' '.join(b_value_str_arr)]
