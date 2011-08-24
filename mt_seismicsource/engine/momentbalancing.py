@@ -173,8 +173,9 @@ def updateDataArea(cls, feature):
                 cls.feature_data_area_source['fmd'])
 
     ## moment rate from activity
-    a_values = atticivy.activity2aValue(activity_a, activity_b, 
-        parameters['activity_mmin'])
+    #a_values = atticivy.activity2aValue(activity_a, activity_b, 
+        #parameters['activity_mmin'])
+    a_values = activity_a
     momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
         a_values, activity_b, mmax)) / cls.catalog_time_span[0]
     parameters['mr_activity'] = momentrates_arr.tolist()
@@ -206,10 +207,10 @@ def updateTextActivityArea(cls, parameters):
     text = ''
     text += "<b>Activity</b><br/>"
     text += "<b>(RM)</b> a: %.3f, b: %s, A: %s<br/>" % (
-        atticivy.activity2aValue(central_A, central_b, 
-            parameters['activity_mmin']), 
+        central_A,
         central_b,
-        central_A)
+        atticivy.aValue2activity(central_A, central_b, 
+            parameters['activity_mmin']), )
     text += "<b>(ML)</b> a: %.3f, b: %.3f (Mc %.1f)<br/>" % (
         parameters['ml_a'], 
         parameters['ml_b'],
@@ -362,7 +363,8 @@ def updateDataFault(cls, feature,
     a_bz_arr = [float(x) for x in act_bz_arr_a]
     b_bz_arr = [float(x) for x in act_bz_arr_b]
     
-    a_values = atticivy.activity2aValue(a_bz_arr, b_bz_arr)
+    #a_values = atticivy.activity2aValue(a_bz_arr, b_bz_arr)
+    a_values = a_bz_arr
     momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
         a_values, b_bz_arr, mmax)) / cls.catalog_time_span[0]
 
@@ -377,7 +379,8 @@ def updateDataFault(cls, feature,
     a_fbz_at_arr = [float(x) for x in act_fbz_at_arr_a]
     b_fbz_at_arr = [float(x) for x in act_fbz_at_arr_b]
     
-    a_values = atticivy.activity2aValue(a_fbz_at_arr, b_fbz_at_arr)
+    #a_values = atticivy.activity2aValue(a_fbz_at_arr, b_fbz_at_arr)
+    a_values = a_fbz_at_arr
     momentrates_fbz_at_arr = numpy.array(momentrate.momentrateFromActivity(
         a_values, b_fbz_at_arr, mmax)) / cls.catalog_time_span[0]
 
@@ -418,24 +421,24 @@ def updateTextActivityFault(cls, parameters):
     text = ''
     text += "<b>Activity</b><br/>"
     text += "<b>(RM)</b> a: %.3f b: %.3f A: %.3f (%s km buffer)<br/>" % (
-        atticivy.activity2aValue(parameters['activity_bz_a'], 
-            parameters['activity_bz_b']), 
-        parameters['activity_bz_b'], 
         parameters['activity_bz_a'],
+        parameters['activity_bz_b'], 
+        atticivy.aValue2activity(parameters['activity_bz_a'], 
+            parameters['activity_bz_b']), 
         int(momentrate.BUFFER_AROUND_FAULT_ZONE_KM))
         
     text += "<b>(RM)</b> a: %.3f b: %.3f A: %.3f (FBZ, ID %s)<br/>" % (
-        atticivy.activity2aValue(parameters['activity_fbz_a'], 
-            parameters['activity_fbz_b']), 
-        parameters['activity_fbz_b'], 
         parameters['activity_fbz_a'], 
+        parameters['activity_fbz_b'], 
+        atticivy.aValue2activity(parameters['activity_fbz_a'], 
+            parameters['activity_fbz_b']), 
         parameters['fbz_id'])
         
     text += "<b>(RM)</b> a: %.3f b: %.3f A: %.3f (FBZ, above M%s)<br/>" % (
-        atticivy.activity2aValue(parameters['activity_fbz_at_a'], 
-            parameters['activity_fbz_at_b']), 
+        parameters['activity_fbz_at_a'],  
         parameters['activity_fbz_at_b'],
-        parameters['activity_fbz_at_a'], 
+        atticivy.aValue2activity(parameters['activity_fbz_at_a'], 
+            parameters['activity_fbz_at_b']),
         parameters['activity_m_threshold'])
         
     text += \
@@ -578,8 +581,9 @@ def updateDataFaultBackgr(cls, feature,
     parameters['activity_a'] = activity_a
     parameters['activity_b'] = activity_b 
     
-    a_values = atticivy.activity2aValue(activity_a, activity_b, 
-        parameters['activity_mmin'])
+    #a_values = atticivy.activity2aValue(activity_a, activity_b, 
+        #parameters['activity_mmin'])
+    a_values = activity_a
     momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
         a_values, activity_b, mmax)) / cls.catalog_time_span[0]
     parameters['mr_activity'] = momentrates_arr.tolist()
@@ -621,13 +625,15 @@ def updateDataFaultBackgr(cls, feature,
     activity_above_a = [float(x) for x in activity_above_arr_a]
     activity_above_b = [float(x) for x in activity_above_arr_b]
     
-    a_values_below = atticivy.activity2aValue(activity_below_a, 
-        activity_below_b, parameters['activity_mmin'])
+    #a_values_below = atticivy.activity2aValue(activity_below_a, 
+        #activity_below_b, parameters['activity_mmin'])
+    a_values_below = activity_below_a
     momentrates_below_arr = numpy.array(momentrate.momentrateFromActivity(
         a_values_below, activity_below_b, mmax)) / cls.catalog_time_span[0]
             
-    a_values_above = atticivy.activity2aValue(activity_above_a, 
-        activity_above_b, parameters['activity_mmin'])
+    #a_values_above = atticivy.activity2aValue(activity_above_a, 
+        #activity_above_b, parameters['activity_mmin'])
+    a_values_above = activity_above_a
     momentrates_above_arr = numpy.array(momentrate.momentrateFromActivity(
         a_values_above, activity_above_b, mmax)) / cls.catalog_time_span[0]
             
@@ -725,24 +731,24 @@ def updateTextActivityFaultBackgr(cls, parameters):
     text = ''
     text += "<b>Activity</b><br/>"
     text += "<b>(RM)</b> all EQ: a: %.3f, b: %s, A: %s (%s EQ)<br/>" % (
-        atticivy.activity2aValue(central_A, central_b, 
-            parameters['activity_mmin']), 
-        central_b,
         central_A,
+        central_b,
+        atticivy.aValue2activity(central_A, central_b, 
+            parameters['activity_mmin']), 
         parameters['eq_count'])
     text += "<b>(RM)</b> below M%s: a: %.3f, b: %s, A: %s (%s EQ)<br/>" % (
         parameters['activity_m_threshold'],
-        atticivy.activity2aValue(central_A_below, central_b_below, 
-            parameters['activity_mmin']), 
-        central_b_below,
         central_A_below,
+        central_b_below,
+        atticivy.aValue2activity(central_A_below, central_b_below, 
+            parameters['activity_mmin']), 
         parameters['eq_count_below'])
     text += "<b>(RM)</b> above M%s: a: %.3f, b: %s, A: %s (%s EQ)<br/>" % (
         parameters['activity_m_threshold'],
-        atticivy.activity2aValue(central_A_above, central_b_above, 
-            parameters['activity_mmin']), 
-        central_b_above,
         central_A_above,
+        central_b_above,
+        atticivy.aValue2activity(central_A_above, central_b_above, 
+            parameters['activity_mmin']), 
         parameters['eq_count_above'])
         
     text += \

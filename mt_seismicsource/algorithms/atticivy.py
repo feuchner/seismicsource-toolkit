@@ -394,11 +394,11 @@ def activityFromAtticIvy(path):
 
             elif zoneStartMode is True:
                 # read zone ID
-                zone_data = []
+                weights = []
+                A_values = []
+                b_values = []
+                
                 zone_id = line.strip()
-                weight_data_string = ""
-                a_value_data_string = ""
-                b_value_data_string = ""
                 dataLengthMode = True
                 zoneStartMode = False
 
@@ -409,25 +409,35 @@ def activityFromAtticIvy(path):
                 dataLengthMode = False
 
             elif dataLineMode is True:
-                # don't use first value (weight) value from result file
-                # second value: a (activity), third value: b
-                (weight, a_value, b_value) = line.strip().split()
-                zone_data.append([float(a_value), float(b_value)])
-
-                # append new line to zone data string
-                weight_data_string = "%s %s" % (weight_data_string, weight)
-                a_value_data_string = "%s %s" % (a_value_data_string, a_value)
-                b_value_data_string = "%s %s" % (b_value_data_string, b_value)
+                # output lines in result matrix:
+                #  first value: weight, 
+                #  second value: A (activity), 
+                #  third value: b
+                
+                (weight, A_value, b_value) = line.strip().split()
+                
+                weights.append(float(weight))
+                A_values.append(float(A_value))
+                b_values.append(float(b_value))
                 data_line_idx += 1
 
                 # all lines read
                 if data_line_idx == data_line_count:
 
-                    # get proper (middle) line and append zone data string
-                    zone_values = zone_data[data_line_count / 2]
-                    zone_values.extend([weight_data_string.lstrip(), 
-                        a_value_data_string.lstrip(), 
-                        b_value_data_string.lstrip()])
+                    # A values are still in Roger Musson's scaling
+                    # re-scale them to M=0
+                    a_values = activity2aValue(A_values, b_values)
+                
+                    weight_str_arr = ["%.3f" % (x) for x in weights]
+                    a_value_str_arr = ["%.3f" % (x) for x in a_values]
+                    b_value_str_arr = ["%.3f" % (x) for x in b_values]
+                    
+                    # get best a and b value from central line of result matrix
+                    zone_values = [a_values[data_line_count / 2],
+                        b_values[data_line_count / 2],
+                        ' '.join(weight_str_arr), 
+                        ' '.join(a_value_str_arr), 
+                        ' '.join(b_value_str_arr)]
                     result_values[zone_id] = zone_values
                     
                     zoneStartMode = True
@@ -454,3 +464,21 @@ def activity2aValue(A_value, b_value, m_min=ATTICIVY_MMIN):
     a = numpy.log10(A) + b * m_min
     
     return a
+
+def aValue2activity(a_value, b_value, m_min=ATTICIVY_MMIN):
+    """Convert a parameter to A as returned from Roger Musson's code
+    (at M=3.5).
+    
+    a = log10(A) + b * Mmin
+    
+    Input:
+        A_value     list of AtticIvy A parameters
+        b_value     list of AtticIvy b parameters
+        m_min       Mmin for which AtticIvy activity has been computed
+    """
+    a = numpy.array(a_value)
+    b = numpy.array(b_value)
+    
+    A = numpy.power(10, a - b * m_min)
+    
+    return A
