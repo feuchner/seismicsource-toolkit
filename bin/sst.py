@@ -173,7 +173,7 @@ def setUp():
     print "loading auxiliary data"
     
     ## set auxiliary data files
-    metadata['data'] = mt_seismicsource.data.Datasets()
+    metadata['data'] = mt_seismicsource.data.Datasets(ui_mode=False)
     
     # EQ catalog
     (foo, metadata['catalog']) = eqcatalog.loadEQCatalogFromFile(CATALOG_PATH)

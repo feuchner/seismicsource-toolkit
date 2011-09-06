@@ -191,6 +191,7 @@ def computeActivityAtticIvy(polygons, mmax, mcdist, catalog,
         mmin, ui_mode=ui_mode)
 
     # do depth filtering on catalog
+    # don't exclude events with 'NaN' values
     cat_cut = QPCatalog.QPCatalog()
     cat_cut.merge(catalog)
     cat_cut.cut(mindepth=mindepth, maxdepth=maxdepth)

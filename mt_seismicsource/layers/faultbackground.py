@@ -38,7 +38,7 @@ from mt_seismicsource import utils
 from mt_seismicsource.layers import render
 
 FAULT_BACKGROUND_FILE_DIR = 'fault_background'
-FAULT_BACKGROUND_FILES = ('FSBGZ01_1_region.shp',)
+FAULT_BACKGROUND_FILES = ('FSBG1_3_region.shp',)
 
 TEMP_FILENAME = 'fault-background.shp'
 

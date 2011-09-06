@@ -24,6 +24,7 @@ Author: Fabian Euchner, fabian@sed.ethz.ch
 #    59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ############################################################################
 
+import numpy
 import os
 
 from PyQt4.QtCore import *
@@ -40,10 +41,8 @@ from mt_seismicsource import utils
 from mt_seismicsource.layers import render
 
 CATALOG_DIR = 'eq_catalog'
-CATALOG_FILES = (
-    'SHEEC-declustered-2011-05-30.zmap.dat.gz', 
-    'SHEEC-declustered-2011-05-03.zmap.dat.gz', 
-    'cenec-zmap.dat')
+CATALOG_FILES = ('SHEEC-declustered-2011-05-30.zmap.dat.gz',)
+#CATALOG_FILES = ('SHEEC_ver20110808.csv.gz',)
 
 CUT_DEPTH_MIN = 0.0
 CUT_DEPTH_MAX = 999.0
@@ -126,7 +125,7 @@ def loadEQCatalogFromFile(catalog_path):
 
         try:
             depth = curr_ori.depth.value
-        except Exception:
+        except AttributeError:
             depth = numpy.nan
 
         f = QgsFeature()

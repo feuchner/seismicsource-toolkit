@@ -25,30 +25,34 @@ Author: Fabian Euchner, fabian@sed.ethz.ch
 ############################################################################
 
 import csv
+import numpy
 import os
+
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
 
 from mt_seismicsource import layers
 from mt_seismicsource.algorithms import strain
 
 MMAX_FILE_DIR = 'mmax'
-MMAX_FILE = 'Mmax_20110520.csv'
+MMAX_FILE = 'MmaxUpdate_20110826.csv'
 MMAX_CSV_DELIMITER = ','
 MMAX_ID_IDX = 0
 MMAX_NAME_IDX = 1
-MMAX_MMAX_IDX = 10
+MMAX_MMAX_IDX = 7
 
 class Datasets(object):
     """Additional (non-layer) datasets."""
 
-    def __init__(self):
+    def __init__(self, ui_mode=True):
 
         self.strain_rate_barba = strain.loadStrainRateDataBarba()
         self.strain_rate_bird = strain.loadStrainRateDataBird()
         self.deformation_regimes_bird = strain.loadDeformationRegimesBird()
         
-        self.mmax = self.loadMmaxData()
+        self.mmax = self.loadMmaxData(ui_mode=ui_mode)
         
-    def loadMmaxData(self):
+    def loadMmaxData(self, ui_mode=True):
         
         mmax = {}
         
@@ -61,11 +65,19 @@ class Datasets(object):
                 # skip first line with field names
                 if line_idx == 0:
                     continue
-                
+
                 zone_id = int(line[MMAX_ID_IDX].strip())
                 zone_name = line[MMAX_NAME_IDX].strip()
-                zone_mmax = float(line[MMAX_MMAX_IDX].strip())
-
+                
+                try:
+                    zone_mmax = float(line[MMAX_MMAX_IDX].strip())
+                except ValueError:
+                    # zone_mmax = None
+                    zone_mmax = numpy.nan
+                    if ui_mode is False:
+                        error_msg = "Datasets: malformed mmax: %s" % line
+                        print error_msg
+                    
                 mmax[zone_id] = {'name': zone_name, 'mmax': zone_mmax}
                 
         return mmax
