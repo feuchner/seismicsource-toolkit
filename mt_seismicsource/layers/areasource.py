@@ -39,8 +39,7 @@ from mt_seismicsource import utils
 from mt_seismicsource.layers import render
 
 ZONE_FILE_DIR = 'area_sources'
-ZONE_FILES = ('ASZ.shp', 'share-v2.01-150411.shp', 'share-v2.0-301110.shp',
-    'GEM1_europe_source_model.shp')
+ZONE_FILES = ('ASZ.shp', 'share-v2.01-150411.shp')
 
 TEMP_FILENAME = 'area-source-zones.shp'
 

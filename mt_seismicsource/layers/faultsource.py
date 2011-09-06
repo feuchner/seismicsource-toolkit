@@ -38,7 +38,7 @@ from mt_seismicsource import utils
 from mt_seismicsource.layers import render
 
 FAULT_FILE_DIR = 'fault_sources'
-FAULT_FILES = ('faults-DISS-3.2-2011-04-19.shp',)
+FAULT_FILES = ('CSSources_region.shp',)
 
 TEMP_FILENAME = 'fault-sources.shp'
 
