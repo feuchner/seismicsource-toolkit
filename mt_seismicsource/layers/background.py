@@ -65,7 +65,7 @@ def loadBackgroundZoneLayer(cls):
 
     save_path = os.path.join(layers.DATA_DIR, BACKGROUND_DIR, TEMP_FILENAME)
     layer = loadBackgroundZoneFromFile(background_mmax_path, 
-        background_completeness_path, save_path, layer2file=True)
+        background_completeness_path, save_path, layer2file=False)
 
     # update layer's extent when new features have been added
     # because change of extent in provider is not 

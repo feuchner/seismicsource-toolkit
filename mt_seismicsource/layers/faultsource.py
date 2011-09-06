@@ -55,7 +55,7 @@ def loadFaultSourceLayer(cls):
 
     save_path = os.path.join(layers.DATA_DIR, FAULT_FILE_DIR, TEMP_FILENAME)
     layer = loadFaultSourceFromSHP(fault_source_path, save_path, 
-        layer2file=True)
+        layer2file=False)
     
     # register layer in QGis
     QgsMapLayerRegistry.instance().addMapLayer(layer)

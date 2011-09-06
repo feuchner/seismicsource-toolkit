@@ -56,7 +56,7 @@ def loadFaultBackgroundLayer(cls):
     save_path = os.path.join(layers.DATA_DIR, FAULT_BACKGROUND_FILE_DIR, 
         TEMP_FILENAME)
     layer = loadFaultBackgroundFromSHP(fault_background_path, save_path,
-        layer2file=True)
+        layer2file=False)
 
     # register layer in QGis
     QgsMapLayerRegistry.instance().addMapLayer(layer)

@@ -63,7 +63,7 @@ def loadAreaSourceLayer(cls):
 
     save_path = os.path.join(layers.DATA_DIR, ZONE_FILE_DIR, TEMP_FILENAME)
     layer = loadAreaSourceFromSHP(area_source_path, cls.data.mmax, 
-        cls.background_zone_layer, save_path, layer2file=True)
+        cls.background_zone_layer, save_path, layer2file=False)
     
     # register layer in QGis
     QgsMapLayerRegistry.instance().addMapLayer(layer)
