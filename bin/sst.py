@@ -35,11 +35,11 @@ import sys
 from PyQt4.QtCore import *
 from qgis.core import *
 
-import mt_seismicsource.data
-import mt_seismicsource.layers
-import mt_seismicsource.utils
+from mt_seismicsource import data
+from mt_seismicsource import engine
+from mt_seismicsource import layers
+from mt_seismicsource import utils
 
-from mt_seismicsource.algorithms import atticivy
 from mt_seismicsource.algorithms import recurrence
 
 from mt_seismicsource.layers import areasource
@@ -66,16 +66,16 @@ metadata = {}
 
 MODE_IDENTIFIERS = ('ASZ', 'FSZ')
 
-CATALOG_PATH = os.path.join(mt_seismicsource.layers.DATA_DIR, 
-    eqcatalog.CATALOG_DIR, eqcatalog.CATALOG_FILES[0])
+CATALOG_PATH = os.path.join(layers.DATA_DIR, eqcatalog.CATALOG_DIR, 
+    eqcatalog.CATALOG_FILES[0])
 
-FAULTBACKGROUND_DEFAULT_PATH = os.path.join(mt_seismicsource.layers.DATA_DIR, 
+FAULTBACKGROUND_DEFAULT_PATH = os.path.join(layers.DATA_DIR, 
     faultbackground.FAULT_BACKGROUND_FILE_DIR, 
     faultbackground.FAULT_BACKGROUND_FILES[0])
 
-BACKGROUND_MMAX_PATH = os.path.join(mt_seismicsource.layers.DATA_DIR, 
+BACKGROUND_MMAX_PATH = os.path.join(layers.DATA_DIR, 
     background.BACKGROUND_DIR, background.BACKGROUND_ZONES_MMAX_FILE)
-BACKGROUND_COMPLETENESS_PATH = os.path.join(mt_seismicsource.layers.DATA_DIR, 
+BACKGROUND_COMPLETENESS_PATH = os.path.join(layers.DATA_DIR, 
     background.BACKGROUND_DIR, background.BACKGROUND_ZONES_COMPLETENESS_FILE)
 
 SHP_EXTENSION_CHAR_CNT = 3
@@ -173,7 +173,7 @@ def setUp():
     print "loading auxiliary data"
     
     ## set auxiliary data files
-    metadata['data'] = mt_seismicsource.data.Datasets(ui_mode=False)
+    metadata['data'] = data.Datasets(ui_mode=False)
     
     # EQ catalog
     (foo, metadata['catalog']) = eqcatalog.loadEQCatalogFromFile(CATALOG_PATH)
@@ -203,7 +203,7 @@ def run():
     pr = layer.dataProvider()
     pr.select()
     
-    mt_seismicsource.utils.writeFeaturesToShapefile(layer, 
+    utils.writeFeaturesToShapefile(layer, 
         metadata['outfile_name'])
 
 def processASZ():
@@ -227,7 +227,7 @@ def processASZ():
     metadata['asz_layer'].setSelectedFeatures(all_features)
     
     print "running AtticIvy on ASZ layer"
-    atticivy.assignActivityAtticIvy(metadata['asz_layer'], 
+    engine.computeASZ(metadata['asz_layer'], 
         metadata['catalog'], ui_mode=False)
 
     return metadata['asz_layer']

@@ -38,27 +38,27 @@ import QPCatalog
 import qpfmd
 import qpplot
 
-from algorithms import atticivy
-from algorithms import recurrence
+from mt_seismicsource import data
+from mt_seismicsource import engine
+from mt_seismicsource import features
 
-import data
-import features
+from mt_seismicsource import layers
+from mt_seismicsource import plots
+from mt_seismicsource import utils
 
-from engine import fmd
-from engine import momentbalancing
+from mt_seismicsource.algorithms import recurrence
 
-import layers
-from layers import areasource
-from layers import background
-from layers import eqcatalog
-from layers import faultsource
-from layers import faultbackground
-from layers import mapdata
-from layers import render
-from layers import tectonic
+from mt_seismicsource.engine import fmd
+from mt_seismicsource.engine import momentbalancing
 
-import plots
-import utils
+from mt_seismicsource.layers import areasource
+from mt_seismicsource.layers import background
+from mt_seismicsource.layers import eqcatalog
+from mt_seismicsource.layers import faultsource
+from mt_seismicsource.layers import faultbackground
+from mt_seismicsource.layers import mapdata
+from mt_seismicsource.layers import render
+from mt_seismicsource.layers import tectonic
 
 from ui_seismicsource import Ui_SeismicSource
 
@@ -254,19 +254,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
     def showASZ(self):
         """Show parameter values from ASZ layer in panel."""
-        pass
-    
-    def computeASZ(self):
-        """Update values in moment rate per area table, if other 
-        area zone has  been selected, or zone attributes have been changed."""
-
-        if not utils.check_only_one_feature_selected(self.area_source_layer):
-            return
-
-        # TODO(fab): check if attribute values have been changed
-        # so far, we always recompute
         
-        # update zone ID display
+         # update zone ID display
         selected_feature = self.area_source_layer.selectedFeatures()[0]
         
         (feature_id, feature_title, feature_name) = utils.getFeatureAttributes(
@@ -276,17 +265,26 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.labelMomentRateAreaID.setText("ID: %s Title: %s Name: %s" % (
             feature_id.toInt()[0], feature_title.toString(), 
             feature_name.toString()))
-        
-        self.computeAtticIvy()
-        
-        self.area_source_layer.commitChanges()
-        selected_feature = self.area_source_layer.selectedFeatures()[0]
-
+            
         self.feature_data_area_source['parameters'] = \
             momentbalancing.updateDataArea(self, selected_feature)
         momentbalancing.updateDisplaysArea(self, 
             self.feature_data_area_source['parameters'])
+    
+    def computeASZ(self):
+        """Compute attributes for selected feature in ASZ layer. Only one
+        feature can be selected."""
 
+        if not utils.check_only_one_feature_selected(self.area_source_layer):
+            return
+
+        (mindepth, maxdepth) = eqcatalog.getMinMaxDepth(self)
+        
+        engine.computeASZ(self.area_source_layer, self.catalog, mindepth, 
+            maxdepth, ui_mode=True)
+            
+        self.showASZ()
+            
     def showFBZ(self):
         """Show parameter values from FBZ layer in panel."""
         pass
@@ -389,17 +387,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
                 momentbalancing.updatePlotMomentRateFault(self,
                     self.feature_data_fault_source['parameters'])
     
-    def computeAtticIvy(self):
-        """Compute activity with AtticIvy code."""
 
-        if not utils.check_at_least_one_feature_selected(
-            self.area_source_layer):
-            return
-
-        (mindepth, maxdepth) = eqcatalog.getMinMaxDepth(self)
-        
-        atticivy.assignActivityAtticIvy(self.area_source_layer, self.catalog, 
-            mmin=atticivy.ATTICIVY_MMIN, mindepth=mindepth, maxdepth=maxdepth)
 
     def computeRecurrence(self):
         """Compute recurrence with Bungum code."""
@@ -412,7 +400,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             
         recurrence.assignRecurrence(self.fault_source_layer, 
             self.fault_background_layer, self.background_zone_layer, 
-            self.catalog, self.catalog_time_span[0], mmin=atticivy.ATTICIVY_MMIN,
+            self.catalog, self.catalog_time_span[0],
             m_threshold=self.spinboxFBZMThres.value(), mindepth=mindepth,
             maxdepth=maxdepth)
 
