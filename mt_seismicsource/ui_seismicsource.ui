@@ -738,17 +738,17 @@
       <string>Area Source Zone (ASZ)</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="btnDataAreaCompute">
+    <widget class="QPushButton" name="btnDataAreaShow">
      <property name="geometry">
       <rect>
-       <x>420</x>
+       <x>474</x>
        <y>20</y>
-       <width>115</width>
+       <width>61</width>
        <height>30</height>
       </rect>
      </property>
      <property name="text">
-      <string>Compute</string>
+      <string>Show</string>
      </property>
     </widget>
     <widget class="QTextEdit" name="textActivityArea">
@@ -826,6 +826,19 @@
       <string>Plot Moment Rate</string>
      </property>
     </widget>
+    <widget class="QPushButton" name="btnDataAreaCompute">
+     <property name="geometry">
+      <rect>
+       <x>350</x>
+       <y>20</y>
+       <width>115</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Compute</string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QWidget" name="widgetMomentRateFault" native="true">
@@ -855,17 +868,17 @@
     <property name="title">
      <string/>
     </property>
-    <widget class="QPushButton" name="btnDataFaultCompute">
+    <widget class="QPushButton" name="btnDataFaultShow">
      <property name="geometry">
       <rect>
-       <x>420</x>
+       <x>474</x>
        <y>20</y>
-       <width>115</width>
+       <width>61</width>
        <height>30</height>
       </rect>
      </property>
      <property name="text">
-      <string>Compute</string>
+      <string>Show</string>
      </property>
     </widget>
     <widget class="QTextEdit" name="textActivityFault">
@@ -962,6 +975,19 @@
       <string>Plot Moment Rate</string>
      </property>
     </widget>
+    <widget class="QPushButton" name="btnDataFaultCompute">
+     <property name="geometry">
+      <rect>
+       <x>350</x>
+       <y>20</y>
+       <width>115</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Compute</string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QWidget" name="widgetMomentRateFaultBackgr" native="true">
@@ -991,17 +1017,17 @@
     <property name="title">
      <string/>
     </property>
-    <widget class="QPushButton" name="btnDataFaultBackgrCompute">
+    <widget class="QPushButton" name="btnDataFaultBackgrShow">
      <property name="geometry">
       <rect>
-       <x>420</x>
+       <x>474</x>
        <y>20</y>
-       <width>115</width>
+       <width>61</width>
        <height>30</height>
       </rect>
      </property>
      <property name="text">
-      <string>Compute</string>
+      <string>Show</string>
      </property>
     </widget>
     <widget class="QTextEdit" name="textActivityFaultBackgr">
@@ -1102,6 +1128,19 @@
      </property>
      <property name="text">
       <string>Plot Moment Rate</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btnDataFaultBackgrCompute">
+     <property name="geometry">
+      <rect>
+       <x>350</x>
+       <y>20</y>
+       <width>115</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Compute</string>
      </property>
     </widget>
    </widget>

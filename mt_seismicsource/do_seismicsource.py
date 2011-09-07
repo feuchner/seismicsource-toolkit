@@ -93,8 +93,12 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         # Button: compute parameters for area source zones
         QObject.connect(self.btnDataAreaCompute, SIGNAL("clicked()"), 
-            self.updateDataArea)
+            self.computeASZ)
 
+        # Button: show parameters for area source zones
+        QObject.connect(self.btnDataAreaShow, SIGNAL("clicked()"), 
+            self.showASZ)
+            
         # Button: FMD plot for area source zones
         QObject.connect(self.btnDataAreaDisplayFMD, SIGNAL("clicked()"), 
             self.displayDataAreaFMD)
@@ -105,20 +109,28 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         
         # Button: compute parameters for fault background zones
         QObject.connect(self.btnDataFaultBackgrCompute, 
-            SIGNAL("clicked()"), self.updateDataFaultBackgr)
+            SIGNAL("clicked()"), self.computeFBZ)
+            
+        # Button: show parameters for fault background zones
+        QObject.connect(self.btnDataFaultBackgrShow, 
+            SIGNAL("clicked()"), self.showFBZ)
             
         # Button: FMD plot for fault background zones
         QObject.connect(self.btnDataFaultBackgrDisplayFMD, 
             SIGNAL("clicked()"), self.displayDataFaultBackgrFMD)
         
         # Button: Moment rate plot for background zones
-        QObject.connect(self.btnDataFaultBackgrDisplayMR, SIGNAL("clicked()"), 
+        QObject.connect(self.btnDataFaultBackgrDisplayMR, SIGNAL("clicked()"),
             self.displayDataFaultBackgrMomentRates)
             
         # Button: compute parameters for fault zones
         QObject.connect(self.btnDataFaultCompute, SIGNAL("clicked()"), 
-            self.updateDataFault)
+            self.computeFSZ)
 
+        # Button: show parameters for fault zones
+        QObject.connect(self.btnDataFaultShow, SIGNAL("clicked()"), 
+            self.showFSZ)
+            
         # Button: recurrence FMD plot for fault zones
         QObject.connect(self.btnDataFaultDisplayRecurrence, 
             SIGNAL("clicked()"), self.displayRecurrence)
@@ -232,14 +244,19 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.progressBarLoadData.setValue(40)
         self.fault_source_layer = faultsource.loadFaultSourceLayer(self)
         self.progressBarLoadData.setValue(50)
-        self.fault_background_layer = faultbackground.loadFaultBackgroundLayer(self)
+        self.fault_background_layer = \
+            faultbackground.loadFaultBackgroundLayer(self)
         self.progressBarLoadData.setValue(60)
         self.catalog_layer = eqcatalog.loadEQCatalogLayer(self)
         self.progressBarLoadData.setValue(70)
         self.tectonic_layer = tectonic.loadTectonicRegimeLayer(self)
         self.progressBarLoadData.setValue(80)
 
-    def updateDataArea(self):
+    def showASZ(self):
+        """Show parameter values from ASZ layer in panel."""
+        pass
+    
+    def computeASZ(self):
         """Update values in moment rate per area table, if other 
         area zone has  been selected, or zone attributes have been changed."""
 
@@ -270,7 +287,11 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         momentbalancing.updateDisplaysArea(self, 
             self.feature_data_area_source['parameters'])
 
-    def updateDataFaultBackgr(self):
+    def showFBZ(self):
+        """Show parameter values from FBZ layer in panel."""
+        pass
+    
+    def computeFBZ(self):
         """Update values in moment rate per fault background zone table."""
 
         if not utils.check_only_one_feature_selected(
@@ -295,7 +316,11 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         momentbalancing.updateDisplaysFaultBackgr(self, 
             self.feature_data_fault_background['parameters'])
         
-    def updateDataFault(self):
+    def showFSZ(self):
+        """Show parameter values from FSZ layer in panel."""
+        pass
+    
+    def computeFSZ(self):
         """Update values in moment rate per fault table."""
 
         if not utils.check_only_one_feature_selected(self.fault_source_layer):
