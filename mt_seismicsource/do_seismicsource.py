@@ -39,6 +39,7 @@ import qpfmd
 import qpplot
 
 from mt_seismicsource import data
+from mt_seismicsource import display
 from mt_seismicsource import engine
 from mt_seismicsource import features
 
@@ -268,7 +269,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             
         self.feature_data_area_source['parameters'] = \
             momentbalancing.updateDataArea(self, selected_feature)
-        momentbalancing.updateDisplaysArea(self, 
+        display.updateDisplaysArea(self, 
             self.feature_data_area_source['parameters'])
     
     def computeASZ(self):
@@ -301,7 +302,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         self.feature_data_fault_source['parameters'] = \
             momentbalancing.updateDataFault(self, selected_feature,
             m_threshold=self.spinboxFBZMThres.value())
-        momentbalancing.updateDisplaysFault(self, 
+        display.updateDisplaysFault(self, 
             self.feature_data_fault_source['parameters'])
     
     def computeFSZ(self):
@@ -339,7 +340,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             momentbalancing.updateDataFaultBackgr(self, 
             selected_feature, m_threshold=self.spinboxFBZMThres.value())
             
-        momentbalancing.updateDisplaysFaultBackgr(self, 
+        display.updateDisplaysFaultBackgr(self, 
             self.feature_data_fault_background['parameters'])
     
     def computeFBZ(self):
@@ -365,7 +366,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         if 'parameters' in self.feature_data_area_source:
             self.feature_data_area_source['mr_fig'] = \
-                momentbalancing.updatePlotMomentRateArea(self,
+                display.updatePlotMomentRateArea(self,
                     self.feature_data_area_source['parameters'])
         
     def displayDataFaultBackgrFMD(self):
@@ -390,7 +391,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
     def displayDataFaultMomentRates(self):
         if 'parameters' in self.feature_data_fault_source:
             self.feature_data_fault_source['mr_fig'] = \
-                momentbalancing.updatePlotMomentRateFault(self,
+                display.updatePlotMomentRateFault(self,
                     self.feature_data_fault_source['parameters'])
 
     def browseAreaZoneFiles(self):
