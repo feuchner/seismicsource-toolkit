@@ -32,6 +32,7 @@ from qgis.core import *
 from mt_seismicsource import utils
 
 from mt_seismicsource.algorithms import atticivy
+from mt_seismicsource.algorithms import recurrence
 from mt_seismicsource.layers import eqcatalog
 
 def computeASZ(layer, catalog, mindepth=eqcatalog.CUT_DEPTH_MIN,
@@ -62,3 +63,42 @@ def updateASZMomentRate(ui_mode=True):
     """Update seismic moment rate attributes on ASZ layer."""
     pass
 
+def computeFSZ(layer_fault, layer_fault_background=None, 
+    layer_background=None, catalog=None, catalog_time_span=None, b_value=None,
+    mmin=atticivy.ATTICIVY_MMIN, 
+    m_threshold=recurrence.FAULT_BACKGROUND_MAG_THRESHOLD,
+    mindepth=eqcatalog.CUT_DEPTH_MIN, maxdepth=eqcatalog.CUT_DEPTH_MAX,
+    ui_mode=True):
+    """Compute attributes on selected features of ASZ layer."""
+    
+    # check that at least one feature is selected
+    if not utils.check_at_least_one_feature_selected(layer_fault):
+        return
+
+    updateFSZRecurrence(layer_fault, layer_fault_background, layer_background,
+        catalog, catalog_time_span, b_value, mmin, m_threshold, mindepth, 
+        maxdepth, ui_mode)
+    updateFSZMaxLikelihoodAB()
+    updateFSZMomentRate()
+
+def updateFSZRecurrence(layer_fault, layer_fault_background=None, 
+    layer_background=None, catalog=None, catalog_time_span=None, b_value=None,
+    mmin=atticivy.ATTICIVY_MMIN, 
+    m_threshold=recurrence.FAULT_BACKGROUND_MAG_THRESHOLD,
+    mindepth=eqcatalog.CUT_DEPTH_MIN, maxdepth=eqcatalog.CUT_DEPTH_MAX,
+    ui_mode=True):
+    """Update AtticIvy attributes on FSZ layer."""
+
+    recurrence.assignRecurrence(layer_fault, layer_fault_background, 
+        layer_background, catalog, catalog_time_span, 
+        m_threshold=m_threshold, mindepth=mindepth, maxdepth=maxdepth, 
+        ui_mode=ui_mode)
+    layer_fault.commitChanges()
+
+def updateFSZMaxLikelihoodAB(ui_mode=True):
+    """Update max likelihood a/b value attributes on FSZ layer."""
+    pass
+
+def updateFSZMomentRate(ui_mode=True):
+    """Update seismic moment rate attributes on FSZ layer."""
+    pass

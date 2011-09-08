@@ -233,7 +233,7 @@ def computeActivityAtticIvy(polygons, mmax, mcdist, catalog,
         activity_list.append(zone_result)
 
     # remove temp file directory
-    shutil.rmtree(temp_dir)
+    #shutil.rmtree(temp_dir)
 
     return activity_list
 

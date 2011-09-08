@@ -285,17 +285,45 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             
         self.showASZ()
             
-    def showFBZ(self):
-        """Show parameter values from FBZ layer in panel."""
-        pass
-    
-    def computeFBZ(self):
-        """Update values in moment rate per fault background zone table."""
+    def showFSZ(self):
+        """Show parameter values from FSZ layer in panel."""
+        
+        # update zone ID display
+        selected_feature = self.fault_source_layer.selectedFeatures()[0]
+        
+        (feature_id, feature_name) = utils.getFeatureAttributes(
+            self.fault_source_layer, selected_feature, 
+            features.FAULT_SOURCE_ATTRIBUTES_ID)
+        
+        self.labelMomentRateFaultID.setText("ID: %s Name: %s" % (
+            feature_id.toString(), feature_name.toString()))
 
-        if not utils.check_only_one_feature_selected(
-            self.fault_background_layer):
+        self.feature_data_fault_source['parameters'] = \
+            momentbalancing.updateDataFault(self, selected_feature,
+            m_threshold=self.spinboxFBZMThres.value())
+        momentbalancing.updateDisplaysFault(self, 
+            self.feature_data_fault_source['parameters'])
+    
+    def computeFSZ(self):
+        """Compute attributes for selected feature in FSZ layer. Only one
+        feature can be selected."""
+
+        if not utils.check_only_one_feature_selected(self.fault_source_layer):
             return
 
+        (mindepth, maxdepth) = eqcatalog.getMinMaxDepth(self)
+        
+        engine.computeFSZ(self.fault_source_layer, 
+            self.fault_background_layer, self.background_zone_layer, 
+            self.catalog, self.catalog_time_span[0],
+            m_threshold=self.spinboxFBZMThres.value(), mindepth=mindepth,
+            maxdepth=maxdepth, ui_mode=True)
+            
+        self.showFSZ()
+
+    def showFBZ(self):
+        """Show parameter values from FBZ layer in panel."""
+        
         # update zone ID display
         selected_feature = \
             self.fault_background_layer.selectedFeatures()[0]
@@ -313,37 +341,15 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             
         momentbalancing.updateDisplaysFaultBackgr(self, 
             self.feature_data_fault_background['parameters'])
-        
-    def showFSZ(self):
-        """Show parameter values from FSZ layer in panel."""
-        pass
     
-    def computeFSZ(self):
-        """Update values in moment rate per fault table."""
+    def computeFBZ(self):
+        """Update values in moment rate per fault background zone table."""
 
-        if not utils.check_only_one_feature_selected(self.fault_source_layer):
+        if not utils.check_only_one_feature_selected(
+            self.fault_background_layer):
             return
 
-        # update zone ID display
-        selected_feature = self.fault_source_layer.selectedFeatures()[0]
-        
-        (feature_id, feature_name) = utils.getFeatureAttributes(
-            self.fault_source_layer, selected_feature, 
-            features.FAULT_SOURCE_ATTRIBUTES_ID)
-        
-        self.labelMomentRateFaultID.setText("ID: %s Name: %s" % (
-            feature_id.toString(), feature_name.toString()))
-            
-        self.computeRecurrence()
-        self.fault_source_layer.commitChanges()
-
-        selected_feature = self.fault_source_layer.selectedFeatures()[0]
-
-        self.feature_data_fault_source['parameters'] = \
-            momentbalancing.updateDataFault(self, selected_feature,
-            m_threshold=self.spinboxFBZMThres.value())
-        momentbalancing.updateDisplaysFault(self, 
-            self.feature_data_fault_source['parameters'])
+        self.showFBZ()
 
     def displayDataAreaFMD(self):
         """Update FMD display for one selected area zone from
@@ -386,23 +392,6 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             self.feature_data_fault_source['mr_fig'] = \
                 momentbalancing.updatePlotMomentRateFault(self,
                     self.feature_data_fault_source['parameters'])
-    
-
-
-    def computeRecurrence(self):
-        """Compute recurrence with Bungum code."""
-
-        if not utils.check_at_least_one_feature_selected(
-            self.fault_source_layer):
-            return
-
-        (mindepth, maxdepth) = eqcatalog.getMinMaxDepth(self)
-            
-        recurrence.assignRecurrence(self.fault_source_layer, 
-            self.fault_background_layer, self.background_zone_layer, 
-            self.catalog, self.catalog_time_span[0],
-            m_threshold=self.spinboxFBZMThres.value(), mindepth=mindepth,
-            maxdepth=maxdepth)
 
     def browseAreaZoneFiles(self):
         """Show Open File dialog for Area Source Zone files."""
