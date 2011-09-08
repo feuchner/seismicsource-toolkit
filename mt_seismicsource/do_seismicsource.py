@@ -38,6 +38,7 @@ import QPCatalog
 import qpfmd
 import qpplot
 
+from mt_seismicsource import attributes
 from mt_seismicsource import data
 from mt_seismicsource import display
 from mt_seismicsource import engine
@@ -259,18 +260,16 @@ class SeismicSource(QDialog, Ui_SeismicSource):
          # update zone ID display
         selected_feature = self.area_source_layer.selectedFeatures()[0]
         
-        (feature_id, feature_title, feature_name) = utils.getFeatureAttributes(
-            self.area_source_layer, selected_feature, 
-            features.AREA_SOURCE_ATTRIBUTES_ID)
-        
-        self.labelMomentRateAreaID.setText("ID: %s Title: %s Name: %s" % (
-            feature_id.toInt()[0], feature_title.toString(), 
-            feature_name.toString()))
+        #self.feature_data_area_source['parameters'] = \
+            #attributes.getAttributesFromASZ(self, selected_feature)
             
+        # ---------------------------------------------------------------------
+
         self.feature_data_area_source['parameters'] = \
             momentbalancing.updateDataArea(self, selected_feature)
+        
         display.updateDisplaysArea(self, 
-            self.feature_data_area_source['parameters'])
+            self.feature_data_area_source['parameters'], selected_feature)
     
     def computeASZ(self):
         """Compute attributes for selected feature in ASZ layer. Only one
@@ -292,18 +291,12 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         # update zone ID display
         selected_feature = self.fault_source_layer.selectedFeatures()[0]
         
-        (feature_id, feature_name) = utils.getFeatureAttributes(
-            self.fault_source_layer, selected_feature, 
-            features.FAULT_SOURCE_ATTRIBUTES_ID)
-        
-        self.labelMomentRateFaultID.setText("ID: %s Name: %s" % (
-            feature_id.toString(), feature_name.toString()))
-
         self.feature_data_fault_source['parameters'] = \
             momentbalancing.updateDataFault(self, selected_feature,
             m_threshold=self.spinboxFBZMThres.value())
+        
         display.updateDisplaysFault(self, 
-            self.feature_data_fault_source['parameters'])
+            self.feature_data_fault_source['parameters'], selected_feature)
     
     def computeFSZ(self):
         """Compute attributes for selected feature in FSZ layer. Only one
@@ -328,28 +321,28 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         # update zone ID display
         selected_feature = \
             self.fault_background_layer.selectedFeatures()[0]
-        
-        (feature_id, feature_name) = utils.getFeatureAttributes(
-            self.fault_background_layer, selected_feature, 
-            features.FAULT_BACKGROUND_ATTRIBUTES_ID)
-        
-        self.labelMomentRateFaultBackgrID.setText("ID: %s Name: %s" % (
-            int(feature_id.toDouble()[0]), feature_name.toString()))
 
         self.feature_data_fault_background['parameters'] = \
             momentbalancing.updateDataFaultBackgr(self, 
             selected_feature, m_threshold=self.spinboxFBZMThres.value())
             
         display.updateDisplaysFaultBackgr(self, 
-            self.feature_data_fault_background['parameters'])
+            self.feature_data_fault_background['parameters'], 
+            selected_feature)
     
     def computeFBZ(self):
-        """Update values in moment rate per fault background zone table."""
+        """Compute attributes for selected feature in FBZ layer. Only one
+        feature can be selected."""
 
         if not utils.check_only_one_feature_selected(
             self.fault_background_layer):
             return
 
+        (mindepth, maxdepth) = eqcatalog.getMinMaxDepth(self)
+        
+        engine.computeFBZ(self.fault_background_layer, self.catalog, mindepth,
+            maxdepth, ui_mode=True)
+            
         self.showFBZ()
 
     def displayDataAreaFMD(self):

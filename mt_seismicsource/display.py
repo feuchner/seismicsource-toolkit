@@ -24,18 +24,28 @@ Author: Fabian Euchner, fabian@sed.ethz.ch
 #    59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ############################################################################
 
-
+from mt_seismicsource import features
 from mt_seismicsource import plots
 from mt_seismicsource import utils
 
 from mt_seismicsource.algorithms import atticivy
 from mt_seismicsource.algorithms import momentrate
 
-def updateDisplaysArea(cls, parameters):
+def updateDisplaysArea(cls, parameters, feature):
     """Update UI with computed values for selected area zone."""
+    updateLabelZoneIDArea(cls, feature)
     updateTextActivityArea(cls, parameters)
     updateTextMomentRateArea(cls, parameters)
 
+def updateLabelZoneIDArea(cls, feature):
+    """Update UI with ID and name of selected ASZ."""
+    (feature_id, feature_title, feature_name) = utils.getFeatureAttributes(
+        cls.area_source_layer, feature, features.AREA_SOURCE_ATTRIBUTES_ID)
+    
+    cls.labelMomentRateAreaID.setText("ID: %s Title: %s Name: %s" % (
+        feature_id.toInt()[0], feature_title.toString(), 
+        feature_name.toString()))
+        
 def updateTextActivityArea(cls, parameters):
     
     central_A = utils.centralValueOfList(parameters['activity_a'])
@@ -91,14 +101,23 @@ def updatePlotMomentRateArea(cls, parameters):
 
 # ----------------------------------------------------------------------------
 
-def updateDisplaysFault(cls, parameters):
+def updateDisplaysFault(cls, parameters, feature):
     """Update UI with computed values for selected fault zone."""
     
     if parameters is None:
         return
     else:
+        updateLabelZoneIDFault(cls, feature)
         updateTextActivityFault(cls, parameters)
         updateTextMomentRateFault(cls, parameters)
+
+def updateLabelZoneIDFault(cls, feature):
+    """Update UI with ID and name of selected FSZ."""
+    (feature_id, feature_name) = utils.getFeatureAttributes(
+        cls.fault_source_layer, feature, features.FAULT_SOURCE_ATTRIBUTES_ID)
+    
+    cls.labelMomentRateFaultID.setText("ID: %s Name: %s" % (
+        feature_id.toString(), feature_name.toString()))
 
 def updateTextActivityFault(cls, parameters):
 
@@ -184,11 +203,21 @@ def updatePlotMomentRateFault(cls, parameters):
     return figure
 
 # ----------------------------------------------------------------------------
-    
-def updateDisplaysFaultBackgr(cls, parameters):
+
+def updateDisplaysFaultBackgr(cls, parameters, feature):
     """Update UI with computed values for selected fault background zone."""
+    updateLabelZoneIDFaultBackgr(cls, feature)
     updateTextActivityFaultBackgr(cls, parameters)
     updateTextMomentRateFaultBackgr(cls, parameters)
+
+def updateLabelZoneIDFaultBackgr(cls, feature):
+    """Update UI with ID and name of selected FBZ."""
+    (feature_id, feature_name) = utils.getFeatureAttributes(
+        cls.fault_background_layer, feature, 
+        features.FAULT_BACKGROUND_ATTRIBUTES_ID)
+    
+    cls.labelMomentRateFaultBackgrID.setText("ID: %s Name: %s" % (
+        int(feature_id.toDouble()[0]), feature_name.toString()))
 
 def updateTextActivityFaultBackgr(cls, parameters):
     

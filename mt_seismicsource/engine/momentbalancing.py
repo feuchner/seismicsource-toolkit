@@ -33,6 +33,7 @@ from qgis.core import *
 
 import QPCatalog
 
+from mt_seismicsource import attributes
 from mt_seismicsource import features
 from mt_seismicsource import utils
 
@@ -245,7 +246,8 @@ def updateDataFault(cls, feature,
     (fbz, fbz_poly, parameters['area_fbz_sqkm']) = utils.findBackgroundZone(
         fault_poly.centroid, provider_fault_back)
 
-    recurrence_attributes = getAttributesFromRecurrence(provider, feature)
+    recurrence_attributes = attributes.getAttributesFromRecurrence(provider, 
+        feature)
     
     if recurrence_attributes is not None:
         parameters.update(recurrence_attributes)
@@ -552,101 +554,3 @@ def updateDataFaultBackgr(cls, feature,
         cls.catalog_time_span[0])
         
     return parameters
-
-# ----------------------------------------------------------------------------
-
-def getAttributesFromRecurrence(provider, feature):
-    """Read recurrence attributes from fault layer."""
-    
-    parameters = {}
-    
-    attribute_map_fault = utils.getAttributeIndex(provider, 
-        features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE, create=False)
-        
-    # get fault background zone ID
-    id_name = features.FAULT_SOURCE_ATTR_ID_FBZ['name']
-    try:
-        parameters['fbz_id'] = str(
-            feature[attribute_map_fault[id_name][0]].toString())
-    except KeyError:
-        error_msg = "No recurrence data for zone %s" % (feature.id())
-        QMessageBox.warning(None, "Missing Data", error_msg)
-        return None
-        
-    # a and b value from FBZ (fault layer attributes)
-
-    a_fbz_name = features.FAULT_SOURCE_ATTR_A_FBZ['name']
-    b_fbz_name = features.FAULT_SOURCE_ATTR_B_FBZ['name']
-    
-    parameters['activity_fbz_a'] = \
-        feature[attribute_map_fault[a_fbz_name][0]].toDouble()[0]
-    parameters['activity_fbz_b'] = \
-        feature[attribute_map_fault[b_fbz_name][0]].toDouble()[0]
-        
-    act_fbz_a_name = features.FAULT_SOURCE_ATTR_ACT_FBZ_A['name']
-    act_fbz_b_name = features.FAULT_SOURCE_ATTR_ACT_FBZ_B['name']
-
-    parameters['activity_fbz_act_a'] = str(
-        feature[attribute_map_fault[act_fbz_a_name][0]].toString())
-    parameters['activity_fbz_act_b'] = str(
-        feature[attribute_map_fault[act_fbz_b_name][0]].toString())
-        
-    # a and b value from buffer zone (fault layer attributes)
-
-    a_bz_name = features.FAULT_SOURCE_ATTR_A_BUF['name']
-    b_bz_name = features.FAULT_SOURCE_ATTR_B_BUF['name']
-    
-    parameters['activity_bz_a'] = \
-        feature[attribute_map_fault[a_bz_name][0]].toDouble()[0]
-    parameters['activity_bz_b'] = \
-        feature[attribute_map_fault[b_bz_name][0]].toDouble()[0]
-        
-    act_bz_a_name = features.FAULT_SOURCE_ATTR_ACT_BUF_A['name']
-    act_bz_b_name = features.FAULT_SOURCE_ATTR_ACT_BUF_B['name']
-
-    parameters['activity_bz_act_a'] = str(
-        feature[attribute_map_fault[act_bz_a_name][0]].toString())
-    parameters['activity_bz_act_b'] = str(
-        feature[attribute_map_fault[act_bz_b_name][0]].toString())
-        
-    # a and b value from FBZ, above magnitude threshold
-
-    a_fbz_at_name = features.FAULT_SOURCE_ATTR_A_FBZ_AT['name']
-    b_fbz_at_name = features.FAULT_SOURCE_ATTR_B_FBZ_AT['name']
-    
-    parameters['activity_fbz_at_a'] = \
-        feature[attribute_map_fault[a_fbz_at_name][0]].toDouble()[0]
-    parameters['activity_fbz_at_b'] = \
-        feature[attribute_map_fault[b_fbz_at_name][0]].toDouble()[0]
-        
-    act_fbz_at_a_name = features.FAULT_SOURCE_ATTR_ACT_FBZ_AT_A['name']
-    act_fbz_at_b_name = features.FAULT_SOURCE_ATTR_ACT_FBZ_AT_B['name']
-
-    parameters['activity_fbz_at_act_a'] = str(
-        feature[attribute_map_fault[act_fbz_at_a_name][0]].toString())
-    parameters['activity_fbz_at_act_b'] = str(
-        feature[attribute_map_fault[act_fbz_at_b_name][0]].toString())
-        
-    # a values from recurrence (fault layer attributes)
-    
-    a_rec_min_name = features.FAULT_SOURCE_ATTR_A_REC_MIN['name']
-    a_rec_max_name = features.FAULT_SOURCE_ATTR_A_REC_MAX['name']
-    
-    parameters['activity_rec_a_min'] = \
-        feature[attribute_map_fault[a_rec_min_name][0]].toDouble()[0]
-    parameters['activity_rec_a_max'] = \
-        feature[attribute_map_fault[a_rec_max_name][0]].toDouble()[0]
-        
-    sliprate_min_name = features.FAULT_SOURCE_ATTR_SLIPRATE_MIN['name']
-    sliprate_max_name = features.FAULT_SOURCE_ATTR_SLIPRATE_MAX['name']
-    mmax_fault_name = features.FAULT_SOURCE_ATTR_MAGNITUDE_MAX['name']
-    
-    parameters['sliprate_min'] = \
-        feature[attribute_map_fault[sliprate_min_name][0]].toDouble()[0]
-    parameters['sliprate_max'] = \
-        feature[attribute_map_fault[sliprate_max_name][0]].toDouble()[0]
-    parameters['mmax_fault'] = \
-        feature[attribute_map_fault[mmax_fault_name][0]].toDouble()[0]
-
-    return parameters
-    

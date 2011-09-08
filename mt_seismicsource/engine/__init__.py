@@ -102,3 +102,13 @@ def updateFSZMaxLikelihoodAB(ui_mode=True):
 def updateFSZMomentRate(ui_mode=True):
     """Update seismic moment rate attributes on FSZ layer."""
     pass
+
+def computeFBZ(layer, catalog, mindepth=eqcatalog.CUT_DEPTH_MIN,
+    maxdepth=eqcatalog.CUT_DEPTH_MAX, ui_mode=True):
+    """Compute attributes on selected features of FBZ layer."""
+    
+    # check that at least one feature is selected
+    if not utils.check_at_least_one_feature_selected(layer):
+        return
+
+    
