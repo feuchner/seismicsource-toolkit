@@ -42,9 +42,9 @@ def updateLabelZoneIDArea(cls, feature):
     (feature_id, feature_title, feature_name) = utils.getFeatureAttributes(
         cls.area_source_layer, feature, features.AREA_SOURCE_ATTRIBUTES_ID)
     
-    cls.labelMomentRateAreaID.setText("ID: %s Title: %s Name: %s" % (
+    cls.labelMomentRateAreaID.setText("ID: %s Title: %s Name: %s (%s)" % (
         feature_id.toInt()[0], feature_title.toString(), 
-        feature_name.toString()))
+        feature_name.toString(), feature.id()))
         
 def updateTextActivityArea(cls, parameters):
     
@@ -116,8 +116,8 @@ def updateLabelZoneIDFault(cls, feature):
     (feature_id, feature_name) = utils.getFeatureAttributes(
         cls.fault_source_layer, feature, features.FAULT_SOURCE_ATTRIBUTES_ID)
     
-    cls.labelMomentRateFaultID.setText("ID: %s Name: %s" % (
-        feature_id.toString(), feature_name.toString()))
+    cls.labelMomentRateFaultID.setText("ID: %s Name: %s (%s)" % (
+        feature_id.toString(), feature_name.toString(), feature.id()))
 
 def updateTextActivityFault(cls, parameters):
 
@@ -216,8 +216,8 @@ def updateLabelZoneIDFaultBackgr(cls, feature):
         cls.fault_background_layer, feature, 
         features.FAULT_BACKGROUND_ATTRIBUTES_ID)
     
-    cls.labelMomentRateFaultBackgrID.setText("ID: %s Name: %s" % (
-        int(feature_id.toDouble()[0]), feature_name.toString()))
+    cls.labelMomentRateFaultBackgrID.setText("ID: %s Name: %s (%s)" % (
+        int(feature_id.toDouble()[0]), feature_name.toString(), feature.id()))
 
 def updateTextActivityFaultBackgr(cls, parameters):
     

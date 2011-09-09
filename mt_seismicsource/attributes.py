@@ -171,8 +171,6 @@ def writeLayerAttributes(layer, feature_list, attributes_in):
 
         if skipZone is False:
             values[zone.id()] = attribute_list
-
-    print values
     
     try:
         provider.changeAttributeValues(values)

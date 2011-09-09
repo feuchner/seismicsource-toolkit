@@ -144,8 +144,11 @@ def computeRecurrence(layer_fault, layer_fault_background=None,
         # - FBZ zone ID
         # - (a, b, act_a, act_b) for FBZ
         # - (a, b, act_a, act_b) for buffer zone
+        # - m_threshold
         # - (a, b, act_a, act_b) for FBZ, below magnitude threshold
         # - (a, b, act_a, act_b) for FBZ, above magnitude threshold
+        # - (a, b, Mc) from maximum likelihood G-R
+        # - Mmax from background
         # - a from slip rate (min/max)
         # - activity rate (min/max)
         # - moment rate (min/max)
@@ -249,15 +252,16 @@ def computeRecurrence(layer_fault, layer_fault_background=None,
             activity_back['fbz']['activity']))
         attribute_list.extend(checkAndCastActivityResult(
             activity_back['bz']['activity']))
-        attribute_list.append(None) # M_thres
+            
+        attribute_list.append(float(m_threshold))
         
         attribute_list.extend(checkAndCastActivityResult(
             activity_back['fbz_below']['activity']))
         attribute_list.extend(checkAndCastActivityResult(
             activity_back['fbz_above']['activity']))
-        attribute_list.extend([None, None, None, None]) # ML, Mmax
+        attribute_list.extend([numpy.nan] * 4) # ML, Mmax
         attribute_list.extend([float(a_value_min), float(a_value_max)])
-        attribute_list.extend([None, None, None]) # three momentrate components
+        attribute_list.extend([numpy.nan] * 3) # three momentrate components
         attribute_list.extend([
             float(seismic_moment_rate_min),
             float(seismic_moment_rate_max),
