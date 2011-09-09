@@ -24,26 +24,11 @@ Author: Fabian Euchner, fabian@sed.ethz.ch
 #    59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ############################################################################
 
-#import numpy
-
-#from PyQt4.QtCore import *
-#from PyQt4.QtGui import *
-
-#from qgis.core import *
-
-#import QPCatalog
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
 
 from mt_seismicsource import features
 from mt_seismicsource import utils
-
-#from mt_seismicsource.algorithms import atticivy
-#from mt_seismicsource.algorithms import momentrate
-#from mt_seismicsource.algorithms import recurrence
-
-#from mt_seismicsource.engine import fmd
-
-#from mt_seismicsource.layers import areasource
-#from mt_seismicsource.layers import eqcatalog
 
 def getAttributesFromASZ(cls, feature):
     """Get attribute values from selected feature in ASZ.""" 
@@ -159,4 +144,41 @@ def getAttributesFromRecurrence(provider, feature):
         feature[attribute_map_fault[mmax_fault_name][0]].toDouble()[0]
 
     return parameters
+    
+def writeLayerAttributes(layer, feature_list, attributes_in):
+    """Write attributes to layer."""
+    
+    fts = layer.selectedFeatures()
+    provider = layer.dataProvider()
+    attribute_map = utils.getAttributeIndex(provider, feature_list, 
+        create=True)
+    
+    values = {}
+
+    # loop over selected QGis features
+    for zone_idx, zone in enumerate(fts):
+        attribute_list = {}
+        skipZone = False
+        
+        for attr_idx, attr_dict in enumerate(feature_list):
+            (curr_idx, curr_type) = attribute_map[attr_dict['name']]
+            try:
+                attribute_list[curr_idx] = QVariant(
+                    attributes_in[zone_idx][attr_idx])
+            except Exception, e:
+                skipZone = True
+                break
+
+        if skipZone is False:
+            values[zone.id()] = attribute_list
+
+    print values
+    
+    try:
+        provider.changeAttributeValues(values)
+    except Exception, e:
+        error_str = "cannot update attribute values, %s" % (e)
+        raise RuntimeError, error_str
+
+    layer.commitChanges()
     

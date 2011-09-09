@@ -36,6 +36,7 @@ from qgis.core import *
 
 import QPCatalog
 
+from mt_seismicsource import attributes
 from mt_seismicsource import features
 from mt_seismicsource import utils
 from mt_seismicsource.algorithms import atticivy
@@ -88,45 +89,13 @@ def assignRecurrence(layer_fault, layer_fault_background=None,
         error_msg = \
             "If no b value is given, the other parameters must not be None"
         raise RuntimeError, error_msg
-        
-    # get attribute indexes
-    provider_fault = layer_fault.dataProvider()
-    fts = layer_fault.selectedFeatures()
 
     recurrence = computeRecurrence(layer_fault, layer_fault_background, 
         layer_background, catalog, catalog_time_span, b_value, mmin, 
         m_threshold, mindepth, maxdepth, ui_mode=ui_mode)
-        
-    attribute_map_fault = utils.getAttributeIndex(provider_fault, 
-        features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE_COMPUTE, create=True)
-        
-    # QMessageBox.information(None, "Attribute map fault", "%s" % attribute_map_fault)
 
-    # assemble value dict
-    values = {}
-    for zone_idx, zone in enumerate(fts):
-
-        attributes = {}
-        skipZone = False
-        for attr_idx, attr_dict in enumerate(
-            features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE_COMPUTE):
-            (curr_idx, curr_type) = attribute_map_fault[attr_dict['name']]
-            try:
-                attributes[curr_idx] = QVariant(recurrence[zone_idx][attr_idx])
-            except Exception, e:
-                skipZone = True
-                break
-                
-        if skipZone is False:
-            values[zone.id()] = attributes
-
-    try:
-        provider_fault.changeAttributeValues(values)
-    except Exception, e:
-        error_str = "cannot update attribute values, %s" % (e)
-        raise RuntimeError, error_str
-    
-    layer_fault.commitChanges()
+    attributes.writeLayerAttributes(layer_fault, 
+        features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE_COMPUTE, recurrence)
 
 def computeRecurrence(layer_fault, layer_fault_background=None, 
     layer_background=None, catalog=None, catalog_time_span=None, b_value=None, 

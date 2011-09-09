@@ -38,6 +38,7 @@ from qgis.core import *
 
 import QPCatalog
 
+from mt_seismicsource import attributes
 from mt_seismicsource import features
 from mt_seismicsource import utils
 from mt_seismicsource.layers import eqcatalog
@@ -88,9 +89,6 @@ def assignActivityAtticIvy(layer, catalog, mmin=ATTICIVY_MMIN,
 
     # get attribute indexes
     provider = layer.dataProvider()
-    attribute_map = utils.getAttributeIndex(provider, 
-        features.AREA_SOURCE_ATTRIBUTES_AB_RM, create=True)
-
     zone_attribute_map = utils.getAttributeIndex(provider, ZONE_ATTRIBUTES, 
         create=False)
 
@@ -133,33 +131,8 @@ def assignActivityAtticIvy(layer, catalog, mmin=ATTICIVY_MMIN,
     activity = computeActivityAtticIvy(polygons, mmax, mcdist, catalog, mmin, 
         mindepth, maxdepth, ui_mode=ui_mode)
 
-    # assemble value dict
-    values = {}
-
-    # loop over QGis features
-    for zone_idx, zone in enumerate(fts):
-        attributes = {}
-        skipZone = False
-        
-        for attr_idx, attr_dict in enumerate(
-            features.AREA_SOURCE_ATTRIBUTES_AB_RM):
-            (curr_idx, curr_type) = attribute_map[attr_dict['name']]
-            try:
-                attributes[curr_idx] = QVariant(activity[zone_idx][attr_idx])
-            except Exception, e:
-                skipZone = True
-                break
-
-        if skipZone is False:
-            values[zone.id()] = attributes
-
-    try:
-        provider.changeAttributeValues(values)
-    except Exception, e:
-        error_str = "cannot update attribute values, %s" % (e)
-        raise RuntimeError, error_str
-
-    layer.commitChanges()
+    attributes.writeLayerAttributes(layer, 
+        features.AREA_SOURCE_ATTRIBUTES_AB_RM, activity)
 
 def computeActivityAtticIvy(polygons, mmax, mcdist, catalog, 
     mmin=ATTICIVY_MMIN, mindepth=eqcatalog.CUT_DEPTH_MIN,

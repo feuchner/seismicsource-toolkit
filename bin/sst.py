@@ -224,6 +224,7 @@ def processASZ():
     print "fields:", pr.fieldCount()
     
     all_features = [feat.id() for feat in pr]
+    #all_features = [292]
     metadata['asz_layer'].setSelectedFeatures(all_features)
     
     print "running AtticIvy on ASZ layer"
@@ -251,6 +252,8 @@ def processFSZ():
     print "fields:", pr.fieldCount()
     
     all_features = [feat.id() for feat in pr]
+    #all_features = [120]
+    
     metadata['fsz_layer'].setSelectedFeatures(all_features)
     
     print "loading FBZ layer"
