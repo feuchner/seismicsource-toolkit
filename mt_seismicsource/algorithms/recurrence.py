@@ -156,8 +156,10 @@ def computeRecurrence(layer_fault, layer_fault_background=None,
         zone_data_string_min = ""
         zone_data_string_max = ""
 
+        if ui_mode is False:
+            print "\n=== Processing FSZ feature, id %s ===" % feature.id()
+            
         # get parameters from background zones
-        # TODO: can return None
         activity_back = computeActivityFromBackground(feature,
             layer_fault_background, layer_background, catalog, mmin, 
             m_threshold, mindepth, maxdepth, ui_mode=ui_mode)
@@ -354,7 +356,17 @@ def computeActivityFromBackground(feature, layer_fault_background,
 
     # get Shapely polygon from fault zone feature geometry
     polylist, vertices = utils.polygonsQGS2Shapely((feature,))
-    fault_poly = polylist[0]
+    
+    try:
+        fault_poly = polylist[0]
+    except IndexError:
+        error_msg = "Background activity: invalid FSZ geometry, id %s" % (
+            feature.id())
+        if ui_mode is True:
+            QMessageBox.warning(None, "FSZ Warning", error_msg)
+        else:
+            print error_msg
+        return None
 
     # get buffer zone around fault zone (convert buffer distance to degrees)
     (bz_poly, bz_area) = utils.computeBufferZone(fault_poly,

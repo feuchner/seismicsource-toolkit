@@ -227,7 +227,7 @@ def processASZ():
     #all_features = [292]
     metadata['asz_layer'].setSelectedFeatures(all_features)
     
-    print "running AtticIvy on ASZ layer"
+    print "computing attributes for ASZ layer"
     engine.computeASZ(metadata['asz_layer'], 
         metadata['catalog'], ui_mode=False)
 
@@ -263,13 +263,9 @@ def processFSZ():
         FAULTBACKGROUND_DEFAULT_PATH)
         
     print "computing attributes for FSZ layer"
-
-    recurrence.assignRecurrence(metadata['fsz_layer'], 
-        layer_fault_background=metadata['fbz_layer'], 
-        layer_background=metadata['background_layer'], 
-        catalog=metadata['catalog'], 
-        catalog_time_span=metadata['catalog'].timeSpan()[0],
-        ui_mode=False)
+    engine.computeFSZ(metadata['fsz_layer'], metadata['fbz_layer'],
+        metadata['background_layer'], metadata['catalog'],
+        metadata['catalog'].timeSpan()[0], ui_mode=False)
         
     return metadata['fsz_layer']
 

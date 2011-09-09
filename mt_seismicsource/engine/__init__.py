@@ -53,7 +53,6 @@ def updateASZAtticIvy(layer, catalog, mindepth=eqcatalog.CUT_DEPTH_MIN,
     
     atticivy.assignActivityAtticIvy(layer, catalog, atticivy.ATTICIVY_MMIN,
         mindepth, maxdepth, ui_mode)
-    layer.commitChanges()
 
 def updateASZMaxLikelihoodAB(ui_mode=True):
     """Update max likelihood a/b value attributes on ASZ layer."""
@@ -93,7 +92,6 @@ def updateFSZRecurrence(layer_fault, layer_fault_background=None,
         layer_background, catalog, catalog_time_span, 
         m_threshold=m_threshold, mindepth=mindepth, maxdepth=maxdepth, 
         ui_mode=ui_mode)
-    layer_fault.commitChanges()
 
 def updateFSZMaxLikelihoodAB(ui_mode=True):
     """Update max likelihood a/b value attributes on FSZ layer."""

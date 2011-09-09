@@ -151,6 +151,9 @@ def computeActivityAtticIvy(polygons, mmax, mcdist, catalog,
         list of (a, b, act_w, act_a, act_b) triples
     """
     
+    if ui_mode is False:
+        print "\n=== Running AtticIvy for %s features ===" % len(polygons)
+            
     # create temp dir for computation
     temp_dir_base = os.path.dirname(__file__)
     temp_dir = tempfile.mkdtemp(dir=temp_dir_base)
