@@ -36,7 +36,6 @@ from PyQt4.QtCore import *
 from qgis.core import *
 
 from mt_seismicsource import data
-from mt_seismicsource import engine
 from mt_seismicsource import layers
 from mt_seismicsource import utils
 
@@ -228,7 +227,7 @@ def processASZ():
     metadata['asz_layer'].setSelectedFeatures(all_features)
     
     print "computing attributes for ASZ layer"
-    engine.computeASZ(metadata['asz_layer'], 
+    asz.computeASZ(metadata['asz_layer'], 
         metadata['catalog'], ui_mode=False)
 
     return metadata['asz_layer']
@@ -263,7 +262,7 @@ def processFSZ():
         FAULTBACKGROUND_DEFAULT_PATH)
         
     print "computing attributes for FSZ layer"
-    engine.computeFSZ(metadata['fsz_layer'], metadata['fbz_layer'],
+    fsz.computeFSZ(metadata['fsz_layer'], metadata['fbz_layer'],
         metadata['background_layer'], metadata['catalog'],
         metadata['catalog'].timeSpan()[0], ui_mode=False)
         

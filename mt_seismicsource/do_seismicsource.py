@@ -41,7 +41,6 @@ import qpplot
 from mt_seismicsource import attributes
 from mt_seismicsource import data
 from mt_seismicsource import display
-from mt_seismicsource import engine
 from mt_seismicsource import features
 
 from mt_seismicsource import layers
@@ -282,7 +281,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         (mindepth, maxdepth) = eqcatalog.getMinMaxDepth(self)
         
-        engine.computeASZ(self.area_source_layer, self.catalog, mindepth, 
+        asz.computeASZ(self.area_source_layer, self.catalog, mindepth, 
             maxdepth, ui_mode=True)
             
         self.showASZ()
@@ -308,7 +307,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         (mindepth, maxdepth) = eqcatalog.getMinMaxDepth(self)
         
-        engine.computeFSZ(self.fault_source_layer, 
+        fsz.computeFSZ(self.fault_source_layer, 
             self.fault_background_layer, self.background_zone_layer, 
             self.catalog, self.catalog_time_span[0],
             m_threshold=self.spinboxFBZMThres.value(), mindepth=mindepth,
@@ -341,7 +340,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         (mindepth, maxdepth) = eqcatalog.getMinMaxDepth(self)
         
-        engine.computeFBZ(self.fault_background_layer, self.catalog, mindepth,
+        fbz.computeFBZ(self.fault_background_layer, self.catalog, mindepth,
             maxdepth, ui_mode=True)
             
         self.showFBZ()

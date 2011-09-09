@@ -39,12 +39,38 @@ from mt_seismicsource import utils
 
 from mt_seismicsource.algorithms import atticivy
 from mt_seismicsource.algorithms import momentrate
-from mt_seismicsource.algorithms import recurrence
 
 from mt_seismicsource.engine import fmd
 
 from mt_seismicsource.layers import areasource
 from mt_seismicsource.layers import eqcatalog
+
+def computeASZ(layer, catalog, mindepth=eqcatalog.CUT_DEPTH_MIN,
+    maxdepth=eqcatalog.CUT_DEPTH_MAX, ui_mode=True):
+    """Compute attributes on selected features of ASZ layer."""
+    
+    # check that at least one feature is selected
+    if not utils.check_at_least_one_feature_selected(layer):
+        return
+
+    updateASZAtticIvy(layer, catalog, mindepth, maxdepth, ui_mode)
+    updateASZMaxLikelihoodAB()
+    updateASZMomentRate()
+
+def updateASZAtticIvy(layer, catalog, mindepth=eqcatalog.CUT_DEPTH_MIN,
+    maxdepth=eqcatalog.CUT_DEPTH_MAX, ui_mode=True):
+    """Update AtticIvy attributes on ASZ layer."""
+    
+    atticivy.assignActivityAtticIvy(layer, catalog, atticivy.ATTICIVY_MMIN,
+        mindepth, maxdepth, ui_mode)
+
+def updateASZMaxLikelihoodAB(ui_mode=True):
+    """Update max likelihood a/b value attributes on ASZ layer."""
+    pass
+
+def updateASZMomentRate(ui_mode=True):
+    """Update seismic moment rate attributes on ASZ layer."""
+    pass
 
 def updateDataArea(cls, feature):
     """Update or compute moment rates for selected feature of area source

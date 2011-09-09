@@ -46,6 +46,14 @@ from mt_seismicsource.engine import fmd
 from mt_seismicsource.layers import areasource
 from mt_seismicsource.layers import eqcatalog
 
+def computeFBZ(layer, catalog, mindepth=eqcatalog.CUT_DEPTH_MIN,
+    maxdepth=eqcatalog.CUT_DEPTH_MAX, ui_mode=True):
+    """Compute attributes on selected features of FBZ layer."""
+    
+    # check that at least one feature is selected
+    if not utils.check_at_least_one_feature_selected(layer):
+        return
+
 def updateDataFaultBackgr(cls, feature, 
     m_threshold=recurrence.FAULT_BACKGROUND_MAG_THRESHOLD):
     """Update or compute moment rates for selected feature of fault background
