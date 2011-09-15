@@ -41,6 +41,9 @@ from mt_seismicsource import utils
 
 from mt_seismicsource.algorithms import recurrence
 
+from mt_seismicsource.engine import asz
+from mt_seismicsource.engine import fsz
+
 from mt_seismicsource.layers import areasource
 from mt_seismicsource.layers import background
 from mt_seismicsource.layers import eqcatalog
@@ -223,12 +226,13 @@ def processASZ():
     print "fields:", pr.fieldCount()
     
     all_features = [feat.id() for feat in pr]
-    #all_features = [292]
+    #all_features = [292] # good zone
+    #all_features = [443] # broken zone
     metadata['asz_layer'].setSelectedFeatures(all_features)
     
     print "computing attributes for ASZ layer"
-    asz.computeASZ(metadata['asz_layer'], 
-        metadata['catalog'], ui_mode=False)
+    parameters = asz.computeASZ(metadata['asz_layer'], metadata['catalog'], 
+        metadata['data'], ui_mode=False)
 
     return metadata['asz_layer']
 
@@ -264,7 +268,7 @@ def processFSZ():
     print "computing attributes for FSZ layer"
     fsz.computeFSZ(metadata['fsz_layer'], metadata['fbz_layer'],
         metadata['background_layer'], metadata['catalog'],
-        metadata['catalog'].timeSpan()[0], ui_mode=False)
+        metadata['data'], metadata['catalog'].timeSpan()[0], ui_mode=False)
         
     return metadata['fsz_layer']
 

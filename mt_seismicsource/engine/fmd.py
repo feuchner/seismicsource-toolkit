@@ -52,8 +52,8 @@ class FMDMulti(qpfmd.FrequencyMagnitudeDistribution):
     """Extended FMD class with multiple G-R fits."""
     
     def __init__(self, evpar, binsize=qpfmd.DEFAULT_BINSIZE, 
-        Mc=qpfmd.DEFAULT_MC_METHOD, Mstart=None, 
-        Mend=None, minEventsGR=qpfmd.MIN_EVENTS_GR, time_span=None, **kwargs):
+        Mc=qpfmd.DEFAULT_MC_METHOD, Mstart=None, Mend=None, 
+        minEventsGR=qpfmd.MIN_EVENTS_GR, time_span=None, **kwargs):
                       
         super(FMDMulti, self).__init__(evpar, binsize, Mc, Mstart, Mend, 
             minEventsGR, time_span, **kwargs)
@@ -64,31 +64,25 @@ class FMDMulti(qpfmd.FrequencyMagnitudeDistribution):
         return qpplot.FMDPlotCombinedMulti().plot(imgfile, self.fmd, fits, 
             **kwargs)
             
-def computeZoneFMD(cls, feature, catalog=None):
-    """Compute FMD for selected feature."""
-
-    if catalog is None:
-        # cut catalog to feature
-        polylist, vertices = utils.polygonsQGS2Shapely((feature,))
-        poly = polylist[0]
+def computeZoneFMD(feature, catalog, catalog_time_span, mc_method, mc_in=None):
+    """Compute FMD for selected feature.
     
-        # cut catalog with selected polygon
-        catalog = QPCatalog.QPCatalog()
-        catalog.merge(cls.catalog)
-        catalog.cut(geometry=poly)
-        
-        # cut catalog with min/max depth according to UI spinboxes
-        (mindepth, maxdepth) = eqcatalog.getMinMaxDepth(cls)
-        catalog.cut(mindepth=mindepth, maxdepth=maxdepth)
+    Input:
+        feature             QGis polygon feature
+        catalog             QPCatalog, already cut to feature geometry 
+                            and min/max depth
+        catalog_time_span   EQ catalog time span, in years
+        mc_method           Mc determination method
+        mc_in               Mc value, if method is 'userDefined'
+    """
 
-    # Mc method
-    if unicode(cls.comboBoxMcMethod.currentText()) == 'userDefined':
-        mc = cls.spinboxFMDMcMethod.value()
+    if mc_method == 'userDefined':
+        mc = mc_in
     else:
-        mc = unicode(cls.comboBoxMcMethod.currentText())
+        mc = mc_method
         
     return FMDMulti(catalog.eventParameters, Mc=mc, 
-        minEventsGR=MIN_EVENTS_FOR_GR, time_span=cls.catalog_time_span[0])
+        minEventsGR=MIN_EVENTS_FOR_GR, time_span=catalog_time_span)
 
 def plotZoneFMD(cls, feature_data, normalize=FMD_COMPUTE_ANNUAL_RATE, 
     title=''):
@@ -142,7 +136,8 @@ def getFMDValues(fmd, normalize=FMD_COMPUTE_ANNUAL_RATE):
     else:
         aValue = fmd.GR['aValue']
 
-    return (aValue, fmd.GR['bValue'], fmd.GR['Mmin'], fmd.GR['magCtr'])
+    return (float(aValue), float(fmd.GR['bValue']), float(fmd.GR['Mmin']), 
+        int(fmd.GR['magCtr']), str(fmd.McMethod))
 
 def computeFMDArray(a_value, b_value, mag_arr, timespan=None, area=None):
     

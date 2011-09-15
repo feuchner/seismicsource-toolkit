@@ -32,6 +32,7 @@ from PyQt4.QtGui import *
 from qgis.core import *
 
 import QPCatalog
+import qpfmd
 
 from mt_seismicsource import attributes
 from mt_seismicsource import features
@@ -46,11 +47,12 @@ from mt_seismicsource.engine import fmd
 from mt_seismicsource.layers import areasource
 from mt_seismicsource.layers import eqcatalog
 
-def computeFSZ(layer_fault, layer_fault_background=None, 
-    layer_background=None, catalog=None, catalog_time_span=None, b_value=None,
+def computeFSZ(layer_fault, layer_fault_background, layer_background, catalog,
+    data_in, catalog_time_span=None, b_value=None,
     mmin=atticivy.ATTICIVY_MMIN, 
     m_threshold=recurrence.FAULT_BACKGROUND_MAG_THRESHOLD,
     mindepth=eqcatalog.CUT_DEPTH_MIN, maxdepth=eqcatalog.CUT_DEPTH_MAX,
+    mc_method=qpfmd.DEFAULT_MC_METHOD, mc=None,
     ui_mode=True):
     """Compute attributes on selected features of ASZ layer."""
     
@@ -58,12 +60,28 @@ def computeFSZ(layer_fault, layer_fault_background=None,
     if not utils.check_at_least_one_feature_selected(layer_fault):
         return
 
+    if catalog_time_span is None:
+        catalog_time_span = catalog.timeSpan()[0]
+        
+    # cut catalog with depth
+    cat_depthcut = QPCatalog.QPCatalog()
+    cat_depthcut.merge(catalog)
+    
+    # cut catalog with min/max depth
+    cat_depthcut.cut(mindepth=mindepth, maxdepth=maxdepth)
+    
     updateFSZRecurrence(layer_fault, layer_fault_background, layer_background,
         catalog, catalog_time_span, b_value, mmin, m_threshold, mindepth, 
         maxdepth, ui_mode)
-    updateFSZMaxLikelihoodAB()
-    updateFSZMomentRate()
+    parameters_ml_ab = updateFSZMaxLikelihoodAB()
+    parameters_mr = updateFSZMomentRate()
 
+    parameters = parameters_ml_ab
+    for param_idx, parameter in enumerate(parameters):
+        parameter.update(parameters_mr[param_idx])
+    
+    return parameters
+    
 def updateFSZRecurrence(layer_fault, layer_fault_background=None, 
     layer_background=None, catalog=None, catalog_time_span=None, b_value=None,
     mmin=atticivy.ATTICIVY_MMIN, 

@@ -87,8 +87,9 @@ def assignActivityAtticIvy(layer, catalog, mmin=ATTICIVY_MMIN,
         catalog     earthquake catalog as QuakePy object
     """
 
-    # get attribute indexes
     provider = layer.dataProvider()
+    
+    # get attribute indexes
     zone_attribute_map = utils.getAttributeIndex(provider, ZONE_ATTRIBUTES, 
         create=False)
 
@@ -151,9 +152,16 @@ def computeActivityAtticIvy(polygons, mmax, mcdist, catalog,
         list of (a, b, act_w, act_a, act_b) triples
     """
     
+    # don't start computation if only one zone is processed and mmax or 
+    # mcdist is None (return immediately)
+    if len(polygons) == 1 and (mmax[0] is None or mcdist[0] is None):
+        if ui_mode is False:
+            print "\n=== Skipping AtticIvy, incomplete data ==="
+        return [None]
+        
     if ui_mode is False:
         print "\n=== Running AtticIvy for %s features ===" % len(polygons)
-            
+
     # create temp dir for computation
     temp_dir_base = os.path.dirname(__file__)
     temp_dir = tempfile.mkdtemp(dir=temp_dir_base)
@@ -161,7 +169,7 @@ def computeActivityAtticIvy(polygons, mmax, mcdist, catalog,
     # NOTE: cannot use full file names, since they can be only 30 chars long
     # write zone data to temp file in AtticIvy format
     zone_file_path = os.path.join(temp_dir, ATTICIVY_ZONE_FILE)
-    
+
     # return value is list of all internal zone IDs 
     zone_ids = writeZones2AtticIvy(zone_file_path, polygons, mmax, mcdist, 
         mmin, ui_mode=ui_mode)
@@ -195,7 +203,7 @@ def computeActivityAtticIvy(polygons, mmax, mcdist, catalog,
             
     # read results from AtticIvy output file
     result_file_path = os.path.join(temp_dir, ATTICIVY_RESULT_FILE)
-    activity_result = activityFromAtticIvy(result_file_path)
+    activity_result = activityFromAtticIvy(result_file_path, ui_mode)
     
     # expand activity_result to original length with inserted None values
     # for zones that do not have valid data
@@ -340,7 +348,7 @@ def writeZones2AtticIvy(path, polygons, mmax_in, mcdist_in,
         
     return zone_ids
     
-def activityFromAtticIvy(path):
+def activityFromAtticIvy(path, ui_mode=True):
     """Read output from AtticIvy program. Returns dict of 
     [a, b, 'act_string_w', 'act_string_a', 'act_string_b'] value 5-tuples 
     with 'internal_id' as key.
@@ -417,6 +425,10 @@ def activityFromAtticIvy(path):
                         ' '.join(b_value_str_arr)]
                     result_values[zone_id] = zone_values
                     
+                    if ui_mode is False:
+                        print "Activity for zone %s: %s" % (
+                            zone_id, str(zone_values))
+                        
                     zoneStartMode = True
                     dataLineMode = False
 

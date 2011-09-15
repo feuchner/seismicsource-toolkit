@@ -50,11 +50,9 @@ AREA_SOURCE_ATTRIBUTES_MINMAXDEPTH = (AREA_SOURCE_ATTR_DEPTHMIN,
     AREA_SOURCE_ATTR_DEPTHMAX)
     
 # max/min magnitudes
-AREA_SOURCE_ATTR_MMIN = {'name': 'mmin', 'type': QVariant.Double}
 AREA_SOURCE_ATTR_MMAX = {'name': 'mmax', 'type': QVariant.Double}
 
-AREA_SOURCE_ATTRIBUTES_MINMAXMAG = (AREA_SOURCE_ATTR_MMIN, 
-    AREA_SOURCE_ATTR_MMAX)
+AREA_SOURCE_ATTRIBUTES_MINMAXMAG = (AREA_SOURCE_ATTR_MMAX,)
 
 # magnitude of completeness
 AREA_SOURCE_ATTR_MC = {'name': 'mc', 'type': QVariant.Double}
@@ -74,8 +72,10 @@ AREA_SOURCE_ATTRIBUTES_MC = (AREA_SOURCE_ATTR_MC, AREA_SOURCE_ATTR_MC_METHOD,
 # a/b maximum likelihood
 AREA_SOURCE_ATTR_A_ML = {'name': 'a_ml', 'type': QVariant.Double}
 AREA_SOURCE_ATTR_B_ML = {'name': 'b_ml', 'type': QVariant.Double}
+AREA_SOURCE_ATTR_MAGCTR_ML = {'name': 'magctr_ml', 'type': QVariant.Int}
 
-AREA_SOURCE_ATTRIBUTES_AB_ML = (AREA_SOURCE_ATTR_A_ML, AREA_SOURCE_ATTR_B_ML)
+AREA_SOURCE_ATTRIBUTES_AB_ML = (AREA_SOURCE_ATTR_A_ML, AREA_SOURCE_ATTR_B_ML, 
+    AREA_SOURCE_ATTR_MAGCTR_ML)
 
 # a/b according to Roger Musson's AtticIvy
 AREA_SOURCE_ATTR_A_RM = {'name': 'a_rm', 'type': QVariant.Double}
@@ -90,14 +90,23 @@ AREA_SOURCE_ATTRIBUTES_AB_RM = (AREA_SOURCE_ATTR_A_RM, AREA_SOURCE_ATTR_B_RM,
 
 # moment rate components
 AREA_SOURCE_ATTR_MR_EQ = {'name': 'mr_eq', 'type': QVariant.Double}
-AREA_SOURCE_ATTR_MR_ACTIVITY = {'name': 'mr_act', 'type': QVariant.Double}
+AREA_SOURCE_ATTR_MR_ACTIVITY = {'name': 'mr_act', 'type': QVariant.String, 
+    'length': 254}
 AREA_SOURCE_ATTR_MR_STRAIN_BIRD = {'name': 'mr_bird', 'type': QVariant.Double}
-AREA_SOURCE_ATTR_MR_STRAIN_BARBA = {'name': 'mr_barba', 'type': QVariant.Double}
+AREA_SOURCE_ATTR_MR_STRAIN_BARBA = {'name': 'mr_barba', 
+    'type': QVariant.Double}
 
 AREA_SOURCE_ATTRIBUTES_MOMENTRATE = (AREA_SOURCE_ATTR_MR_EQ,
     AREA_SOURCE_ATTR_MR_ACTIVITY, AREA_SOURCE_ATTR_MR_STRAIN_BIRD,
     AREA_SOURCE_ATTR_MR_STRAIN_BARBA)
 
+# misc components
+AREA_SOURCE_ATTR_AREA = {'name': 'area_sqkm', 'type': QVariant.Double}
+AREA_SOURCE_ATTR_EQ_CNT = {'name': 'eq_count', 'type': QVariant.Int}
+
+AREA_SOURCE_ATTRIBUTES_MISC = (AREA_SOURCE_ATTR_AREA,
+    AREA_SOURCE_ATTR_EQ_CNT)
+    
 # combination of all attribute groups
 # skip: AREA_SOURCE_ATTRIBUTES_AB_PRIOR
 AREA_SOURCE_ATTRIBUTES_ALL = (
@@ -107,7 +116,8 @@ AREA_SOURCE_ATTRIBUTES_ALL = (
     AREA_SOURCE_ATTRIBUTES_MC, 
     AREA_SOURCE_ATTRIBUTES_AB_ML,
     AREA_SOURCE_ATTRIBUTES_AB_RM,
-    AREA_SOURCE_ATTRIBUTES_MOMENTRATE)
+    AREA_SOURCE_ATTRIBUTES_MOMENTRATE,
+    AREA_SOURCE_ATTRIBUTES_MISC)
 
 ## fault source attributes 
 
@@ -206,9 +216,9 @@ FAULT_SOURCE_ATTR_MOMENTRATE_MAX = {'name': 'mr_slip_ma',
 
 # activity rate from recurrence
 FAULT_SOURCE_ATTR_ACTIVITYRATE_MIN = {'name': 'actrate_mi', 
-    'type': QVariant.String}
+    'type': QVariant.String, 'length': 254}
 FAULT_SOURCE_ATTR_ACTIVITYRATE_MAX = {'name': 'actrate_ma', 
-    'type': QVariant.String}
+    'type': QVariant.String, 'length': 254}
 
 FAULT_SOURCE_ATTRIBUTES_RECURRENCE = (
     FAULT_SOURCE_ATTR_SLIPRATE_MIN,

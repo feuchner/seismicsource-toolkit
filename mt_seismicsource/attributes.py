@@ -146,7 +146,13 @@ def getAttributesFromRecurrence(provider, feature):
     return parameters
     
 def writeLayerAttributes(layer, feature_list, attributes_in):
-    """Write attributes to layer."""
+    """Write attributes to layer.
+    
+    Input:
+    
+        attributes_in   list that contains for each feature a list 
+                        of attributes
+    """
     
     fts = layer.selectedFeatures()
     provider = layer.dataProvider()
@@ -171,6 +177,8 @@ def writeLayerAttributes(layer, feature_list, attributes_in):
 
         if skipZone is False:
             values[zone.id()] = attribute_list
+    
+    print values
     
     try:
         provider.changeAttributeValues(values)

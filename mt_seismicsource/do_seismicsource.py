@@ -266,8 +266,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             
         # ---------------------------------------------------------------------
 
-        self.feature_data_area_source['parameters'] = asz.updateDataArea(
-            self, selected_feature)
+        #self.feature_data_area_source['parameters'] = asz.updateDataArea(
+            #self, selected_feature)
         
         display.updateDisplaysArea(self, 
             self.feature_data_area_source['parameters'], selected_feature)
@@ -279,10 +279,20 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         if not utils.check_only_one_feature_selected(self.area_source_layer):
             return
 
+        # min/max depth for EQ catalog
         (mindepth, maxdepth) = eqcatalog.getMinMaxDepth(self)
         
-        asz.computeASZ(self.area_source_layer, self.catalog, mindepth, 
-            maxdepth, ui_mode=True)
+        # Mc method
+        mc_method = unicode(self.comboBoxMcMethod.currentText())
+        if mc_method == 'userDefined':
+            mc = self.spinboxFMDMcMethod.value()
+        else:
+            mc = None
+        
+        self.feature_data_area_source['parameters'] =  asz.computeASZ(
+            self.area_source_layer, self.catalog, self.data, 
+            mindepth, maxdepth, self.catalog_time_span[0], mc_method, mc,
+            ui_mode=True)
             
         self.showASZ()
             
@@ -307,11 +317,19 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         (mindepth, maxdepth) = eqcatalog.getMinMaxDepth(self)
         
-        fsz.computeFSZ(self.fault_source_layer, 
-            self.fault_background_layer, self.background_zone_layer, 
-            self.catalog, self.catalog_time_span[0],
+        # Mc method
+        mc_method = unicode(self.comboBoxMcMethod.currentText())
+        if mc_method == 'userDefined':
+            mc = self.spinboxFMDMcMethod.value()
+        else:
+            mc = None
+            
+        self.feature_data_fault_source['parameters'] = fsz.computeFSZ(
+            self.fault_source_layer, self.fault_background_layer, 
+            self.background_zone_layer, self.catalog, self.data, 
+            self.catalog_time_span[0], 
             m_threshold=self.spinboxFBZMThres.value(), mindepth=mindepth,
-            maxdepth=maxdepth, ui_mode=True)
+            maxdepth=maxdepth, mc_method=mc_method, mc=mc, ui_mode=True)
             
         self.showFSZ()
 

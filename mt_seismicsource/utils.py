@@ -45,23 +45,6 @@ SHAPEFILE_DEFAULT_CRS = 4326
 
 EARTH_CIRCUMFERENCE_EQUATORIAL_KM = 40075.017
 
-# maximum likelihood a- and b-values, as implemented in ZMAP
-
-def assignActivityMaxLikelihood():
-    pass
-
-def computeActivityMaxLikelihood(zones, catalog):
-    """Computes a-and b values using the maximum likelihood method for
-    a set of source zone polygons.
-    
-    Input: 
-        zones       iterable of polygon features in QGis format
-        catalog     earthquake catalog as QuakePy object
-
-    Output: list of (a, b) pairs
-    """
-    pass
-
 # Misc. QGis/Shapely featutes
 
 def featureCount(layer, checkGeometry=False):

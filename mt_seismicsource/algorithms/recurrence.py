@@ -64,7 +64,7 @@ FAULT_ASPECT_RATIO = 2.0
 FAULT_BACKGROUND_MAG_THRESHOLD = 5.5
 
 RECURRENCE_MODEL_NAMES = ("Anderson-Luco (1983) Model 2",)
-
+            
 def assignRecurrence(layer_fault, layer_fault_background=None, 
     layer_background=None, catalog=None, catalog_time_span=None, b_value=None, 
     mmin=atticivy.ATTICIVY_MMIN,
@@ -165,7 +165,7 @@ def computeRecurrence(layer_fault, layer_fault_background=None,
             m_threshold, mindepth, maxdepth, ui_mode=ui_mode)
             
         if activity_back is None:
-            result_values.append(None)
+            result_values.append(getEmptyAttributeList())
             continue
             
         # get attribute values of zone:
@@ -466,6 +466,44 @@ def checkAndCastActivityResult(activity):
         str(activity[atticivy.ATTICIVY_ACT_A_IDX]), 
         str(activity[atticivy.ATTICIVY_ACT_B_IDX])]
     else:
-        activity_arr = [None, None, None, None]
+        activity_arr = [numpy.nan, numpy.nan, None, None]
             
     return activity_arr
+    
+def getEmptyAttributeList():
+    """Return list of empty feature attributes."""
+    
+    attribute_list = []
+    
+    # ID
+    attribute_list.append(None)
+    
+    # activity fbz
+    attribute_list.extend(checkAndCastActivityResult(None))
+    
+    # activity bz
+    attribute_list.extend(checkAndCastActivityResult(None))
+            
+    # threshold
+    attribute_list.append(numpy.nan)
+    
+    # activity fbz below
+    attribute_list.extend(checkAndCastActivityResult(None))
+    
+    # activity fbz above
+    attribute_list.extend(checkAndCastActivityResult(None))
+
+    # ML parameters, Mmax
+    attribute_list.extend([numpy.nan] * 4)
+    
+    # a from recurrence
+    attribute_list.extend([numpy.nan] * 2)
+    
+    # three momentrate components
+    attribute_list.extend([numpy.nan] * 3)
+    
+    # moment rate min/max
+    attribute_list.extend([numpy.nan, numpy.nan, None, None])
+    
+    return attribute_list
+
