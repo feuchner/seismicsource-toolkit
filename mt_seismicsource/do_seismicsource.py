@@ -326,8 +326,8 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             
         self.feature_data_fault_source['parameters'] = fsz.computeFSZ(
             self.fault_source_layer, self.fault_background_layer, 
-            self.background_zone_layer, self.catalog, self.data, 
-            self.catalog_time_span[0], 
+            self.background_zone_layer, self.catalog, 
+            self.catalog_time_span[0],
             m_threshold=self.spinboxFBZMThres.value(), mindepth=mindepth,
             maxdepth=maxdepth, mc_method=mc_method, mc=mc, ui_mode=True)
             

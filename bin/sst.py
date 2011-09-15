@@ -254,8 +254,8 @@ def processFSZ():
     print "features:", pr.featureCount()
     print "fields:", pr.fieldCount()
     
-    all_features = [feat.id() for feat in pr]
-    #all_features = [120]
+    #all_features = [feat.id() for feat in pr]
+    all_features = [120]
     
     metadata['fsz_layer'].setSelectedFeatures(all_features)
     
@@ -268,7 +268,7 @@ def processFSZ():
     print "computing attributes for FSZ layer"
     fsz.computeFSZ(metadata['fsz_layer'], metadata['fbz_layer'],
         metadata['background_layer'], metadata['catalog'],
-        metadata['data'], metadata['catalog'].timeSpan()[0], ui_mode=False)
+        metadata['catalog'].timeSpan()[0], ui_mode=False)
         
     return metadata['fsz_layer']
 

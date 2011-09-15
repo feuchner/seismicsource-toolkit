@@ -35,6 +35,7 @@ import QPCatalog
 import qpfmd
 
 from mt_seismicsource import attributes
+from mt_seismicsource import engine
 from mt_seismicsource import features
 from mt_seismicsource import utils
 
@@ -59,15 +60,8 @@ def computeASZ(layer, catalog, data_in, mindepth=eqcatalog.CUT_DEPTH_MIN,
     if not utils.check_at_least_one_feature_selected(layer):
         return
 
-    if catalog_time_span is None:
-        catalog_time_span = catalog.timeSpan()[0]
-        
-    # cut catalog with depth
-    cat_depthcut = QPCatalog.QPCatalog()
-    cat_depthcut.merge(catalog)
-    
-    # cut catalog with min/max depth
-    cat_depthcut.cut(mindepth=mindepth, maxdepth=maxdepth)
+    (cat_depthcut, catalog_time_span) = engine.prepareEQCatalog(catalog, 
+        catalog_time_span, mindepth, maxdepth)
         
     updateASZAtticIvy(layer, catalog, mindepth, maxdepth, ui_mode)
     
@@ -185,8 +179,9 @@ def computeMomentRate(layer, catalog, catalog_time_span, data_in, ui_mode=True):
         data_in     Data object that holds additional data sets, like
                     global strain and tectonic regimes
     
-    Returns a list of n-tuples:
-    ()
+    Returns a list of 6-tuples:
+    (mr_eq, mr_activity_str, mr_strain_barba, mr_strain_bird, area_sqkm, 
+        eq_count)
     """
     
     fts = layer.selectedFeatures()

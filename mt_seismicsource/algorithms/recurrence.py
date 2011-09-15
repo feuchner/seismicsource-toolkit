@@ -137,6 +137,9 @@ def computeRecurrence(layer_fault, layer_fault_background=None,
     provider_fault = layer_fault.dataProvider()
     fts = layer_fault.selectedFeatures()
 
+    attribute_map_fault = utils.getAttributeIndex(provider_fault, 
+        features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE, create=True)
+            
     # loop over fault polygons
     for zone_idx, feature in enumerate(fts):
 
@@ -170,8 +173,6 @@ def computeRecurrence(layer_fault, layer_fault_background=None,
             
         # get attribute values of zone:
         # - MAXMAG, SLIPRATEMI, SLIPRATEMA
-        attribute_map_fault = utils.getAttributeIndex(provider_fault, 
-            features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE, create=True)
         
         # get maximum magnitude (Note: it's int in feature attributes)
         maxmag_name = features.FAULT_SOURCE_ATTR_MAGNITUDE_MAX['name']
@@ -261,14 +262,14 @@ def computeRecurrence(layer_fault, layer_fault_background=None,
             activity_back['fbz_below']['activity']))
         attribute_list.extend(checkAndCastActivityResult(
             activity_back['fbz_above']['activity']))
-        attribute_list.extend([numpy.nan] * 4) # ML, Mmax
         attribute_list.extend([float(a_value_min), float(a_value_max)])
-        attribute_list.extend([numpy.nan] * 3) # three momentrate components
         attribute_list.extend([
             float(seismic_moment_rate_min),
             float(seismic_moment_rate_max),
             zone_data_string_min.lstrip(), 
             zone_data_string_max.lstrip()])
+            
+        attribute_list.append(float(activity_back['background']['mmax']))
             
         result_values.append(attribute_list)
 
@@ -331,7 +332,7 @@ def computeAValueFromOccurrence(lg_occurrence, b_value, mmin=MAGNITUDE_MIN):
     return lg_occurrence + b_value * mmin
     
 def computeActivityFromBackground(feature, layer_fault_background, 
-    layer_background, catalog, mmin=atticivy.ATTICIVY_MMIN, 
+    layer_background, cat_cut, mmin=atticivy.ATTICIVY_MMIN, 
     m_threshold=FAULT_BACKGROUND_MAG_THRESHOLD, 
     mindepth=eqcatalog.CUT_DEPTH_MIN, maxdepth=eqcatalog.CUT_DEPTH_MAX,
     ui_mode=True):
@@ -342,7 +343,7 @@ def computeActivityFromBackground(feature, layer_fault_background,
         feature                     fault source zone
         layer_fault_background
         layer_background
-        catalog
+        cat_cut                     QPCatalog cut with min/max depth
         mmin
         
     Output:
@@ -416,12 +417,7 @@ def computeActivityFromBackground(feature, layer_fault_background,
     ## moment rate from activity (RM)
 
     # a and b value from FBZ
-    
-    # cut catalog with depth constraint
-    cat_cut = QPCatalog.QPCatalog()
-    cat_cut.merge(catalog)
-    cat_cut.cut(mindepth=mindepth, maxdepth=maxdepth)
-    
+
     activity_fbz = atticivy.computeActivityAtticIvy((fbz_poly,), (mmax,), 
         (mcdist,), cat_cut, mmin=mmin, ui_mode=ui_mode)
     activity['fbz'] = {'ID': fbz_id, 'area': fbz_area, 
@@ -493,17 +489,14 @@ def getEmptyAttributeList():
     # activity fbz above
     attribute_list.extend(checkAndCastActivityResult(None))
 
-    # ML parameters, Mmax
-    attribute_list.extend([numpy.nan] * 4)
-    
     # a from recurrence
     attribute_list.extend([numpy.nan] * 2)
     
-    # three momentrate components
-    attribute_list.extend([numpy.nan] * 3)
-    
     # moment rate min/max
     attribute_list.extend([numpy.nan, numpy.nan, None, None])
+    
+    # mmax from background
+    attribute_list.append(numpy.nan)
     
     return attribute_list
 
