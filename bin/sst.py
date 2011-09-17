@@ -254,8 +254,10 @@ def processFSZ():
     print "features:", pr.featureCount()
     print "fields:", pr.fieldCount()
     
-    #all_features = [feat.id() for feat in pr]
-    all_features = [120]
+    all_features = [feat.id() for feat in pr]
+    #all_features = [120]
+    #all_features = [329, 330]
+    #all_features = [330]
     
     metadata['fsz_layer'].setSelectedFeatures(all_features)
     

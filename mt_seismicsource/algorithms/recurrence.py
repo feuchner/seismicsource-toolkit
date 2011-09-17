@@ -462,7 +462,8 @@ def checkAndCastActivityResult(activity):
         str(activity[atticivy.ATTICIVY_ACT_A_IDX]), 
         str(activity[atticivy.ATTICIVY_ACT_B_IDX])]
     else:
-        activity_arr = [numpy.nan, numpy.nan, None, None]
+        activity_arr = [attributes.EMPTY_REAL_ATTR, attributes.EMPTY_REAL_ATTR,
+            attributes.EMPTY_STRING_ATTR, attributes.EMPTY_STRING_ATTR]
             
     return activity_arr
     
@@ -472,7 +473,7 @@ def getEmptyAttributeList():
     attribute_list = []
     
     # ID
-    attribute_list.append(None)
+    attribute_list.append(attributes.EMPTY_STRING_ATTR)
     
     # activity fbz
     attribute_list.extend(checkAndCastActivityResult(None))
@@ -481,7 +482,7 @@ def getEmptyAttributeList():
     attribute_list.extend(checkAndCastActivityResult(None))
             
     # threshold
-    attribute_list.append(numpy.nan)
+    attribute_list.append(attributes.EMPTY_REAL_ATTR)
     
     # activity fbz below
     attribute_list.extend(checkAndCastActivityResult(None))
@@ -490,13 +491,15 @@ def getEmptyAttributeList():
     attribute_list.extend(checkAndCastActivityResult(None))
 
     # a from recurrence
-    attribute_list.extend([numpy.nan] * 2)
+    attribute_list.extend([attributes.EMPTY_REAL_ATTR] * 2)
     
     # moment rate min/max
-    attribute_list.extend([numpy.nan, numpy.nan, None, None])
+    attribute_list.extend([attributes.EMPTY_REAL_ATTR, 
+        attributes.EMPTY_REAL_ATTR, attributes.EMPTY_STRING_ATTR, 
+        attributes.EMPTY_STRING_ATTR])
     
     # mmax from background
-    attribute_list.append(numpy.nan)
+    attribute_list.append(attributes.EMPTY_REAL_ATTR)
     
     return attribute_list
 

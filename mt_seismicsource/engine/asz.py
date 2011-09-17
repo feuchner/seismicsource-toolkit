@@ -57,7 +57,7 @@ def computeASZ(layer, catalog, data_in, mindepth=eqcatalog.CUT_DEPTH_MIN,
     """
     
     # check that at least one feature is selected
-    if not utils.check_at_least_one_feature_selected(layer):
+    if not utils.check_at_least_one_feature_selected(layer, ui_mode=ui_mode):
         return
 
     (cat_depthcut, catalog_time_span) = engine.prepareEQCatalog(catalog, 

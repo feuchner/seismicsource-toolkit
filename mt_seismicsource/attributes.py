@@ -24,11 +24,17 @@ Author: Fabian Euchner, fabian@sed.ethz.ch
 #    59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ############################################################################
 
+import numpy
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from mt_seismicsource import features
 from mt_seismicsource import utils
+
+EMPTY_STRING_ATTR = ''
+EMPTY_REAL_ATTR = float(numpy.nan)
+EMPTY_INTEGER_ATTR = 0
 
 def getAttributesFromASZ(cls, feature):
     """Get attribute values from selected feature in ASZ.""" 
@@ -50,7 +56,7 @@ def getAttributesFromFeature(cls, feature):
     """Get a list of attribute values from a feature."""
     pass
 
-def getAttributesFromRecurrence(provider, feature):
+def getAttributesFromRecurrence(provider, feature, ui_mode=True):
     """Read recurrence attributes from fault layer."""
     
     parameters = {}
@@ -65,7 +71,10 @@ def getAttributesFromRecurrence(provider, feature):
             feature[attribute_map_fault[id_name][0]].toString())
     except KeyError:
         error_msg = "No recurrence data for zone %s" % (feature.id())
-        QMessageBox.warning(None, "Missing Data", error_msg)
+        if ui_mode is True:
+            QMessageBox.warning(None, "Missing Data", error_msg)
+        else:
+            print error_msg
         return None
         
     # a and b value from FBZ (fault layer attributes)
