@@ -207,7 +207,6 @@ FAULT_SOURCE_ATTR_MC_METHOD = {'name': 'mcmethod', 'type': QVariant.String}
 
 # moment rate components
 FAULT_SOURCE_ATTR_MR_EQ = {'name': 'mr_eq', 'type': QVariant.Double}
-
 FAULT_SOURCE_ATTR_MR_ACTIVITY_BUF = {'name': 'mr_act_buf', 
     'type': QVariant.String, 'length': 254}
 FAULT_SOURCE_ATTR_MR_ACTIVITY_FBZ = {'name': 'mr_act_fbz', 

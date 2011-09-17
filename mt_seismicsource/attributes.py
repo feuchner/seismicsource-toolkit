@@ -151,6 +151,10 @@ def getAttributesFromRecurrence(provider, feature, ui_mode=True):
         feature[attribute_map_fault[sliprate_max_name][0]].toDouble()[0]
     parameters['mmax_fault'] = \
         feature[attribute_map_fault[mmax_fault_name][0]].toDouble()[0]
+        
+    mmax_bg_name = features.FAULT_SOURCE_ATTR_MMAX_BG['name']
+    parameters['mmax_bg'] = \
+        feature[attribute_map_fault[mmax_bg_name][0]].toDouble()[0]
 
     return parameters
     
