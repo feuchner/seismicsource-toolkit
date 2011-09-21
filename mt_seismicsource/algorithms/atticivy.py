@@ -59,7 +59,9 @@ ATTICIVY_RESULT_FILE = '%s_out.txt' % (
 
 # third commandline parameter: number of bootstrap iterations
 # 0: use default (1000 iterations)
-ATTICIVY_BOOTSTRAP_ITERATIONS = 0
+# NOTE: information from Roger Musson: number of bootstrap iterations
+# has to be set to 1
+ATTICIVY_BOOTSTRAP_ITERATIONS = 1
 
 ATTICIVY_MISSING_ZONE_PARAMETERS_PRIORS = """A prior and weight
  0.0   0.0
