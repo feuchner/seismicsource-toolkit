@@ -41,8 +41,8 @@ from mt_seismicsource import utils
 from mt_seismicsource.layers import render
 
 CATALOG_DIR = 'eq_catalog'
-CATALOG_FILES = ('SHEEC-declustered-2011-05-30.zmap.dat.gz',)
-#CATALOG_FILES = ('SHEEC_ver20110808.csv.gz',)
+CATALOG_FILES = ('SHEEC_ver20110808.csv.gz',)
+#CATALOG_FILES = ('SHEEC-declustered-2011-05-30.zmap.dat.gz',)
 
 CUT_DEPTH_MIN = 0.0
 CUT_DEPTH_MAX = 999.0
@@ -84,10 +84,10 @@ def loadEQCatalogFromFile(catalog_path):
     catalog = QPCatalog.QPCatalog()
 
     if catalog_path.endswith('.gz'):
-        catalog.importZMAP(catalog_path, minimumDataset=True,
+        catalog.importSHAREPotsdamCSV(catalog_path, minimumDataset=True,
             compression='gz')
     else:
-        catalog.importZMAP(catalog_path, minimumDataset=True)
+        catalog.importSHAREPotsdamCSV(catalog_path, minimumDataset=True)
 
     # cut catalog to years > 1900 (because of datetime)
     # TODO(fab): change the datetime lib to mx.DateTime
