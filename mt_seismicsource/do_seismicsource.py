@@ -261,13 +261,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
          # update zone ID display
         selected_feature = self.area_source_layer.selectedFeatures()[0]
         
-        #self.feature_data_area_source['parameters'] = \
-            #attributes.getAttributesFromASZ(self, selected_feature)
-            
-        # ---------------------------------------------------------------------
-
-        #self.feature_data_area_source['parameters'] = asz.updateDataArea(
-            #self, selected_feature)
+        self.feature_data_area_source['parameters'] = \
+            attributes.getAttributesFromASZ(self.area_source_layer, 
+                selected_feature)
         
         display.updateDisplaysArea(self, 
             self.feature_data_area_source['parameters'], selected_feature)
@@ -302,8 +298,11 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         # update zone ID display
         selected_feature = self.fault_source_layer.selectedFeatures()[0]
         
-        self.feature_data_fault_source['parameters'] = fsz.updateDataFault(
-            self, selected_feature, m_threshold=self.spinboxFBZMThres.value())
+        self.feature_data_fault_source['parameters'] = \
+            attributes.getAttributesFromFSZ(self.fault_source_layer, selected_feature)
+            
+        #self.feature_data_fault_source['parameters'] = fsz.updateDataFault(
+            #self, selected_feature, m_threshold=self.spinboxFBZMThres.value())
         
         display.updateDisplaysFault(self, 
             self.feature_data_fault_source['parameters'], selected_feature)
@@ -341,8 +340,11 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             self.fault_background_layer.selectedFeatures()[0]
 
         self.feature_data_fault_background['parameters'] = \
-            fbz.updateDataFaultBackgr(self, selected_feature, 
-            m_threshold=self.spinboxFBZMThres.value())
+            attributes.getAttributesFromFBZ(self.fault_background_layer, selected_feature)
+            
+        #self.feature_data_fault_background['parameters'] = \
+            #fbz.updateDataFaultBackgr(self, selected_feature, 
+            #m_threshold=self.spinboxFBZMThres.value())
             
         display.updateDisplaysFaultBackgr(self, 
             self.feature_data_fault_background['parameters'], 

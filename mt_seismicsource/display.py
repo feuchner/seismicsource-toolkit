@@ -33,52 +33,67 @@ from mt_seismicsource.algorithms import momentrate
 
 def updateDisplaysArea(cls, parameters, feature):
     """Update UI with computed values for selected area zone."""
-    updateLabelZoneIDArea(cls, feature)
+    updateLabelZoneIDArea(cls, parameters, feature)
     updateTextActivityArea(cls, parameters)
     updateTextMomentRateArea(cls, parameters)
 
-def updateLabelZoneIDArea(cls, feature):
+def updateLabelZoneIDArea(cls, parameters, feature):
     """Update UI with ID and name of selected ASZ."""
-    (feature_id, feature_title, feature_name) = utils.getFeatureAttributes(
-        cls.area_source_layer, feature, features.AREA_SOURCE_ATTRIBUTES_ID)
+    
+    id_name = features.AREA_SOURCE_ATTR_ID['name']
+    title_name = features.AREA_SOURCE_ATTR_TITLE['name']
+    name_name = features.AREA_SOURCE_ATTR_NAME['name']
     
     cls.labelMomentRateAreaID.setText("ID: %s Title: %s Name: %s (%s)" % (
-        feature_id.toInt()[0], feature_title.toString(), 
-        feature_name.toString(), feature.id()))
+        parameters[id_name], parameters[title_name], parameters[name_name], 
+        feature.id()))
         
 def updateTextActivityArea(cls, parameters):
     
-    central_A = utils.centralValueOfList(parameters['activity_a'])
-    central_b = utils.centralValueOfList(parameters['activity_b'])
+    rm_a_name = features.AREA_SOURCE_ATTR_A_RM['name']
+    rm_b_name = features.AREA_SOURCE_ATTR_B_RM['name']
+    ml_a_name = features.AREA_SOURCE_ATTR_A_ML['name']
+    ml_b_name = features.AREA_SOURCE_ATTR_B_ML['name']
+    ml_mc_name = features.AREA_SOURCE_ATTR_MC['name']
+    mmax_name = features.AREA_SOURCE_ATTR_MMAX['name']
+    eq_count_name = features.AREA_SOURCE_ATTR_EQ_CNT['name']
+    ml_magctr_name = features.AREA_SOURCE_ATTR_MAGCTR_ML['name']
+    area_sqkm_name = features.AREA_SOURCE_ATTR_AREA['name']
     
     text = ''
     text += "<b>Activity</b><br/>"
     text += "<b>(RM)</b> a: %.3f, b: %s, A: %.3f<br/>" % (
-        central_A,
-        central_b,
-        atticivy.aValue2activity(central_A, central_b, 
+        parameters[rm_a_name],
+        parameters[rm_b_name],
+        atticivy.aValue2activity(parameters[rm_a_name], parameters[rm_b_name],
             parameters['activity_mmin']), )
     text += "<b>(ML)</b> a: %.3f, b: %.3f (Mc %.1f)<br/>" % (
-        parameters['ml_a'], 
-        parameters['ml_b'],
-        parameters['ml_mc'])
-    text += "Mmin: %s, Mmax: %s, %s EQ (%s above Mc) in %s km<sup>2</sup> " \
+        parameters[ml_a_name], 
+        parameters[ml_b_name],
+        parameters[ml_mc_name])
+    text += "Mmax: %s, %s EQ (%s above Mc) in %s km<sup>2</sup> "\
             "(area zone)" % (
-        parameters['activity_mmin'],
-        parameters['mmax'],
-        parameters['eq_count'],
-        parameters['ml_magctr'],
-        int(parameters['area_sqkm']))
+        parameters[mmax_name],
+        parameters[eq_count_name],
+        parameters[ml_magctr_name],
+        int(parameters[area_sqkm_name]))
     cls.textActivityArea.setText(text)
 
 def updateTextMomentRateArea(cls, parameters):
+    
+    mr_eq_name = features.AREA_SOURCE_ATTR_MR_EQ['name']
+    mr_activity_name = features.AREA_SOURCE_ATTR_MR_ACTIVITY['name']
+    mr_strain_bird_name = features.AREA_SOURCE_ATTR_MR_STRAIN_BIRD['name']
+    mr_strain_barba_name = features.AREA_SOURCE_ATTR_MR_STRAIN_BARBA['name']
+    
     text = ''
     text += "<b>Moment Rate</b><br/>"
-    text += "[EQ] %.2e<br/>" % parameters['mr_eq']
+    text += "[EQ] %.2e<br/>" % parameters[mr_eq_name]
     text += "[Act] %.2e<br/>" % (
-        utils.centralValueOfList(parameters['mr_activity']))
-    text += "[Strain (Bird)] %.2e<br/>" % parameters['mr_strain_bird']
-    text += "[Strain (Barba)] %.2e" % parameters['mr_strain_barba']
+        utils.centralValueOfList(
+        [float(x) for x in parameters[mr_activity_name].split()]))
+    text += "[Strain (Bird)] %.2e<br/>" % parameters[mr_strain_bird_name]
+    text += "[Strain (Barba)] %.2e" % parameters[mr_strain_barba_name]
     cls.textMomentRateArea.setText(text)
 
 def updatePlotMomentRateArea(cls, parameters):

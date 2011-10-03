@@ -108,9 +108,12 @@ def assignMmaxfromMelettiDataset(layer, mmax_data):
     provider = layer.dataProvider()
     
     # create missing attributes (if required)
-    for attribute_list in features.AREA_SOURCE_ATTRIBUTES_ALL:
-        utils.getAttributeIndex(provider, attribute_list, create=True)
-        
+    #for attribute_list in features.AREA_SOURCE_ATTRIBUTES_ALL:
+        #utils.getAttributeIndex(provider, attribute_list, create=True)
+    
+    utils.getAttributeIndex(provider, features.AREA_SOURCE_ATTRIBUTES_ALL, 
+        create=True)
+    
     values = {}
     attribute_map = utils.getAttributeIndex(provider, MMAX_ATTRIBUTES)
     
@@ -154,9 +157,12 @@ def assignAttributesFromBackgroundZones(layer, background_layer,
     provider_back = background_layer.dataProvider()
 
     # create missing attributes (if required)
-    for attribute_list in features.AREA_SOURCE_ATTRIBUTES_ALL:
-        utils.getAttributeIndex(provider, attribute_list, create=True)
+    #for attribute_list in features.AREA_SOURCE_ATTRIBUTES_ALL:
+        #utils.getAttributeIndex(provider, attribute_list, create=True)
 
+    utils.getAttributeIndex(provider, features.AREA_SOURCE_ATTRIBUTES_ALL, 
+        create=True)
+        
     values = {}
     attribute_map = utils.getAttributeIndex(provider, attributes_in)
 

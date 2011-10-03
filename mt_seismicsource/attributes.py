@@ -32,29 +32,113 @@ from PyQt4.QtGui import *
 from mt_seismicsource import features
 from mt_seismicsource import utils
 
+# from mt_seismicsource.algorithms import atticivy
+
 EMPTY_STRING_ATTR = ''
 EMPTY_REAL_ATTR = float(numpy.nan)
 EMPTY_INTEGER_ATTR = 0
 
-def getAttributesFromASZ(cls, feature):
-    """Get attribute values from selected feature in ASZ.""" 
-    pass
+def getAttributesFromASZ(layer, feature):
+    """Get attribute values from selected feature in ASZ.
+    
+    attributes:
+    
+        id
+        title
+        name
+        activity_a
+        activity_b
+        activity_mmin
+        ml_a
+        ml_b
+        ml_mc
+        ml_magctr
+        mc_method
+        mmax
+        eq_count
+        area_sqkm
+        mr_eq
+        mr_activity
+        mr_strain_bird
+        mr_strain_barba
+        plot_title_fmd
+    
+    non-attributes:
+    
+        activity_mmax
+    
+    """ 
+        
+    parameters = getAttributesFromFeature(layer, feature, 
+        features.AREA_SOURCE_ATTRIBUTES_ALL)
+    parameters.update(getNonAttributesFromASZ())
+    
+    return parameters
 
-def getAttributesFromFSZ(cls, feature):
+def getNonAttributesFromASZ():
+    
+    parameters = {'activity_mmin': 3.5, 'plot_title_fmd': 'foobar'}
+    return parameters
+
+def getAttributesFromFSZ(layer, feature):
     """Get attribute values from selected feature in FSZ.""" 
-    pass
+    
+    attributes = ()
+    parameters = getAttributesFromFeature(layer, feature, attributes)
+    parameters.update(getNonAttributesFromASZ(feature))
+    
+    return parameters
 
-def getAttributesFromASZ(cls, feature):
-    """Get attribute values from selected feature in ASZ.""" 
-    pass
+def getNonAttributesFromFSZ(feature):
+    return {}
 
-def getAttributesFromFBZ(cls, feature):
+def getAttributesFromFBZ(layer, feature):
     """Get attribute values from selected feature in FBZ.""" 
-    pass
+    
+    attributes = ()
+    parameters = getAttributesFromFeature(layer, feature, attributes)
+    parameters.update(getNonAttributesFromASZ(feature))
+    
+    return parameters
 
-def getAttributesFromFeature(cls, feature):
+def getNonAttributesFromFBZ(feature):
+    return {}
+
+def getAttributesFromFeature(layer, feature, attributes):
     """Get a list of attribute values from a feature."""
-    pass
+    
+    parameters = {}
+    
+    provider = layer.dataProvider()
+    attribute_map = utils.getAttributeIndex(provider, attributes, 
+        create=False)
+        
+    for attribute in attributes:
+        attr_name = attribute['name']
+        attr_type = attribute['type']
+        
+        try:
+            raw_attribute = feature[attribute_map[attr_name][0]]
+            
+        except KeyError:
+            parameters[attribute['name']] = None
+            continue
+        
+        if attr_type == QVariant.String:
+            processed_attribute = str(raw_attribute.toString())
+            
+        elif attr_type == QVariant.Double:
+            processed_attribute = float(raw_attribute.toDouble()[0])
+        
+        elif attr_type == QVariant.Int:
+            processed_attribute = int(raw_attribute.toInt()[0])
+        
+        else:
+            processed_attribute = raw_attribute
+            
+        parameters[attribute['name']] = processed_attribute
+    
+    return parameters
 
 def getAttributesFromRecurrence(provider, feature, ui_mode=True):
     """Read recurrence attributes from fault layer."""
