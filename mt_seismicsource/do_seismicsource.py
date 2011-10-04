@@ -147,8 +147,13 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         
         # saved data from selected zones
         self.feature_data_area_source = {}
+        self.feature_data_area_source['parameters'] = {}
+        
         self.feature_data_fault_source = {}
+        self.feature_data_fault_source['parameters'] = {}
+        
         self.feature_data_fault_background = {}
+        self.feature_data_fault_background['parameters'] = {}
 
         # Non-layer datasets
         self.catalog = None
@@ -261,9 +266,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
          # update zone ID display
         selected_feature = self.area_source_layer.selectedFeatures()[0]
         
-        self.feature_data_area_source['parameters'] = \
-            attributes.getAttributesFromASZ(self.area_source_layer, 
-                selected_feature)
+        attributes.getAttributesFromASZ(
+            self.feature_data_area_source['parameters'], 
+            self.area_source_layer, selected_feature)
         
         display.updateDisplaysArea(self, 
             self.feature_data_area_source['parameters'], selected_feature)
@@ -285,10 +290,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         else:
             mc = None
         
-        self.feature_data_area_source['parameters'] =  asz.computeASZ(
+        self.feature_data_area_source['parameters'] = asz.computeASZ(
             self.area_source_layer, self.catalog, self.data, 
             mindepth, maxdepth, self.catalog_time_span[0], mc_method, mc,
-            ui_mode=True)
+            ui_mode=True)[0]
             
         self.showASZ()
             
@@ -298,11 +303,11 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         # update zone ID display
         selected_feature = self.fault_source_layer.selectedFeatures()[0]
         
-        self.feature_data_fault_source['parameters'] = \
-            attributes.getAttributesFromFSZ(self.fault_source_layer, selected_feature)
-            
-        #self.feature_data_fault_source['parameters'] = fsz.updateDataFault(
-            #self, selected_feature, m_threshold=self.spinboxFBZMThres.value())
+        attributes.getAttributesFromFSZ(
+            self.feature_data_fault_source['parameters'], 
+            self.fault_source_layer, selected_feature)
+        
+        # QMessageBox.warning(None, "par", str(self.feature_data_fault_source['parameters']))
         
         display.updateDisplaysFault(self, 
             self.feature_data_fault_source['parameters'], selected_feature)
@@ -328,7 +333,7 @@ class SeismicSource(QDialog, Ui_SeismicSource):
             self.background_zone_layer, self.catalog, 
             self.catalog_time_span[0],
             m_threshold=self.spinboxFBZMThres.value(), mindepth=mindepth,
-            maxdepth=maxdepth, mc_method=mc_method, mc=mc, ui_mode=True)
+            maxdepth=maxdepth, mc_method=mc_method, mc=mc, ui_mode=True)[0]
             
         self.showFSZ()
 
@@ -339,9 +344,10 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         selected_feature = \
             self.fault_background_layer.selectedFeatures()[0]
 
-        self.feature_data_fault_background['parameters'] = \
-            attributes.getAttributesFromFBZ(self.fault_background_layer, selected_feature)
-            
+        attributes.getAttributesFromFBZ(
+            self.feature_data_fault_background['parameters'],
+            self.fault_background_layer, selected_feature)
+        
         #self.feature_data_fault_background['parameters'] = \
             #fbz.updateDataFaultBackgr(self, selected_feature, 
             #m_threshold=self.spinboxFBZMThres.value())
@@ -360,8 +366,9 @@ class SeismicSource(QDialog, Ui_SeismicSource):
 
         (mindepth, maxdepth) = eqcatalog.getMinMaxDepth(self)
         
-        fbz.computeFBZ(self.fault_background_layer, self.catalog, mindepth,
-            maxdepth, ui_mode=True)
+        self.feature_data_fault_background['parameters'] = fbz.computeFBZ(
+            self.fault_background_layer, self.catalog, mindepth, maxdepth, 
+            ui_mode=True)
             
         self.showFBZ()
 

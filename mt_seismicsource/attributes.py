@@ -32,76 +32,75 @@ from PyQt4.QtGui import *
 from mt_seismicsource import features
 from mt_seismicsource import utils
 
-# from mt_seismicsource.algorithms import atticivy
+from mt_seismicsource.algorithms import atticivy
 
 EMPTY_STRING_ATTR = ''
 EMPTY_REAL_ATTR = float(numpy.nan)
 EMPTY_INTEGER_ATTR = 0
 
-def getAttributesFromASZ(layer, feature):
-    """Get attribute values from selected feature in ASZ.
-    
-    attributes:
-    
-        id
-        title
-        name
-        activity_a
-        activity_b
-        activity_mmin
-        ml_a
-        ml_b
-        ml_mc
-        ml_magctr
-        mc_method
-        mmax
-        eq_count
-        area_sqkm
-        mr_eq
-        mr_activity
-        mr_strain_bird
-        mr_strain_barba
-        plot_title_fmd
-    
-    non-attributes:
-    
-        activity_mmax
-    
-    """ 
+def getAttributesFromASZ(parameters, layer, feature):
+    """Get attribute values from selected feature in ASZ.""" 
         
-    parameters = getAttributesFromFeature(layer, feature, 
+    parameters_new = getAttributesFromFeature(layer, feature, 
         features.AREA_SOURCE_ATTRIBUTES_ALL)
-    parameters.update(getNonAttributesFromASZ())
+        
+    parameters.update(parameters_new)
+    parameters.update(getNonAttributesFromASZ(layer, feature))
     
     return parameters
 
-def getNonAttributesFromASZ():
-    
-    parameters = {'activity_mmin': 3.5, 'plot_title_fmd': 'foobar'}
+def getNonAttributesFromASZ(layer, feature):
+    """Get feature attributes that are not set in layer's attribute table.
+    These have to be re-evaluated if a feature is only viewed, not computed.
+    """
+    parameters = {
+        # 'activity_mmin': 3.5, 
+        'activity_mmin': atticivy.ATTICIVY_MMIN, 
+        'plot_title_fmd': utils.getPlotTitleFMD(layer, feature)}
+        
     return parameters
 
-def getAttributesFromFSZ(layer, feature):
+def getAttributesFromFSZ(parameters, layer, feature):
     """Get attribute values from selected feature in FSZ.""" 
     
-    attributes = ()
-    parameters = getAttributesFromFeature(layer, feature, attributes)
-    parameters.update(getNonAttributesFromASZ(feature))
+    parameters_new = getAttributesFromFeature(layer, feature, 
+        features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE)
+    
+    parameters.update(parameters_new)
+    parameters.update(getNonAttributesFromFSZ(layer, feature))
     
     return parameters
 
-def getNonAttributesFromFSZ(feature):
-    return {}
+def getNonAttributesFromFSZ(layer, feature):
+    """Get feature attributes that are not set in layer's attribute table.
+    These have to be re-evaluated if a feature is only viewed, not computed.
+    
+    
+    activity_mmin
+    
+    eq_count_fbz
+    eq_count_bz
+    area_bz_sqkm
+    area_fbz_sqkm
+    """
+    
+    parameters = {
+        # 'activity_mmin': 3.5, 
+        'activity_mmin': atticivy.ATTICIVY_MMIN}
+    
+    return parameters
 
-def getAttributesFromFBZ(layer, feature):
+def getAttributesFromFBZ(parameters, layer, feature):
     """Get attribute values from selected feature in FBZ.""" 
     
-    attributes = ()
-    parameters = getAttributesFromFeature(layer, feature, attributes)
-    parameters.update(getNonAttributesFromASZ(feature))
+    parameters_new = getAttributesFromFeature(layer, feature, [])
+    
+    parameters.update(parameters_new)
+    parameters.update(getNonAttributesFromFBZ(layer, feature))
     
     return parameters
 
-def getNonAttributesFromFBZ(feature):
+def getNonAttributesFromFBZ(layer, feature):
     return {}
 
 def getAttributesFromFeature(layer, feature, attributes):

@@ -219,23 +219,7 @@ def computeMomentRate(layer, catalog, catalog_time_span, data_in, ui_mode=True):
     
         # get polygon area in square kilometres
         parameters['area_sqkm'] = utils.polygonAreaFromWGS84(poly) * 1.0e-6
-
-        # zone ID and title
-        (feature_id, feature_title, feature_name) = utils.getFeatureAttributes(
-            layer, feature, features.AREA_SOURCE_ATTRIBUTES_ID)
-            
-        if feature_title.toString() == '' and feature_name.toString() == '':
-            zone_name_str = ""
-        elif feature_title.toString() == '' and feature_name.toString() != '':
-            zone_name_str = feature_name.toString()
-        elif feature_title.toString() != '' and feature_name.toString() == '':
-            zone_name_str = feature_title.toString()
-        else:
-            zone_name_str = "%s, %s" % (
-                feature_title.toString(), feature_name.toString())
-        
-        parameters['plot_title_fmd'] = "Zone %s, %s" % (
-            feature_id.toInt()[0], zone_name_str)
+        parameters['plot_title_fmd'] = utils.getPlotTitleFMD(layer, feature)
 
         ## moment rate from EQs
 
@@ -288,8 +272,13 @@ def computeMomentRate(layer, catalog, catalog_time_span, data_in, ui_mode=True):
         parameters['activity_mmin'] = atticivy.ATTICIVY_MMIN
         parameters['activity_a'] = [float(x) for x in activity_a_arr]
         parameters['activity_b'] = [float(x) for x in activity_b_arr]
-        parameters['mmax'] = float(feature[attribute_mmax_idx].toDouble()[0])
-
+        
+        # Mmax
+        try:
+            parameters['mmax'] = float(feature[attribute_mmax_idx].toDouble()[0])
+        except IndexError, ValueError:
+            parameters['mmax'] = numpy.nan
+            
         momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
             parameters['activity_a'], parameters['activity_b'], 
             parameters['mmax'])) / catalog_time_span

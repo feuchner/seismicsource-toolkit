@@ -38,7 +38,8 @@ from qgis.core import *
 
 import QPCatalog
 
-from mt_seismicsource import attributes
+import mt_seismicsource.attributes
+
 from mt_seismicsource import features
 from mt_seismicsource import utils
 from mt_seismicsource.layers import eqcatalog
@@ -134,7 +135,7 @@ def assignActivityAtticIvy(layer, catalog, mmin=ATTICIVY_MMIN,
     activity = computeActivityAtticIvy(polygons, mmax, mcdist, catalog, mmin, 
         mindepth, maxdepth, ui_mode=ui_mode)
 
-    attributes.writeLayerAttributes(layer, 
+    mt_seismicsource.attributes.writeLayerAttributes(layer, 
         features.AREA_SOURCE_ATTRIBUTES_AB_RM, activity)
 
 def computeActivityAtticIvy(polygons, mmax, mcdist, catalog, 

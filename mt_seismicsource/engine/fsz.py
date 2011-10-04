@@ -251,7 +251,7 @@ def computeMomentRate(layer, catalog, catalog_time_span, ui_mode=True):
 
         if brokenZone is False:
             recurrence_attributes = attributes.getAttributesFromRecurrence(
-                    provider, feature, ui_mode=ui_mode)
+                provider, feature, ui_mode=ui_mode)
             
             if recurrence_attributes is not None:
                 parameters.update(recurrence_attributes)

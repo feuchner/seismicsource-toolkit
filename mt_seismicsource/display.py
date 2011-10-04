@@ -24,6 +24,8 @@ Author: Fabian Euchner, fabian@sed.ethz.ch
 #    59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ############################################################################
 
+import numpy
+
 from mt_seismicsource import features
 from mt_seismicsource import plots
 from mt_seismicsource import utils
@@ -122,57 +124,83 @@ def updateDisplaysFault(cls, parameters, feature):
     if parameters is None:
         return
     else:
-        updateLabelZoneIDFault(cls, feature)
+        updateLabelZoneIDFault(cls, parameters, feature)
         updateTextActivityFault(cls, parameters)
         updateTextMomentRateFault(cls, parameters)
 
-def updateLabelZoneIDFault(cls, feature):
+def updateLabelZoneIDFault(cls, parameters, feature):
     """Update UI with ID and name of selected FSZ."""
-    (feature_id, feature_name) = utils.getFeatureAttributes(
-        cls.fault_source_layer, feature, features.FAULT_SOURCE_ATTRIBUTES_ID)
+
+    id_name = features.FAULT_SOURCE_ATTR_ID['name']
+    name_name = features.FAULT_SOURCE_ATTR_NAME['name']
     
     cls.labelMomentRateFaultID.setText("ID: %s Name: %s (%s)" % (
-        feature_id.toString(), feature_name.toString(), feature.id()))
+        parameters[id_name], parameters[name_name], feature.id()))
 
 def updateTextActivityFault(cls, parameters):
 
+    bz_a_name = features.FAULT_SOURCE_ATTR_A_BUF['name']
+    bz_b_name = features.FAULT_SOURCE_ATTR_B_BUF['name']
+    fbz_a_name = features.FAULT_SOURCE_ATTR_A_FBZ['name']
+    fbz_b_name = features.FAULT_SOURCE_ATTR_B_FBZ['name']
+    fbz_id_name = features.FAULT_SOURCE_ATTR_ID_FBZ['name']
+    fbz_at_a_name = features.FAULT_SOURCE_ATTR_A_FBZ_AT['name']
+    fbz_at_b_name = features.FAULT_SOURCE_ATTR_B_FBZ_AT['name']
+    m_threshold_name = features.FAULT_SOURCE_ATTR_M_THRES['name']
+    rec_a_min_name = features.FAULT_SOURCE_ATTR_A_REC_MIN['name']
+    rec_a_max_name = features.FAULT_SOURCE_ATTR_A_REC_MAX['name']
+    
+    ml_a_name = features.FAULT_SOURCE_ATTR_A_ML['name']
+    ml_b_name = features.FAULT_SOURCE_ATTR_B_ML['name']
+    ml_mc_name = features.FAULT_SOURCE_ATTR_MC_ML['name']
+    ml_magctr_name = features.FAULT_SOURCE_ATTR_MAGCTR_ML['name']
+    
+    mmax_name = features.FAULT_SOURCE_ATTR_MMAX_BG['name']
+    mmax_fault_name = features.FAULT_SOURCE_ATTR_MAGNITUDE_MAX['name']
+    
+    # already in parameters
+    # parameters['eq_count_fbz']
+    # parameters['eq_count_bz']
+    # parameters['area_bz_sqkm']
+    # parameters['area_fbz_sqkm']
+    
     text = ''
     text += "<b>Activity</b><br/>"
     text += "<b>(RM)</b> a: %.3f b: %.3f A: %.3f (%s km buffer)<br/>" % (
-        parameters['activity_bz_a'],
-        parameters['activity_bz_b'], 
-        atticivy.aValue2activity(parameters['activity_bz_a'], 
-            parameters['activity_bz_b']), 
+        parameters[bz_a_name],
+        parameters[bz_b_name], 
+        atticivy.aValue2activity(parameters[bz_a_name], 
+            parameters[bz_b_name]), 
         int(momentrate.BUFFER_AROUND_FAULT_ZONE_KM))
         
     text += "<b>(RM)</b> a: %.3f b: %.3f A: %.3f (FBZ, ID %s)<br/>" % (
-        parameters['activity_fbz_a'], 
-        parameters['activity_fbz_b'], 
-        atticivy.aValue2activity(parameters['activity_fbz_a'], 
-            parameters['activity_fbz_b']), 
-        parameters['fbz_id'])
+        parameters[fbz_a_name], 
+        parameters[fbz_b_name], 
+        atticivy.aValue2activity(parameters[fbz_a_name], 
+            parameters[fbz_b_name]), 
+        parameters[fbz_id_name])
         
     text += "<b>(RM)</b> a: %.3f b: %.3f A: %.3f (FBZ, above M%s)<br/>" % (
-        parameters['activity_fbz_at_a'],  
-        parameters['activity_fbz_at_b'],
-        atticivy.aValue2activity(parameters['activity_fbz_at_a'], 
-            parameters['activity_fbz_at_b']),
-        parameters['activity_m_threshold'])
+        parameters[fbz_at_a_name],  
+        parameters[fbz_at_b_name],
+        atticivy.aValue2activity(parameters[fbz_at_a_name], 
+            parameters[fbz_at_b_name]),
+        parameters[m_threshold_name])
         
     text += \
         "<b>(from slip)</b> a: %.3f (min), %.3f (max), b: %.3f (FBZ)<br/>" % (
-        parameters['activity_rec_a_min'],
-        parameters['activity_rec_a_max'],
-        parameters['activity_fbz_b'])
+        parameters[rec_a_min_name],
+        parameters[rec_a_max_name],
+        parameters[fbz_b_name])
         
     text += \
         "<b>(ML)</b> a: %.3f, b: %.3f (%s EQ, %s above Mc %.1f, in "\
         "%s km<sup>2</sup> FBZ)<br/>" % (
-            parameters['ml_a'], 
-            parameters['ml_b'], 
+            parameters[ml_a_name], 
+            parameters[ml_b_name], 
             parameters['eq_count_fbz'],
-            parameters['ml_magctr'],
-            parameters['ml_mc'],
+            parameters[ml_magctr_name],
+            parameters[ml_mc_name],
             int(parameters['area_fbz_sqkm']))
             
     text += "%s EQ in %s km<sup>2</sup> (buffer zone)<br/>" % (
@@ -180,21 +208,37 @@ def updateTextActivityFault(cls, parameters):
         int(parameters['area_bz_sqkm']))
         
     text += "Mmax: %s (background), %s (fault) " % (
-        parameters['mmax'],
-        parameters['mmax_fault'])
+        parameters[mmax_name],
+        parameters[mmax_fault_name])
     cls.textActivityFault.setText(text)
 
 def updateTextMomentRateFault(cls, parameters):
 
+    mr_eq_name = features.FAULT_SOURCE_ATTR_MR_EQ['name']
+    mr_activity_buf_name = features.FAULT_SOURCE_ATTR_MR_ACTIVITY_BUF['name']
+    mr_activity_fbz_at_name = features.FAULT_SOURCE_ATTR_MR_ACTIVITY_FBZ['name']
+    mr_slip_min_name = features.FAULT_SOURCE_ATTR_MOMENTRATE_MIN['name']
+    mr_slip_max_name = features.FAULT_SOURCE_ATTR_MOMENTRATE_MAX['name']
+    
+    try:
+        mr_act_buf = utils.centralValueOfList(
+            [float(x) for x in parameters[mr_activity_buf_name].split()])
+    except IndexError, ValueError:
+        mr_act_buf = numpy.nan
+    
+    try:
+        mr_act_fbz_at = utils.centralValueOfList(
+            [float(x) for x in parameters[mr_activity_fbz_at_name].split()])
+    except IndexError, ValueError:
+        mr_act_fbz_at = numpy.nan
+        
     text = ''
     text += "<b>Moment Rate</b><br/>"
-    text += "[EQ] %.2e<br/>" % parameters['mr_eq']
-    text += "[Act (buffer)] %.2e<br/>" % (
-        utils.centralValueOfList(parameters['mr_activity']))
-    text += "[Act (FBZ)] %.2e<br/>" % (
-        utils.centralValueOfList(parameters['mr_activity_fbz_at']))
-    text += "[Slip (min)] %.2e<br/>" %  parameters['mr_slip'][0]
-    text += "[Slip (max)] %.2e" %  parameters['mr_slip'][1]
+    text += "[EQ] %.2e<br/>" % parameters[mr_eq_name]
+    text += "[Act (buffer)] %.2e<br/>" % (mr_act_buf)
+    text += "[Act (FBZ)] %.2e<br/>" % (mr_act_fbz_at)
+    text += "[Slip (min)] %.2e<br/>" % parameters[mr_slip_min_name]
+    text += "[Slip (max)] %.2e" % parameters[mr_slip_max_name]
     cls.textMomentRateFault.setText(text)
     
 def updatePlotMomentRateFault(cls, parameters):

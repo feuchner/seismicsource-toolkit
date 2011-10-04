@@ -369,6 +369,26 @@ def getFeatureAttributes(layer, feature, attributes):
     
     return attributes_out
 
+def getPlotTitleFMD(layer, feature):
+    """Construct plot title for FMD plot from feature ID, title and name 
+    attributes."""
+    
+    # zone ID and title
+    (feature_id, feature_title, feature_name) = getFeatureAttributes(layer, 
+        feature, features.AREA_SOURCE_ATTRIBUTES_ID)
+
+    if feature_title.toString() == '' and feature_name.toString() == '':
+        zone_name_str = ""
+    elif feature_title.toString() == '' and feature_name.toString() != '':
+        zone_name_str = feature_name.toString()
+    elif feature_title.toString() != '' and feature_name.toString() == '':
+        zone_name_str = feature_title.toString()
+    else:
+        zone_name_str = "%s, %s" % (
+            feature_title.toString(), feature_name.toString())
+    
+    return "Zone %s, %s" % (feature_id.toInt()[0], zone_name_str)
+            
 def centralValueOfList(list_in):
     """Return central value of a list."""
     central_idx = len(list_in) / 2
