@@ -30,6 +30,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from mt_seismicsource import features
+from mt_seismicsource import plots
 from mt_seismicsource import utils
 
 from mt_seismicsource.algorithms import atticivy
@@ -54,9 +55,8 @@ def getNonAttributesFromASZ(layer, feature):
     These have to be re-evaluated if a feature is only viewed, not computed.
     """
     parameters = {
-        # 'activity_mmin': 3.5, 
-        'activity_mmin': atticivy.ATTICIVY_MMIN, 
-        'plot_title_fmd': utils.getPlotTitleFMD(layer, feature)}
+        atticivy.ATTICIVY_MMIN_KEY_NAME: atticivy.ATTICIVY_MMIN, 
+        plots.PLOT_TITLE_FMD_NAME: utils.getPlotTitleFMD(layer, feature)}
         
     return parameters
 
@@ -74,19 +74,10 @@ def getAttributesFromFSZ(parameters, layer, feature):
 def getNonAttributesFromFSZ(layer, feature):
     """Get feature attributes that are not set in layer's attribute table.
     These have to be re-evaluated if a feature is only viewed, not computed.
-    
-    
-    activity_mmin
-    
-    eq_count_fbz
-    eq_count_bz
-    area_bz_sqkm
-    area_fbz_sqkm
     """
     
     parameters = {
-        # 'activity_mmin': 3.5, 
-        'activity_mmin': atticivy.ATTICIVY_MMIN}
+        atticivy.ATTICIVY_MMIN_KEY_NAME: atticivy.ATTICIVY_MMIN}
     
     return parameters
 
@@ -139,108 +130,24 @@ def getAttributesFromFeature(layer, feature, attributes):
     
     return parameters
 
-def getAttributesFromRecurrence(provider, feature, ui_mode=True):
+def getAttributesFromRecurrence(layer, feature, ui_mode=True):
     """Read recurrence attributes from fault layer."""
     
-    parameters = {}
-    
-    attribute_map_fault = utils.getAttributeIndex(provider, 
-        features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE, create=False)
+    parameters = getAttributesFromFeature(layer, feature, 
+        features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE_COMPUTE)
         
-    # get fault background zone ID
     id_name = features.FAULT_SOURCE_ATTR_ID_FBZ['name']
-    try:
-        parameters['fbz_id'] = str(
-            feature[attribute_map_fault[id_name][0]].toString())
-    except KeyError:
+    
+    if parameters[id_name] is None:
         error_msg = "No recurrence data for zone %s" % (feature.id())
         if ui_mode is True:
             QMessageBox.warning(None, "Missing Data", error_msg)
         else:
             print error_msg
         return None
-        
-    # a and b value from FBZ (fault layer attributes)
+    else:
+        return parameters
 
-    a_fbz_name = features.FAULT_SOURCE_ATTR_A_FBZ['name']
-    b_fbz_name = features.FAULT_SOURCE_ATTR_B_FBZ['name']
-    
-    parameters['activity_fbz_a'] = \
-        feature[attribute_map_fault[a_fbz_name][0]].toDouble()[0]
-    parameters['activity_fbz_b'] = \
-        feature[attribute_map_fault[b_fbz_name][0]].toDouble()[0]
-        
-    act_fbz_a_name = features.FAULT_SOURCE_ATTR_ACT_FBZ_A['name']
-    act_fbz_b_name = features.FAULT_SOURCE_ATTR_ACT_FBZ_B['name']
-
-    parameters['activity_fbz_act_a'] = str(
-        feature[attribute_map_fault[act_fbz_a_name][0]].toString())
-    parameters['activity_fbz_act_b'] = str(
-        feature[attribute_map_fault[act_fbz_b_name][0]].toString())
-        
-    # a and b value from buffer zone (fault layer attributes)
-
-    a_bz_name = features.FAULT_SOURCE_ATTR_A_BUF['name']
-    b_bz_name = features.FAULT_SOURCE_ATTR_B_BUF['name']
-    
-    parameters['activity_bz_a'] = \
-        feature[attribute_map_fault[a_bz_name][0]].toDouble()[0]
-    parameters['activity_bz_b'] = \
-        feature[attribute_map_fault[b_bz_name][0]].toDouble()[0]
-        
-    act_bz_a_name = features.FAULT_SOURCE_ATTR_ACT_BUF_A['name']
-    act_bz_b_name = features.FAULT_SOURCE_ATTR_ACT_BUF_B['name']
-
-    parameters['activity_bz_act_a'] = str(
-        feature[attribute_map_fault[act_bz_a_name][0]].toString())
-    parameters['activity_bz_act_b'] = str(
-        feature[attribute_map_fault[act_bz_b_name][0]].toString())
-        
-    # a and b value from FBZ, above magnitude threshold
-
-    a_fbz_at_name = features.FAULT_SOURCE_ATTR_A_FBZ_AT['name']
-    b_fbz_at_name = features.FAULT_SOURCE_ATTR_B_FBZ_AT['name']
-    
-    parameters['activity_fbz_at_a'] = \
-        feature[attribute_map_fault[a_fbz_at_name][0]].toDouble()[0]
-    parameters['activity_fbz_at_b'] = \
-        feature[attribute_map_fault[b_fbz_at_name][0]].toDouble()[0]
-        
-    act_fbz_at_a_name = features.FAULT_SOURCE_ATTR_ACT_FBZ_AT_A['name']
-    act_fbz_at_b_name = features.FAULT_SOURCE_ATTR_ACT_FBZ_AT_B['name']
-
-    parameters['activity_fbz_at_act_a'] = str(
-        feature[attribute_map_fault[act_fbz_at_a_name][0]].toString())
-    parameters['activity_fbz_at_act_b'] = str(
-        feature[attribute_map_fault[act_fbz_at_b_name][0]].toString())
-        
-    # a values from recurrence (fault layer attributes)
-    
-    a_rec_min_name = features.FAULT_SOURCE_ATTR_A_REC_MIN['name']
-    a_rec_max_name = features.FAULT_SOURCE_ATTR_A_REC_MAX['name']
-    
-    parameters['activity_rec_a_min'] = \
-        feature[attribute_map_fault[a_rec_min_name][0]].toDouble()[0]
-    parameters['activity_rec_a_max'] = \
-        feature[attribute_map_fault[a_rec_max_name][0]].toDouble()[0]
-        
-    sliprate_min_name = features.FAULT_SOURCE_ATTR_SLIPRATE_MIN['name']
-    sliprate_max_name = features.FAULT_SOURCE_ATTR_SLIPRATE_MAX['name']
-    mmax_fault_name = features.FAULT_SOURCE_ATTR_MAGNITUDE_MAX['name']
-    
-    parameters['sliprate_min'] = \
-        feature[attribute_map_fault[sliprate_min_name][0]].toDouble()[0]
-    parameters['sliprate_max'] = \
-        feature[attribute_map_fault[sliprate_max_name][0]].toDouble()[0]
-    parameters['mmax_fault'] = \
-        feature[attribute_map_fault[mmax_fault_name][0]].toDouble()[0]
-        
-    mmax_bg_name = features.FAULT_SOURCE_ATTR_MMAX_BG['name']
-    parameters['mmax_bg'] = \
-        feature[attribute_map_fault[mmax_bg_name][0]].toDouble()[0]
-
-    return parameters
-    
 def writeLayerAttributes(layer, feature_list, attributes_in):
     """Write attributes to layer.
     

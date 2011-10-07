@@ -37,13 +37,19 @@ from qgis.core import *
 
 import qpplot
 
-import do_plotwindow
+from mt_seismicsource import features
+from mt_seismicsource import do_plotwindow
 
 MOMENT_RATE_COMPARISON_WIDTH = 6
 MOMENT_RATE_COMPARISON_HEIGHT = 6
 MOMENT_RATE_COMPARISON_LABEL_POSITION = 0.7
 
 ANNUAL_SEISMIC_MOMENT_RATE_UNIT = "Annual Seismic Moment Rate [Nm km^2 yr^-1]"
+
+PLOT_TITLE_FMD_NAME = 'plot_title_fmd'
+PLOT_TITLE_RECURRENCE_NAME = 'plot_title_recurrence'
+
+MOMENT_RATE_FROM_SLIP_KEY_NAME = 'mr_slip'
 
 try:
     from matplotlib.backends.backend_qt4agg \
@@ -121,28 +127,34 @@ class MomentRateComparisonPlotArea(qpplot.QPPlot):
     
         self.pyplot.clf()
         
-        symbol_style = {'mr_eq': 'ks',            # black solid square
-                        'mr_activity': 'ro',      # red circle
-                        'mr_strain_barba': 'b^',  # blue triangle
-                        'mr_strain_bird': 'b^'    # blue triangle
+        mr_eq_name = features.AREA_SOURCE_ATTR_MR_EQ['name']
+        mr_activity_name = features.AREA_SOURCE_ATTR_MR_ACTIVITY['name']
+        mr_strain_bird_name = features.AREA_SOURCE_ATTR_MR_STRAIN_BIRD['name']
+        mr_strain_barba_name = features.AREA_SOURCE_ATTR_MR_STRAIN_BARBA['name']
+    
+        symbol_style = {mr_eq_name: 'ks',            # black solid square
+                        mr_activity_name: 'ro',      # red circle
+                        mr_strain_bird_name: 'b^',   # blue triangle
+                        mr_strain_barba_name: 'b^'   # blue triangle
                        }
 
-        description = {'mr_eq': 'from earthquakes',
-                       'mr_activity': 'from activity',
-                       'mr_strain_barba': 'from strain rates (Barba)',
-                       'mr_strain_bird': 'from strain rates (Bird)'
+        description = {mr_eq_name: 'from earthquakes',
+                       mr_activity_name: 'from activity',
+                       mr_strain_bird_name: 'from strain rates (Barba)',
+                       mr_strain_barba_name: 'from strain rates (Bird)'
                       }
 
         # set figure size
         # self.pyplot.rcParams['figure.figsize'] = (5, 5)
         self.ax = self.figure.add_subplot(111)
 
-        for key_idx, key in enumerate(('mr_eq', 'mr_activity', 
-            'mr_strain_barba', 'mr_strain_bird')):
+        for key_idx, key in enumerate((mr_eq_name, mr_activity_name, 
+            mr_strain_bird_name, mr_strain_barba_name)):
 
-            if isinstance(data[key], list):
-                ordinate_length = len(data[key])
-                abscissa = data[key]
+            if isinstance(data[key], (basestring, unicode)):
+                
+                abscissa = [float(x) for x in data[key].split()]
+                ordinate_length = len(abscissa)
             else:
 
                 # TODO(fab): this does not work, still throws error is NaN
@@ -159,8 +171,8 @@ class MomentRateComparisonPlotArea(qpplot.QPPlot):
         self.pyplot.ylim(0.5, key_idx+1.5)
         xmin, xmax = self.pyplot.xlim()
 
-        for key_idx, key in enumerate(('mr_eq', 'mr_activity', 'mr_strain_barba', 
-            'mr_strain_bird')):
+        for key_idx, key in enumerate((mr_eq_name, mr_activity_name, 
+            mr_strain_bird_name, mr_strain_barba_name)):
             self.pyplot.annotate(description[key], 
                 (xmin + numpy.power(10, 
                 MOMENT_RATE_COMPARISON_LABEL_POSITION * numpy.log10(
@@ -195,25 +207,36 @@ class MomentRateComparisonPlotFault(qpplot.QPPlot):
     
         self.pyplot.clf()
         
-        symbol_style = {'mr_eq': 'ks',        # black solid square
-                        'mr_activity': 'ro',  # red circle
-                        'mr_slip': 'b^'     # blue triangle
+        mr_eq_name = features.FAULT_SOURCE_ATTR_MR_EQ['name']
+        mr_activity_name = features.FAULT_SOURCE_ATTR_MR_ACTIVITY_BUF['name']
+        mr_slip_name = MOMENT_RATE_FROM_SLIP_KEY_NAME
+        
+        symbol_style = {mr_eq_name: 'ks',        # black solid square
+                        mr_activity_name: 'ro',  # red circle
+                        mr_slip_name: 'b^'       # blue triangle
                        }
 
-        description = {'mr_eq': 'from earthquakes',
-                       'mr_activity': 'from activity',
-                       'mr_slip': 'from slip rates'
+        description = {mr_eq_name: 'from earthquakes',
+                       mr_activity_name: 'from activity',
+                       mr_slip_name: 'from slip rates'
                       }
 
         # set figure size
         # self.pyplot.rcParams['figure.figsize'] = (5, 5)
         self.ax = self.figure.add_subplot(111)
 
-        for key_idx, key in enumerate(('mr_eq', 'mr_activity', 'mr_slip')):
+        for key_idx, key in enumerate((mr_eq_name, mr_activity_name, 
+            mr_slip_name)):
 
             if isinstance(data[key], list):
                 ordinate_length = len(data[key])
                 abscissa = data[key]
+            
+            elif isinstance(data[key], (basestring, unicode)):
+                
+                abscissa = [float(x) for x in data[key].split()]
+                ordinate_length = len(abscissa)
+                
             else:
                 ordinate_length = 1
                 abscissa = [data[key], ]
@@ -225,7 +248,8 @@ class MomentRateComparisonPlotFault(qpplot.QPPlot):
         self.pyplot.ylim(0.5, key_idx+1.5)
         xmin, xmax = self.pyplot.xlim()
 
-        for key_idx, key in enumerate(('mr_eq', 'mr_activity', 'mr_slip')):
+        for key_idx, key in enumerate((mr_eq_name, mr_activity_name, 
+            mr_slip_name)):
             self.pyplot.annotate(description[key], 
                 (xmin + numpy.power(10, 
                 MOMENT_RATE_COMPARISON_LABEL_POSITION * numpy.log10(

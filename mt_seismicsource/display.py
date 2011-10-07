@@ -64,11 +64,12 @@ def updateTextActivityArea(cls, parameters):
     
     text = ''
     text += "<b>Activity</b><br/>"
-    text += "<b>(RM)</b> a: %.3f, b: %s, A: %.3f<br/>" % (
+    text += "<b>(RM)</b> a: %.3f, b: %s, A: %.3f (Mmin %.1f)<br/>" % (
         parameters[rm_a_name],
         parameters[rm_b_name],
         atticivy.aValue2activity(parameters[rm_a_name], parameters[rm_b_name],
-            parameters['activity_mmin']), )
+            parameters[atticivy.ATTICIVY_MMIN_KEY_NAME]), 
+        parameters[atticivy.ATTICIVY_MMIN_KEY_NAME])
     text += "<b>(ML)</b> a: %.3f, b: %.3f (Mc %.1f)<br/>" % (
         parameters[ml_a_name], 
         parameters[ml_b_name],
@@ -106,7 +107,8 @@ def updatePlotMomentRateArea(cls, parameters):
     plot = plots.MomentRateComparisonPlotArea()
     figure = plot.plot(imgfile=None, data=parameters)
 
-    canvas = plots.PlotCanvas(figure, title=parameters['plot_title_fmd'])
+    canvas = plots.PlotCanvas(figure, 
+        title=parameters[plots.PLOT_TITLE_FMD_NAME])
     canvas.draw()
 
     # plot widget
@@ -158,11 +160,10 @@ def updateTextActivityFault(cls, parameters):
     mmax_name = features.FAULT_SOURCE_ATTR_MMAX_BG['name']
     mmax_fault_name = features.FAULT_SOURCE_ATTR_MAGNITUDE_MAX['name']
     
-    # already in parameters
-    # parameters['eq_count_fbz']
-    # parameters['eq_count_bz']
-    # parameters['area_bz_sqkm']
-    # parameters['area_fbz_sqkm']
+    eq_count_fbz_name = features.FAULT_SOURCE_ATTR_EQ_CNT_FBZ['name']
+    area_fbz_sqkm_name = features.FAULT_SOURCE_ATTR_AREA_FBZ['name']
+    eq_count_bz_name = features.FAULT_SOURCE_ATTR_EQ_CNT_BZ['name']
+    area_bz_sqkm_name = features.FAULT_SOURCE_ATTR_AREA_BZ['name']
     
     text = ''
     text += "<b>Activity</b><br/>"
@@ -192,20 +193,30 @@ def updateTextActivityFault(cls, parameters):
         parameters[rec_a_min_name],
         parameters[rec_a_max_name],
         parameters[fbz_b_name])
+    
+    try:
+        area_fbz_sqkm = int(parameters[area_fbz_sqkm_name])
+    except TypeError:
+        area_fbz_sqkm = parameters[area_fbz_sqkm_name]
         
     text += \
         "<b>(ML)</b> a: %.3f, b: %.3f (%s EQ, %s above Mc %.1f, in "\
         "%s km<sup>2</sup> FBZ)<br/>" % (
             parameters[ml_a_name], 
             parameters[ml_b_name], 
-            parameters['eq_count_fbz'],
+            parameters[eq_count_fbz_name],
             parameters[ml_magctr_name],
             parameters[ml_mc_name],
-            int(parameters['area_fbz_sqkm']))
-            
+            area_fbz_sqkm)
+    
+    try:
+        area_bz_sqkm = int(parameters[area_bz_sqkm_name])
+    except TypeError:
+        area_bz_sqkm = parameters[area_bz_sqkm_name]
+        
     text += "%s EQ in %s km<sup>2</sup> (buffer zone)<br/>" % (
-        parameters['eq_count_bz'],
-        int(parameters['area_bz_sqkm']))
+        parameters[eq_count_bz_name],
+        area_bz_sqkm)
         
     text += "Mmax: %s (background), %s (fault) " % (
         parameters[mmax_name],
@@ -223,13 +234,13 @@ def updateTextMomentRateFault(cls, parameters):
     try:
         mr_act_buf = utils.centralValueOfList(
             [float(x) for x in parameters[mr_activity_buf_name].split()])
-    except IndexError, ValueError:
+    except (IndexError, KeyError, ValueError):
         mr_act_buf = numpy.nan
     
     try:
         mr_act_fbz_at = utils.centralValueOfList(
             [float(x) for x in parameters[mr_activity_fbz_at_name].split()])
-    except IndexError, ValueError:
+    except (IndexError, KeyError, ValueError):
         mr_act_fbz_at = numpy.nan
         
     text = ''
@@ -247,11 +258,16 @@ def updatePlotMomentRateFault(cls, parameters):
 
     # new moment rate plot
     plot = plots.MomentRateComparisonPlotFault()
-        
+
+    # add moment rate from slip data field for plot
+    parameters[plots.MOMENT_RATE_FROM_SLIP_KEY_NAME] = [
+        float(parameters[features.FAULT_SOURCE_ATTR_MOMENTRATE_MIN['name']]), 
+        float(parameters[features.FAULT_SOURCE_ATTR_MOMENTRATE_MAX['name']])]
+    
     figure = plot.plot(imgfile=None, data=parameters)
 
     canvas = plots.PlotCanvas(figure, 
-        title=parameters['plot_title_recurrence'])
+        title=parameters[plots.PLOT_TITLE_RECURRENCE_NAME])
     canvas.draw()
 
     # plot widget

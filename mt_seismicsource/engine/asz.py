@@ -37,6 +37,7 @@ import qpfmd
 from mt_seismicsource import attributes
 from mt_seismicsource import engine
 from mt_seismicsource import features
+from mt_seismicsource import plots
 from mt_seismicsource import utils
 
 from mt_seismicsource.algorithms import atticivy
@@ -119,7 +120,7 @@ def computeMaxLikelihoodAB(layer, catalog, catalog_time_span,
     Input:
         catalog     QPCatalog that is already cut at min/max depth
         
-    Returns a list of 4-tuples:
+    Returns a list of 5-tuples:
     (ml_a, ml_b, ml_mc, ml_magctr, mc_method)
     """
     
@@ -147,9 +148,8 @@ def computeMaxLikelihoodAB(layer, catalog, catalog_time_span,
     
         ## Maximum likelihood a/b values
         if poly_cat.size() == 0:
-            parameters['fmd'] = None
-            attribute_list = [float(numpy.nan), float(numpy.nan), 
-                float(numpy.nan), 0, qpfmd.DEFAULT_MC_METHOD]
+            parameters[fmd.PARAMETER_FMD_NAME] = None
+            attribute_list = getEmptyMaxLikelihoodABAttributeList()
                 
             error_msg = "max likelihood AB: no EQs in zone with ID %s" % (
                 feature.id())
@@ -159,9 +159,10 @@ def computeMaxLikelihoodAB(layer, catalog, catalog_time_span,
                 print error_msg
             
         else:
-            parameters['fmd'] = fmd.computeZoneFMD(feature, poly_cat, 
-                catalog_time_span, mc_method, mc)
-            attribute_list = list(fmd.getFMDValues(parameters['fmd']))
+            parameters[fmd.PARAMETER_FMD_NAME] = fmd.computeZoneFMD(feature, 
+                poly_cat, catalog_time_span, mc_method, mc)
+            attribute_list = list(fmd.getFMDValues(
+                parameters[fmd.PARAMETER_FMD_NAME]))
 
             if ui_mode is False:
                 print "FMD: %s" % str(attribute_list)
@@ -180,10 +181,9 @@ def computeMomentRate(layer, catalog, catalog_time_span, data_in, ui_mode=True):
                     global strain and tectonic regimes
     
     Returns a list of 6-tuples:
-    (mr_eq, mr_activity_str, mr_strain_barba, mr_strain_bird, area_sqkm, 
-        eq_count)
+    (mr_eq, mr_act, mr_strain_barba, mr_strain_bird, area_sqkm, eq_count)
     """
-    
+
     fts = layer.selectedFeatures()
     
     # get attribute index of AtticIvy result
@@ -199,9 +199,17 @@ def computeMomentRate(layer, catalog, catalog_time_span, data_in, ui_mode=True):
     attribute_act_b_name = features.AREA_SOURCE_ATTR_ACT_RM_B['name']
     attribute_act_b_idx = attribute_map[attribute_act_b_name][0]
 
+    mr_eq_name = features.AREA_SOURCE_ATTR_MR_EQ['name']
+    mr_act_name = features.AREA_SOURCE_ATTR_MR_ACTIVITY['name']
+    mr_strain_bird_name = features.AREA_SOURCE_ATTR_MR_STRAIN_BIRD['name']
+    mr_strain_barba_name = features.AREA_SOURCE_ATTR_MR_STRAIN_BARBA['name']
+    
     attribute_mmax_name = features.AREA_SOURCE_ATTR_MMAX['name']
     attribute_mmax_idx = attribute_map[attribute_mmax_name][0]
-        
+    
+    area_sqkm_name = features.AREA_SOURCE_ATTR_AREA['name']
+    eq_count_name = features.AREA_SOURCE_ATTR_EQ_CNT['name']
+    
     if ui_mode is False:
         print "\n=== Computing moment rate for %s features ===" % len(fts)
         
@@ -218,8 +226,9 @@ def computeMomentRate(layer, catalog, catalog_time_span, data_in, ui_mode=True):
         poly = polylist[0]
     
         # get polygon area in square kilometres
-        parameters['area_sqkm'] = utils.polygonAreaFromWGS84(poly) * 1.0e-6
-        parameters['plot_title_fmd'] = utils.getPlotTitleFMD(layer, feature)
+        parameters[area_sqkm_name] = utils.polygonAreaFromWGS84(poly) * 1.0e-6
+        parameters[plots.PLOT_TITLE_FMD_NAME] = utils.getPlotTitleFMD(layer,
+            feature)
 
         ## moment rate from EQs
 
@@ -228,7 +237,7 @@ def computeMomentRate(layer, catalog, catalog_time_span, data_in, ui_mode=True):
         poly_cat.merge(catalog)
         poly_cat.cut(geometry=poly)
 
-        parameters['eq_count'] = poly_cat.size()
+        parameters[eq_count_name] = poly_cat.size()
         
         # sum up moment from quakes (converted from Mw with Kanamori eq.)
         magnitudes = []
@@ -239,8 +248,8 @@ def computeMomentRate(layer, catalog, catalog_time_span, data_in, ui_mode=True):
         moment = numpy.array(momentrate.magnitude2moment(magnitudes))
 
         # scale moment: per year and area (in km^2)
-        parameters['mr_eq'] = moment.sum() / (
-            parameters['area_sqkm'] * catalog_time_span)
+        parameters[mr_eq_name] = moment.sum() / (
+            parameters[area_sqkm_name] * catalog_time_span)
         
         ## moment rate from activity (RM)
 
@@ -251,7 +260,7 @@ def computeMomentRate(layer, catalog, catalog_time_span, data_in, ui_mode=True):
         except KeyError:
             activity_a_arr = [numpy.nan]
             error_msg = "No valid activity a parameter in %s" % (
-                parameters['plot_title_fmd'])
+                parameters[plots.PLOT_TITLE_FMD_NAME])
             if ui_mode is True:
                 QMessageBox.warning(None, "MomentRate", error_msg)
             else:
@@ -262,49 +271,52 @@ def computeMomentRate(layer, catalog, catalog_time_span, data_in, ui_mode=True):
         except KeyError:
             activity_b_arr = [numpy.nan]
             error_msg = "No valid activity b parameter in %s" % (
-                parameters['plot_title_fmd'])
+                parameters[plots.PLOT_TITLE_FMD_NAME])
             if ui_mode is True:
                 QMessageBox.warning(None, "MomentRate", error_msg)
             else:
                 print error_msg
             
         # ignore weights
-        parameters['activity_mmin'] = atticivy.ATTICIVY_MMIN
-        parameters['activity_a'] = [float(x) for x in activity_a_arr]
-        parameters['activity_b'] = [float(x) for x in activity_b_arr]
+        parameters[atticivy.ATTICIVY_MMIN_KEY_NAME] = atticivy.ATTICIVY_MMIN
+        parameters['activity_a_list'] = [float(x) for x in activity_a_arr]
+        parameters['activity_b_list'] = [float(x) for x in activity_b_arr]
         
         # Mmax
         try:
-            parameters['mmax'] = float(feature[attribute_mmax_idx].toDouble()[0])
-        except IndexError, ValueError:
-            parameters['mmax'] = numpy.nan
+            parameters[attribute_mmax_name] = float(
+                feature[attribute_mmax_idx].toDouble()[0])
+        except (IndexError, KeyError, ValueError):
+            parameters[attribute_mmax_name] = numpy.nan
             
         momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
-            parameters['activity_a'], parameters['activity_b'], 
-            parameters['mmax'])) / catalog_time_span
-        parameters['mr_activity'] = momentrates_arr.tolist()
-        parameters['mr_activity_str'] = ' '.join(
-            ["%.3e" % (x) for x in parameters['mr_activity']])
+            parameters['activity_a_list'], parameters['activity_b_list'], 
+            parameters[attribute_mmax_name])) / catalog_time_span
+            
+        parameters['mr_act_list'] = momentrates_arr.tolist()
+        
+        parameters[mr_act_name] = ' '.join(
+            ["%.3e" % (x) for x in parameters['mr_act_list']])
 
         ## moment rate from geodesy (strain)
         momentrate_strain_barba = momentrate.momentrateFromStrainRateBarba(
             poly, data_in.strain_rate_barba, data_in.deformation_regimes_bird)
-        parameters['mr_strain_barba'] = \
+        parameters[mr_strain_barba_name] = \
             momentrate_strain_barba / catalog_time_span
 
         momentrate_strain_bird = momentrate.momentrateFromStrainRateBird(poly, 
             data_in.strain_rate_bird, data_in.deformation_regimes_bird)
-        parameters['mr_strain_bird'] = \
+        parameters[mr_strain_bird_name] = \
             momentrate_strain_bird / catalog_time_span
 
         attribute_list = []
-        attribute_list.extend([float(parameters['mr_eq']),
-            str(parameters['mr_activity_str']), 
-            float(parameters['mr_strain_barba']),
-            float(parameters['mr_strain_bird'])])
-        
-        attribute_list.extend([float(parameters['area_sqkm']), 
-            int(parameters['eq_count'])])
+        attribute_list.extend([
+            float(parameters[mr_eq_name]),
+            str(parameters[mr_act_name]), 
+            float(parameters[mr_strain_barba_name]),
+            float(parameters[mr_strain_bird_name]),
+            float(parameters[area_sqkm_name]),
+            int(parameters[eq_count_name])])
             
         if ui_mode is False:
             print "Moment rate: %s" % str(attribute_list)
@@ -313,3 +325,25 @@ def computeMomentRate(layer, catalog, catalog_time_span, data_in, ui_mode=True):
         out_parameters.append(parameters)
         
     return (result_values, out_parameters)
+
+def getEmptyMaxLikelihoodABAttributeList():
+    """Return empty attribute list for max likelihood a, b values, ASZ."""
+    
+    attribute_list = []
+    
+    # a_ml
+    attribute_list.append(attributes.EMPTY_REAL_ATTR)
+    
+    # b_ml
+    attribute_list.append(attributes.EMPTY_REAL_ATTR)
+    
+    # mc_ml
+    attribute_list.append(attributes.EMPTY_REAL_ATTR)
+    
+    # magctr_ml
+    attribute_list.append(attributes.EMPTY_INTEGER_ATTR)
+    
+    # mcmethod
+    attribute_list.append(qpfmd.DEFAULT_MC_METHOD)
+    
+    return attribute_list

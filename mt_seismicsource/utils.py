@@ -129,7 +129,10 @@ def findBackgroundZone(point, provider_back, ui_mode=True):
     
     bg_zone = None
     bg_poly = None 
-    bg_area = None
+    
+    # Note: this is set to zero, not NaN, since areas are converted to int
+    # on display
+    bg_area = 0
 
     # TODO(fab): this can probably be made more efficient
     

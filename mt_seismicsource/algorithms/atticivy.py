@@ -44,6 +44,7 @@ from mt_seismicsource import features
 from mt_seismicsource import utils
 from mt_seismicsource.layers import eqcatalog
 
+ATTICIVY_MMIN_KEY_NAME = 'activity_mmin'
 ATTICIVY_MMIN = 3.5
 
 # full path of AtticIvy executable

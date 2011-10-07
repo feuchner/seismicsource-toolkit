@@ -48,6 +48,8 @@ FMD_COMPUTE_ANNUAL_RATE = True
 MC_METHODS = (qpfmd.MC_METHODS[1], qpfmd.MC_METHODS[0], qpfmd.MC_METHODS[2])
 MC_DEFAULT = 4.5
 
+PARAMETER_FMD_NAME = 'fmd'
+
 class FMDMulti(qpfmd.FrequencyMagnitudeDistribution):
     """Extended FMD class with multiple G-R fits."""
     
@@ -91,7 +93,7 @@ def plotZoneFMD(cls, feature_data, normalize=FMD_COMPUTE_ANNUAL_RATE,
 
     fits = []
     
-    fmd = feature_data['fmd']
+    fmd = feature_data[PARAMETER_FMD_NAME]
     parameters = feature_data['parameters']
     
     if fmd is None:
@@ -169,17 +171,17 @@ def plotRecurrence(cls, feature, feature_data=None, title=''):
     distrodata = numpy.vstack((distrodata_min, distrodata_max[1, :]))
 
     fits = []
-    if feature_data['fmd'].GR['fit'] is not None:
+    if feature_data[PARAMETER_FMD_NAME].GR['fit'] is not None:
         activity_ml_arr = numpy.vstack((
-            feature_data['fmd'].GR['mag_fit'], 
-            feature_data['fmd'].GR['fit'] / cls.catalog_time_span[0]))
+            feature_data[PARAMETER_FMD_NAME].GR['mag_fit'], 
+            feature_data[PARAMETER_FMD_NAME].GR['fit'] / cls.catalog_time_span[0]))
         fits.append({'data': activity_ml_arr, 'label': "FBZ (ML)"})
         
     # scale EQ rates per year
     fmd = numpy.vstack((
-            feature_data['fmd'].fmd[0, :], 
-            feature_data['fmd'].fmd[1, :] / cls.catalog_time_span[0],
-            feature_data['fmd'].fmd[2, :] / cls.catalog_time_span[0]))
+            feature_data[PARAMETER_FMD_NAME].fmd[0, :], 
+            feature_data[PARAMETER_FMD_NAME].fmd[1, :] / cls.catalog_time_span[0],
+            feature_data[PARAMETER_FMD_NAME].fmd[2, :] / cls.catalog_time_span[0]))
     
     # new recurrence FMD plot (returns figure)
     plot = qpplot.FMDPlotRecurrence()
@@ -187,7 +189,7 @@ def plotRecurrence(cls, feature, feature_data=None, title=''):
         fits=fits)
 
     if title == '':
-        title = feature_data['parameters']['plot_title_recurrence']
+        title = feature_data['parameters'][plots.PLOT_TITLE_RECURRENCE_NAME]
         
     canvas = plots.PlotCanvas(figure, title=title)
     canvas.draw()

@@ -124,13 +124,16 @@ def computeMaxLikelihoodAB(layer, layer_back, catalog, catalog_time_span,
     Input:
         catalog     QPCatalog that is already cut at min/max depth
         
-    Returns a list of 6-tuples:
-    (ml_a, ml_b, ml_mc, ml_magctr, mc_method, eq_count_fbz)
+    Returns a list of 7-tuples:
+    (ml_a, ml_b, ml_mc, ml_magctr, mc_method, eq_count_fbz, area_fbz_sqkm)
     """
     
     fts = layer.selectedFeatures()
     provider = layer.dataProvider()
     provider_fault_back = layer_back.dataProvider()
+    
+    area_fbz_sqkm_name = features.FAULT_SOURCE_ATTR_AREA_FBZ['name']
+    eq_count_fbz_name = features.FAULT_SOURCE_ATTR_EQ_CNT_FBZ['name']
     
     if ui_mode is False:
         print "\n=== Computing MaxLikelihoodAB for %s features ===" % len(fts)
@@ -166,7 +169,7 @@ def computeMaxLikelihoodAB(layer, layer_back, catalog, catalog_time_span,
             # is curved and at the edge of background zone.
             # TODO(fab): use GIS "within" function instead, but note that fault
             # zone can overlap several BG zones
-            (fbz, fbz_poly, parameters['area_fbz_sqkm']) = \
+            (fbz, fbz_poly, parameters[area_fbz_sqkm_name]) = \
                 utils.findBackgroundZone(fault_poly.centroid, 
                 provider_fault_back, ui_mode=ui_mode)
 
@@ -174,12 +177,15 @@ def computeMaxLikelihoodAB(layer, layer_back, catalog, catalog_time_span,
             fbz_cat = QPCatalog.QPCatalog()
             fbz_cat.merge(catalog)
             fbz_cat.cut(geometry=fbz_poly)
-            parameters['eq_count_fbz'] = fbz_cat.size()
+            parameters[eq_count_fbz_name] = fbz_cat.size()
 
             ## Maximum likelihood a/b values
-            if parameters['eq_count_fbz'] == 0:
-                parameters['fmd'] = None
+            if parameters[eq_count_fbz_name] == 0:
+                parameters[fmd.PARAMETER_FMD_NAME] = None
                 attribute_list = getEmptyMaxLikelihoodABAttributeList()
+                
+                # set correct area
+                attribute_list[-1] = parameters[area_fbz_sqkm_name]
                     
                 error_msg = "FSZ, max likelihood AB: no EQs in zone with "\
                     "ID %s" % (feature.id())
@@ -192,11 +198,13 @@ def computeMaxLikelihoodAB(layer, layer_back, catalog, catalog_time_span,
             else:
                 
                 # FMD from quakes in FBZ
-                parameters['fmd'] = fmd.computeZoneFMD(feature, fbz_cat, 
-                    catalog_time_span, mc_method, mc)
-                attribute_list = list(fmd.getFMDValues(parameters['fmd']))
-                attribute_list.append(parameters['eq_count_fbz'])
-
+                parameters[fmd.PARAMETER_FMD_NAME] = fmd.computeZoneFMD(
+                    feature, fbz_cat, catalog_time_span, mc_method, mc)
+                attribute_list = list(fmd.getFMDValues(
+                    parameters[fmd.PARAMETER_FMD_NAME]))
+                attribute_list.append(parameters[eq_count_fbz_name])
+                attribute_list.append(parameters[area_fbz_sqkm_name])
+                
                 if ui_mode is False:
                     print "FSZ (id %s), FMD: %s" % (feature.id(), 
                         str(attribute_list))
@@ -212,15 +220,31 @@ def computeMomentRate(layer, catalog, catalog_time_span, ui_mode=True):
     Input:
         catalog     QPCatalog that is already cut at min/max depth
     
-    Returns a list of 5-tuples:
-    (mr_eq, mr_activity_str, mr_activity_fbz_at_str, mr_slip_min, mr_slip_max)
+    Returns a list of 7-tuples:
+    (mr_eq, mr_activity_str, mr_activity_fbz_at_str, mr_slip_min, mr_slip_max,
+        eq_count_bz, area_bz_sqkm)
     """
     
     fts = layer.selectedFeatures()
-    
-    # get attribute index of AtticIvy result
-    provider = layer.dataProvider()
 
+    act_buf_a_name = features.FAULT_SOURCE_ATTR_ACT_BUF_A['name']
+    act_buf_b_name = features.FAULT_SOURCE_ATTR_ACT_BUF_B['name']
+    
+    afbz_at_a_name = features.FAULT_SOURCE_ATTR_ACT_FBZ_AT_A['name']
+    afbz_at_b_name = features.FAULT_SOURCE_ATTR_ACT_FBZ_AT_B['name']
+    
+    mr_eq_name = features.FAULT_SOURCE_ATTR_MR_EQ['name']
+    mr_act_buf_name = features.FAULT_SOURCE_ATTR_MR_ACTIVITY_BUF['name']
+    mr_act_fbz_name = features.FAULT_SOURCE_ATTR_MR_ACTIVITY_FBZ['name']
+    
+    sliprate_min_name = features.FAULT_SOURCE_ATTR_SLIPRATE_MIN['name']
+    sliprate_max_name = features.FAULT_SOURCE_ATTR_SLIPRATE_MAX['name']
+    mmax_bg_name = features.FAULT_SOURCE_ATTR_MMAX_BG['name']
+    
+    area_bz_sqkm_name = features.FAULT_SOURCE_ATTR_AREA_BZ['name']
+    eq_count_bz_name = features.FAULT_SOURCE_ATTR_EQ_CNT_BZ['name']
+    area_fault_sqkm_name = features.FAULT_SOURCE_ATTR_AREA_FAULT['name']
+    
     if ui_mode is False:
         print "\n=== Computing moment rate for %s features ===" % len(fts)
         
@@ -251,13 +275,13 @@ def computeMomentRate(layer, catalog, catalog_time_span, ui_mode=True):
 
         if brokenZone is False:
             recurrence_attributes = attributes.getAttributesFromRecurrence(
-                provider, feature, ui_mode=ui_mode)
+                layer, feature, ui_mode=ui_mode)
             
             if recurrence_attributes is not None:
                 parameters.update(recurrence_attributes)
             else:
                 error_msg = "FSZ (id %s): error reading already computed "\
-                        "attribute values" % feature.id()
+                    "attribute values" % feature.id()
                 if ui_mode is True:
                     QMessageBox.warning(None, "FSZ Warning", error_msg)
                 else:
@@ -268,13 +292,22 @@ def computeMomentRate(layer, catalog, catalog_time_span, ui_mode=True):
 
         if brokenZone is False:
             # fault zone polygon area in square kilometres
-            parameters['area_fault_sqkm'] = utils.polygonAreaFromWGS84(
+            parameters[area_fault_sqkm_name] = utils.polygonAreaFromWGS84(
                 fault_poly) * 1.0e-6
             
             # get buffer zone around fault zone (convert buffer distance to degrees)
-            (bz_poly, parameters['area_bz_sqkm']) = utils.computeBufferZone(
+            (bz_poly, parameters[area_bz_sqkm_name]) = utils.computeBufferZone(
                 fault_poly, momentrate.BUFFER_AROUND_FAULT_ZONE_KM)
-
+    
+            attribute_list = [features.FAULT_SOURCE_ATTR_MMAX_BG,
+                features.FAULT_SOURCE_ATTR_SLIPRATE_MIN,
+                features.FAULT_SOURCE_ATTR_SLIPRATE_MAX]
+                
+            # get missing attribute values from layer
+            parameters_new = attributes.getAttributesFromFeature(layer, 
+                feature, attribute_list)
+            parameters.update(parameters_new)
+            
             ## moment rate from EQs
 
             # get quakes from catalog (cut with buffer zone polygon)
@@ -282,7 +315,7 @@ def computeMomentRate(layer, catalog, catalog_time_span, ui_mode=True):
             bz_cat.merge(catalog)
             bz_cat.cut(geometry=bz_poly)
             
-            parameters['eq_count_bz'] = bz_cat.size()
+            parameters[eq_count_bz_name] = bz_cat.size()
             
             # sum up moment from quakes (converted from Mw with Kanamori eq.)
             # use quakes in buffer zone
@@ -294,43 +327,43 @@ def computeMomentRate(layer, catalog, catalog_time_span, ui_mode=True):
             moment = numpy.array(momentrate.magnitude2moment(magnitudes))
 
             # scale moment: per year and area (in km^2)
-            parameters['mr_eq'] = moment.sum() / (
-                parameters['area_bz_sqkm'] * catalog_time_span)
+            parameters[mr_eq_name] = moment.sum() / (
+                parameters[area_bz_sqkm_name] * catalog_time_span)
             
             ## moment rate from activity (RM)
 
             # moment rates from activity: use a and b values from buffer zone
             
-            act_bz_arr_a = parameters['activity_bz_act_a'].strip().split()
-            act_bz_arr_b = parameters['activity_bz_act_b'].strip().split()
+            act_bz_arr_a = parameters[act_buf_a_name].strip().split()
+            act_bz_arr_b = parameters[act_buf_b_name].strip().split()
             
             a_bz_arr = [float(x) for x in act_bz_arr_a]
             b_bz_arr = [float(x) for x in act_bz_arr_b]
             
             a_values = a_bz_arr
             momentrates_arr = numpy.array(momentrate.momentrateFromActivity(
-                a_values, b_bz_arr, parameters['mmax_bg'])) / catalog_time_span
+                a_values, b_bz_arr, parameters[mmax_bg_name])) / catalog_time_span
 
-            parameters['mr_activity'] = momentrates_arr.tolist()
-            parameters['mr_activity_str'] = ' '.join(
-                ["%.3e" % (x) for x in parameters['mr_activity']])
+            parameters['mr_act_list'] = momentrates_arr.tolist()
+            parameters[mr_act_buf_name] = ' '.join(
+                ["%.3e" % (x) for x in parameters['mr_act_list']])
                 
             # moment rates from activity: use a and b values from FBZ 
             # (above threshold)
 
-            act_fbz_at_arr_a = parameters['activity_fbz_at_act_a'].strip().split()
-            act_fbz_at_arr_b = parameters['activity_fbz_at_act_b'].strip().split()
+            act_fbz_at_arr_a = parameters[afbz_at_a_name].strip().split()
+            act_fbz_at_arr_b = parameters[afbz_at_b_name].strip().split()
             
             a_fbz_at_arr = [float(x) for x in act_fbz_at_arr_a]
             b_fbz_at_arr = [float(x) for x in act_fbz_at_arr_b]
             
             a_values = a_fbz_at_arr
             momentrates_fbz_at_arr = numpy.array(momentrate.momentrateFromActivity(
-                a_values, b_fbz_at_arr, parameters['mmax_bg'])) / catalog_time_span
+                a_values, b_fbz_at_arr, parameters[mmax_bg_name])) / catalog_time_span
 
-            parameters['mr_activity_fbz_at'] = momentrates_fbz_at_arr.tolist()
-            parameters['mr_activity_fbz_at_str'] = ' '.join(
-                ["%.3e" % (x) for x in parameters['mr_activity_fbz_at']])
+            parameters['mr_act_fbz_at_list'] = momentrates_fbz_at_arr.tolist()
+            parameters[mr_act_fbz_name] = ' '.join(
+                ["%.3e" % (x) for x in parameters['mr_act_fbz_at_list']])
             
             #parameters['activity_m_threshold'] = m_threshold
             
@@ -338,9 +371,9 @@ def computeMomentRate(layer, catalog, catalog_time_span, ui_mode=True):
 
             # TODO(fab): check correct scaling of moment rate from slip rate
             (moment_rate_min, moment_rate_max) = \
-                momentrate.momentrateFromSlipRate(parameters['sliprate_min'], 
-                    parameters['sliprate_max'], 
-                    parameters['area_fault_sqkm'] * 1.0e6)
+                momentrate.momentrateFromSlipRate(parameters[sliprate_min_name], 
+                    parameters[sliprate_max_name], 
+                    parameters[area_fault_sqkm_name] * 1.0e6)
 
             #parameters['mr_slip'] = [moment_rate_min, moment_rate_max]
             
@@ -348,11 +381,14 @@ def computeMomentRate(layer, catalog, catalog_time_span, ui_mode=True):
             
             attribute_list = []
             attribute_list.extend([
-                float(parameters['mr_eq']),
-                str(parameters['mr_activity_str']),
-                str(parameters['mr_activity_fbz_at_str']),
+                float(parameters[mr_eq_name]),
+                str(parameters[mr_act_buf_name]),
+                str(parameters[mr_act_fbz_name]),
                 float(moment_rate_min),
-                float(moment_rate_max)])
+                float(moment_rate_max),
+                int(parameters[eq_count_bz_name]),
+                float(parameters[area_bz_sqkm_name]),
+                float(parameters[area_fault_sqkm_name])])
 
         result_values.append(attribute_list)
         out_parameters.append(parameters)
@@ -382,8 +418,11 @@ def getEmptyMaxLikelihoodABAttributeList():
     # mcmethod
     attribute_list.append(qpfmd.DEFAULT_MC_METHOD)
     
-    # eq_count
+    # eq_count_fbz
     attribute_list.append(attributes.EMPTY_INTEGER_ATTR)
+    
+    # area_fbz_sqkm
+    attribute_list.append(attributes.EMPTY_REAL_ATTR)
     
     return attribute_list
                 
@@ -405,6 +444,15 @@ def getEmptyMomentRateAttributeList():
     attribute_list.append(attributes.EMPTY_REAL_ATTR)
     
     # moment_rate_max
+    attribute_list.append(attributes.EMPTY_REAL_ATTR)
+    
+    # eq_count_bz
+    attribute_list.append(attributes.EMPTY_INTEGER_ATTR)
+    
+    # area_bz_sqkm
+    attribute_list.append(attributes.EMPTY_REAL_ATTR)
+    
+    # area_fault_sqkm
     attribute_list.append(attributes.EMPTY_REAL_ATTR)
     
     return attribute_list
