@@ -37,6 +37,7 @@ import qpfmd
 from mt_seismicsource import attributes
 from mt_seismicsource import engine
 from mt_seismicsource import features
+from mt_seismicsource import plots
 from mt_seismicsource import utils
 
 from mt_seismicsource.algorithms import atticivy
@@ -299,6 +300,9 @@ def computeMomentRate(layer, catalog, catalog_time_span, ui_mode=True):
             (bz_poly, parameters[area_bz_sqkm_name]) = utils.computeBufferZone(
                 fault_poly, momentrate.BUFFER_AROUND_FAULT_ZONE_KM)
     
+            # TODO(fab): plot name from ID, name
+            parameters[plots.PLOT_TITLE_RECURRENCE_NAME] = "Recurrence"
+            
             attribute_list = [features.FAULT_SOURCE_ATTR_MMAX_BG,
                 features.FAULT_SOURCE_ATTR_SLIPRATE_MIN,
                 features.FAULT_SOURCE_ATTR_SLIPRATE_MAX]

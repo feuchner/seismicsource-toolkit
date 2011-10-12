@@ -29,11 +29,14 @@ import numpy
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+import QPCatalog
+
 from mt_seismicsource import features
 from mt_seismicsource import plots
 from mt_seismicsource import utils
 
 from mt_seismicsource.algorithms import atticivy
+from mt_seismicsource.algorithms import momentrate
 
 EMPTY_STRING_ATTR = ''
 EMPTY_REAL_ATTR = float(numpy.nan)
@@ -60,27 +63,107 @@ def getNonAttributesFromASZ(layer, feature):
         
     return parameters
 
-def getAttributesFromFSZ(parameters, layer, feature):
-    """Get attribute values from selected feature in FSZ.""" 
+def getAttributesFromFSZ(parameters, layer, layer_fault_back, feature, 
+    catalog=None, ui_mode=True):
+    """Get attribute values from selected feature in FSZ.
+    
+    catalog: catalog already filtered with depth constraints
+    """ 
     
     parameters_new = getAttributesFromFeature(layer, feature, 
         features.FAULT_SOURCE_ATTRIBUTES_RECURRENCE)
     
     parameters.update(parameters_new)
-    parameters.update(getNonAttributesFromFSZ(layer, feature))
+    parameters.update(getNonAttributesFromFSZ(layer, layer_fault_back, 
+        feature, catalog, ui_mode=ui_mode))
     
     return parameters
 
-def getNonAttributesFromFSZ(layer, feature):
+def getNonAttributesFromFSZ(layer, layer_fault_back, feature, catalog=None,
+    ui_mode=True):
     """Get feature attributes that are not set in layer's attribute table.
     These have to be re-evaluated if a feature is only viewed, not computed.
+    
+    catalog: catalog already filtered with depth constraints
     """
     
     parameters = {
         atticivy.ATTICIVY_MMIN_KEY_NAME: atticivy.ATTICIVY_MMIN}
     
+    parameters_new = getZoneAreaEQCount(layer, layer_fault_back, feature, 
+        catalog, ui_mode=ui_mode)
+    parameters.update(parameters_new)
+    
     return parameters
 
+def getZoneAreaEQCount(layer, layer_fault_back, feature, catalog=None, 
+    ui_mode=True):
+    """Evaluate zone area and EQ count within buffer and fault background
+    zone for given FSZ.
+    
+    catalog: catalog already filtered with depth constraints
+    """
+    
+    parameters = {}
+    brokenZone = False
+    
+    area_fbz_sqkm_name = features.FAULT_SOURCE_ATTR_AREA_FBZ['name']
+    eq_count_fbz_name = features.FAULT_SOURCE_ATTR_EQ_CNT_FBZ['name']
+    
+    area_bz_sqkm_name = features.FAULT_SOURCE_ATTR_AREA_BZ['name']
+    eq_count_bz_name = features.FAULT_SOURCE_ATTR_EQ_CNT_BZ['name']
+    area_fault_sqkm_name = features.FAULT_SOURCE_ATTR_AREA_FAULT['name']
+    
+    # get Shapely polygon from feature geometry
+    polylist, vertices = utils.polygonsQGS2Shapely((feature,))
+        
+    try:
+        fault_poly = polylist[0]
+    except IndexError:
+        error_msg = "FSZ attributes, invalid FSZ geometry, id %s" % (
+            feature.id())
+        if ui_mode is True:
+            QMessageBox.warning(None, "FSZ Warning", error_msg)
+        else:
+            print error_msg
+            
+        brokenZone = True
+            
+    if brokenZone is False:
+        
+        # fault zone polygon area in square kilometres
+        parameters[area_fault_sqkm_name] = utils.polygonAreaFromWGS84(
+            fault_poly) * 1.0e-6
+        
+        # get buffer zone around fault zone (convert buffer distance to degrees)
+        (bz_poly, parameters[area_bz_sqkm_name]) = utils.computeBufferZone(
+            fault_poly, momentrate.BUFFER_AROUND_FAULT_ZONE_KM)
+
+        # get fault background zone in which fault falls
+        # NOTE: this method can yield a wrong FBZ, to be improved
+        # see comment in fsz module
+        provider_fault_back = layer_fault_back.dataProvider()
+        (fbz, fbz_poly, parameters[area_fbz_sqkm_name]) = \
+            utils.findBackgroundZone(fault_poly.centroid, provider_fault_back,
+            ui_mode=ui_mode)
+
+        if catalog is not None:
+            
+            # get quakes from catalog (cut with fault background polygon)
+            fbz_cat = QPCatalog.QPCatalog()
+            fbz_cat.merge(catalog)
+            fbz_cat.cut(geometry=fbz_poly)
+            parameters[eq_count_fbz_name] = fbz_cat.size()
+            
+            # get quakes from catalog (cut with buffer zone polygon)
+            bz_cat = QPCatalog.QPCatalog()
+            bz_cat.merge(catalog)
+            bz_cat.cut(geometry=bz_poly)
+            parameters[eq_count_bz_name] = bz_cat.size()
+            
+    return parameters
+    
+    
 def getAttributesFromFBZ(parameters, layer, feature):
     """Get attribute values from selected feature in FBZ.""" 
     

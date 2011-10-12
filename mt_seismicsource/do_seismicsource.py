@@ -39,6 +39,7 @@ import qpfmd
 import qpplot
 
 from mt_seismicsource import attributes
+from mt_seismicsource import engine
 from mt_seismicsource import data
 from mt_seismicsource import display
 from mt_seismicsource import features
@@ -303,9 +304,15 @@ class SeismicSource(QDialog, Ui_SeismicSource):
         # update zone ID display
         selected_feature = self.fault_source_layer.selectedFeatures()[0]
         
+        (mindepth, maxdepth) = eqcatalog.getMinMaxDepth(self)
+        
+        (cat_depthcut, catalog_time_span) = engine.prepareEQCatalog(
+            self.catalog, self.catalog_time_span[0], mindepth, maxdepth)
+            
         attributes.getAttributesFromFSZ(
             self.feature_data_fault_source['parameters'], 
-            self.fault_source_layer, selected_feature)
+            self.fault_source_layer, self.fault_background_layer, 
+            selected_feature, cat_depthcut, ui_mode=True)
         
         # QMessageBox.warning(None, "par", str(self.feature_data_fault_source['parameters']))
         
